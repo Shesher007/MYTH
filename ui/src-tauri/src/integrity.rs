@@ -1,0 +1,103 @@
+// MYTH Desktop — Runtime Integrity Check (Feature 2)
+// Verifies application file hashes on startup to detect tampering.
+
+use sha2::{Sha256, Digest};
+use std::collections::HashMap;
+use std::fs;
+use std::path::PathBuf;
+use tauri::{AppHandle, Manager};
+use log::warn;
+
+/// Embedded baseline hashes for critical files (populated at build time / first-run)
+/// In production, these would be baked into the binary during CI/CD.
+const INTEGRITY_MANIFEST: &str = "integrity_manifest.json";
+
+/// Check integrity of critical application files
+pub fn verify_integrity(app: &AppHandle) -> Result<bool, String> {
+    let resource_dir = app.path().resource_dir()
+        .map_err(|e| format!("Cannot resolve resource dir: {}", e))?;
+
+    let manifest_path = resource_dir.join(INTEGRITY_MANIFEST);
+
+    // If no manifest exists (dev mode or first run), skip check
+    if !manifest_path.exists() {
+        return Err("No integrity manifest found (dev mode)".to_string());
+    }
+
+    let manifest_data = fs::read_to_string(&manifest_path)
+        .map_err(|e| format!("Failed to read integrity manifest: {}", e))?;
+
+    let expected_hashes: HashMap<String, String> = serde_json::from_str(&manifest_data)
+        .map_err(|e| format!("Failed to parse integrity manifest: {}", e))?;
+
+    for (file_path, expected_hash) in &expected_hashes {
+        let full_path = resource_dir.join(file_path);
+        if !full_path.exists() {
+            warn!("⚠️ [INTEGRITY] Missing file: {}", file_path);
+            continue;
+        }
+
+        let actual_hash = compute_file_hash(&full_path)?;
+        if &actual_hash != expected_hash {
+            log::error!(
+                "🚨 [INTEGRITY] Hash mismatch for {}: expected {}, got {}",
+                file_path, expected_hash, actual_hash
+            );
+            return Ok(false);
+        }
+    }
+
+    Ok(true)
+}
+
+/// Compute SHA-256 hash of a file
+fn compute_file_hash(path: &PathBuf) -> Result<String, String> {
+    let data = fs::read(path)
+        .map_err(|e| format!("Failed to read {}: {}", path.display(), e))?;
+
+    let mut hasher = Sha256::new();
+    hasher.update(&data);
+    let result = hasher.finalize();
+
+    Ok(format!("{:x}", result))
+}
+
+/// Tauri IPC command: Generate integrity manifest for CI/CD builds
+#[tauri::command]
+pub fn generate_integrity_manifest(app: AppHandle) -> Result<serde_json::Value, String> {
+    let resource_dir = app.path().resource_dir()
+        .map_err(|e| format!("Cannot resolve resource dir: {}", e))?;
+
+    let critical_files = ["myth-backend", "index.html", "assets"];
+    let mut hashes = HashMap::new();
+
+    for file in &critical_files {
+        let path = resource_dir.join(file);
+        if path.exists() {
+            let hash = compute_file_hash(&path)?;
+            hashes.insert(file.to_string(), hash);
+        }
+    }
+
+    Ok(serde_json::json!({
+        "manifest": hashes,
+        "generated_at": chrono::Local::now().to_rfc3339(),
+        "resource_dir": resource_dir.display().to_string()
+    }))
+}
+
+/// Tauri IPC command: Check integrity from frontend
+#[tauri::command]
+pub fn check_integrity(app: AppHandle) -> Result<serde_json::Value, String> {
+    match verify_integrity(&app) {
+        Ok(valid) => Ok(serde_json::json!({
+            "valid": valid,
+            "message": if valid { "All integrity checks passed" } else { "Integrity check failed — application may be corrupted" }
+        })),
+        Err(e) => Ok(serde_json::json!({
+            "valid": true,
+            "message": format!("Integrity check skipped: {}", e),
+            "skipped": true
+        }))
+    }
+}

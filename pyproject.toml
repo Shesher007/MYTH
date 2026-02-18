@@ -1,0 +1,131 @@
+[project]
+name = "myth"
+version = "1.1.1"
+description = "High-Performance Offensive Intelligence Engine"
+authors = [
+    { name = "Shesher Hasan", email = "shesher0007@gmail.com" }
+]
+license = { text = "Proprietary" }
+readme = "readme.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "httpx-sse",
+    "langchain>=0.1.0",
+    "langgraph>=0.0.30",
+    "langchain-core",
+    "langchain-community",
+    "langchain-openai",
+    "langchain-nvidia-ai-endpoints",
+    "langchain-mistralai",
+    "langchain-text-splitters",
+    "psutil",
+    "python-dotenv",
+    "pydantic>=2.0.0",
+    "pydantic-settings",
+    "pyyaml",
+    "python-multipart",
+    "sse-starlette",
+    "tldextract",
+    "tenacity",
+    "sentence-transformers",
+    "aiofiles",
+    "beartype",
+    "loguru",
+    "rich",
+    "nest-asyncio",
+    "backoff",
+    "mcp",
+    "fastmcp",
+    "langchain-mcp-adapters",
+    "capstone",
+    "ropper",
+    "markdownify",
+    "orjson",
+    "coloredlogs",
+    "colorama",
+    "watchdog",
+    "jinja2",
+    "tomli",
+]
+
+[project.optional-dependencies]
+recon = [
+    "shodan",
+    "python-whois",
+    "python-nmap",
+    "playwright",
+    "playwright-stealth",
+    "scapy",
+    "nmapthon2",
+    "duckduckgo-search",
+    "beautifulsoup4",
+    "requests"
+]
+forensics = [
+    "pypdfium2",
+    "pdfplumber",
+    "pypdf",
+    "pdfminer-six",
+    "py7zr",
+    "rarfile",
+    "patool",
+    "pycryptodome",
+    "pycryptodomex",
+    "stegano",
+    "stepic",
+    "exifread",
+    "imagehash",
+    "pillow",
+    "python-magic",
+    "pefile",
+    "lief",
+    "pyelftools"
+]
+intelligence = [
+    "tavily-python",
+    "wikipedia",
+    "google-search-results"
+]
+rag = [
+    "qdrant-client",
+    "langchain-qdrant",
+    "unstructured",
+    "unstructured-client",
+    "pandas",
+    "openpyxl",
+    "xlsxwriter",
+    "lxml",
+    "nltk"
+]
+audio = [
+    "google-generativeai"
+]
+ml = [
+    "torch",
+    "transformers",
+    "torchvision",
+    "torchaudio",
+    "accelerate",
+    "bitsandbytes",
+    "diffusers",
+    "safetensors",
+    "scikit-learn",
+    "scikit-image",
+    "numpy",
+    "scipy"
+]
+build = [
+    "pyinstaller>=6.0",
+    "pyinstaller-hooks-contrib",
+]
+
+[tool.uv]
+managed = true
+package = false
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

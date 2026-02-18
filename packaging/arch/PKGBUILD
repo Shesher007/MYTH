@@ -1,0 +1,15 @@
+# Maintainer: Shesher Hasan <shesher0007@gmail.com>
+pkgname=myth-bin
+pkgver=1.1.1
+pkgrel=1
+pkgdesc="Industrial-Grade Sovereign Security Agent"
+arch=('x86_64')
+url="{{REPO_URL}}"
+license=('MIT')
+depends=('webkit2gtk' 'gtk3' 'libappindicator-gtk3' 'openssl')
+source=("{{REPO_URL}}/releases/download/v${pkgver}/myth_${pkgver}_amd64.deb")
+sha256sums=('SKIP')
+
+package() {
+	tar -x -f data.tar.zst -C "${pkgdir}"
+}

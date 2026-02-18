@@ -1,0 +1,22 @@
+{
+    "manifest_version": 3,
+    "name": "{{NAME}}",
+    "short_name": "{{NAME}}",
+    "version": "{{VERSION}}",
+    "description": "{{DESCRIPTION}}",
+    "start_url": ".",
+    "action": {
+        "default_popup": "index.html",
+        "default_icon": "icon.png"
+    },
+    "icons": {
+        "128": "icon.png"
+    },
+    "permissions": [
+        "storage",
+        "notifications"
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+}

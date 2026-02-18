@@ -1,0 +1,30 @@
+# {{NAME}} Desktop — OpenBSD Package Build (Binary)
+# Install: pkg_add {{NAME_LOWER}}
+
+COMMENT =       {{FULL_NAME}} — AI Cybersecurity Agent (Binary)
+
+V =             1.1.1
+DISTNAME =      {{NAME_LOWER}}-${V}
+
+CATEGORIES =    security net
+
+HOMEPAGE =      https://github.com/Start-{{NAME}}/{{NAME}}
+
+MAINTAINER =    admin@{{NAME_LOWER}}-tools.com
+
+# Proprietary
+PERMIT_PACKAGE =        Yes
+
+MASTER_SITES =  https://github.com/Start-{{NAME}}/{{NAME}}/releases/download/v${V}/
+DISTFILES =     MYTH_openbsd_x64
+
+RUN_DEPENDS =   lang/python/3 \
+                www/webkit2gtk4
+
+NO_BUILD =      Yes
+
+do-install:
+	${INSTALL_PROGRAM} ${DISTDIR}/MYTH_openbsd_x64 \
+		${PREFIX}/bin/{{NAME}}
+
+.include <bsd.port.mk>

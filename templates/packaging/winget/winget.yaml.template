@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.singleton.1.4.0.schema.json
+PackageIdentifier: {{NAME}}.Desktop
+PackageVersion: {{VERSION}}
+PackageLocale: en-US
+Publisher: {{AUTHOR}}
+PublisherUrl: {{REPO_URL}}
+PublisherSupportUrl: {{REPO_URL}}/issues
+Author: {{AUTHOR}}
+PackageName: {{NAME}}
+PackageUrl: {{REPO_URL}}
+License: {{LICENSE}}
+LicenseUrl: {{REPO_URL}}/blob/main/LICENSE
+Copyright: Copyright (c) 2026 {{AUTHOR}}
+ShortDescription: {{SHORT_DESCRIPTION}}
+Description: |
+  {{DESCRIPTION}}
+Tags:
+  - security
+  - pentesting
+  - ai
+  - hacking
+  - offensive-security
+ReleaseNotes: "Stable Release v{{VERSION}}"
+ReleaseNotesUrl: {{REPO_URL}}/releases/tag/v{{VERSION}}
+Installers:
+  - Architecture: x64
+    InstallerUrl: {{REPO_URL}}/releases/download/v{{VERSION}}/{{NAME}}_{{VERSION}}_x64_en-US.msi
+    InstallerSha256: <SHA256_HASH_HERE>
+    InstallerType: msi
+    Scope: machine
+    ProductCode: "{YOUR-GUID-HERE}"
+    UpgradeBehavior: install
+ManifestType: singleton
+ManifestVersion: 1.4.0

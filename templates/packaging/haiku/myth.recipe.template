@@ -1,0 +1,38 @@
+SUMMARY="{{SHORT_DESCRIPTION}}"
+DESCRIPTION="{{DESCRIPTION}}"
+HOMEPAGE="{{HOMEPAGE}}"
+COPYRIGHT="2024-2025 {{AUTHOR}}"
+LICENSE="{{LICENSE}}"
+REVISION="1"
+SOURCE_URI="{{REPO_URL}}/archive/v{{VERSION}}.tar.gz"
+CHECKSUM_SHA256="00000000000000000000000000000000000000000000000"
+
+ARCHITECTURES="x86_64"
+
+PROVIDES="
+	{{NAME_LOWER}} = $portVersion
+	cmd:{{NAME_LOWER}} = $portVersion
+	"
+REQUIRES="
+	haiku
+	lib:libwebkit2_4.0
+	"
+
+BUILD_REQUIRES="
+	haiku_devel
+	cmd:cargo
+	cmd:npm
+	"
+
+BUILD()
+{
+	cd ui
+	npm install
+	npm run tauri build
+}
+
+INSTALL()
+{
+	mkdir -p $binDir
+	cp ui/src-tauri/target/release/{{NAME_LOWER}} $binDir
+}

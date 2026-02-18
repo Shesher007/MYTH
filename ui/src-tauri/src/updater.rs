@@ -1,0 +1,192 @@
+// MYTH Desktop — Update & Recovery System (Features 5-8)
+// Silent auto-updater, minimum version enforcement, maintenance mode.
+
+use serde::Deserialize;
+use log::{info, warn};
+
+/// Update server endpoints
+const UPDATE_CHECK_URL: &str = "https://releases.myth.github.io/myth/update-check";
+const MAINTENANCE_URL: &str = "https://releases.myth.github.io/myth/maintenance";
+
+/// Server response for version enforcement
+#[derive(Debug, Deserialize)]
+struct VersionCheckResponse {
+    minimum_version: String,
+    latest_version: String,
+    force_update: bool,
+    update_url: Option<String>,
+    changelog: Option<String>,
+}
+
+/// Server response for maintenance mode
+#[derive(Debug, Deserialize)]
+struct MaintenanceResponse {
+    maintenance: bool,
+    message: Option<String>,
+    estimated_end: Option<String>,
+}
+
+/// Compare semantic versions (returns true if v1 >= v2)
+fn version_gte(v1: &str, v2: &str) -> bool {
+    let parse = |v: &str| -> Vec<u32> {
+        v.split('.')
+            .filter_map(|s| s.parse().ok())
+            .collect()
+    };
+
+    let a = parse(v1);
+    let b = parse(v2);
+
+    for i in 0..a.len().max(b.len()) {
+        let va = a.get(i).copied().unwrap_or(0);
+        let vb = b.get(i).copied().unwrap_or(0);
+        if va > vb {
+            return true;
+        }
+        if va < vb {
+            return false;
+        }
+    }
+    true // Equal
+}
+
+/// Tauri IPC: Check for available updates (Feature 5)
+#[tauri::command]
+pub async fn check_for_updates() -> Result<serde_json::Value, String> {
+    let current = env!("CARGO_PKG_VERSION");
+
+    info!("🔄 [UPDATER] Checking for updates (current: v{})...", current);
+
+    let client = reqwest::Client::new();
+    match client
+        .get(UPDATE_CHECK_URL)
+        .query(&[("version", current), ("platform", std::env::consts::OS)])
+        .timeout(std::time::Duration::from_secs(15))
+        .send()
+        .await
+    {
+        Ok(resp) => {
+            if resp.status().is_success() {
+                match resp.json::<VersionCheckResponse>().await {
+                    Ok(data) => {
+                        let update_available = !version_gte(current, &data.latest_version);
+                        let force_update = data.force_update || !version_gte(current, &data.minimum_version);
+
+                        if update_available {
+                            info!("🆕 [UPDATER] Update available: v{} → v{}", current, data.latest_version);
+                        }
+
+                        Ok(serde_json::json!({
+                            "current_version": current,
+                            "latest_version": data.latest_version,
+                            "minimum_version": data.minimum_version,
+                            "update_available": update_available,
+                            "force_update": force_update,
+                            "update_url": data.update_url,
+                            "changelog": data.changelog
+                        }))
+                    }
+                    Err(e) => Ok(serde_json::json!({
+                        "current_version": current,
+                        "update_available": false,
+                        "error": format!("Parse error: {}", e)
+                    }))
+                }
+            } else {
+                Ok(serde_json::json!({
+                    "current_version": current,
+                    "update_available": false,
+                    "error": format!("Server returned {}", resp.status())
+                }))
+            }
+        }
+        Err(e) => {
+            warn!("⚠️ [UPDATER] Update check failed: {}", e);
+            Ok(serde_json::json!({
+                "current_version": current,
+                "update_available": false,
+                "offline": true,
+                "error": format!("Network error: {}", e)
+            }))
+        }
+    }
+}
+
+/// Tauri IPC: Check minimum version enforcement (Feature 6)
+#[tauri::command]
+pub async fn check_minimum_version() -> Result<serde_json::Value, String> {
+    let current = env!("CARGO_PKG_VERSION");
+
+    let client = reqwest::Client::new();
+    match client
+        .get(UPDATE_CHECK_URL)
+        .query(&[("version", current)])
+        .timeout(std::time::Duration::from_secs(10))
+        .send()
+        .await
+    {
+        Ok(resp) if resp.status().is_success() => {
+            match resp.json::<VersionCheckResponse>().await {
+                Ok(data) => {
+                    let meets_minimum = version_gte(current, &data.minimum_version);
+                    if !meets_minimum {
+                        warn!(
+                            "🚨 [UPDATER] Version {} is below minimum {} — forced update required",
+                            current, data.minimum_version
+                        );
+                    }
+                    Ok(serde_json::json!({
+                        "current_version": current,
+                        "minimum_version": data.minimum_version,
+                        "meets_minimum": meets_minimum,
+                        "message": if meets_minimum {
+                            "Version is current"
+                        } else {
+                            "Please update to continue"
+                        }
+                    }))
+                }
+                Err(_) => Ok(serde_json::json!({
+                    "meets_minimum": true,
+                    "message": "Could not verify — allowing offline access"
+                }))
+            }
+        }
+        _ => {
+            // If server unreachable, allow usage (grace period)
+            Ok(serde_json::json!({
+                "meets_minimum": true,
+                "message": "Server unreachable — allowing offline access"
+            }))
+        }
+    }
+}
+
+/// Tauri IPC: Check maintenance mode (Feature 7)
+#[tauri::command]
+pub async fn check_maintenance_mode() -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    match client
+        .get(MAINTENANCE_URL)
+        .timeout(std::time::Duration::from_secs(10))
+        .send()
+        .await
+    {
+        Ok(resp) if resp.status().is_success() => {
+            match resp.json::<MaintenanceResponse>().await {
+                Ok(data) => {
+                    if data.maintenance {
+                        warn!("🚧 [UPDATER] Maintenance mode active: {:?}", data.message);
+                    }
+                    Ok(serde_json::json!({
+                        "maintenance": data.maintenance,
+                        "message": data.message.unwrap_or_else(|| "System under maintenance".to_string()),
+                        "estimated_end": data.estimated_end
+                    }))
+                }
+                Err(_) => Ok(serde_json::json!({ "maintenance": false }))
+            }
+        }
+        _ => Ok(serde_json::json!({ "maintenance": false }))
+    }
+}

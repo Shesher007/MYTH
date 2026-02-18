@@ -1,0 +1,9 @@
+# {{NAME}} — Fedora COPR Build Configuration
+# Upstream: copr-cli create {{NAME_LOWER}} --chroot fedora-rawhide-x86_64 --chroot fedora-40-x86_64
+
+[main]
+enabled = 1
+name = {{NAME}} — {{SHORT_DESCRIPTION}}
+baseurl = https://copr-be.cloud.fedoraproject.org/results/{{ORG_LOWER}}/{{NAME_LOWER}}/fedora-$releasever-$basearch/
+gpgcheck = 1
+gpgkey = https://copr-be.cloud.fedoraproject.org/results/{{ORG_LOWER}}/{{NAME_LOWER}}/pubkey.gpg

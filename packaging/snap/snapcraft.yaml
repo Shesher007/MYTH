@@ -1,0 +1,25 @@
+name: myth
+base: core22
+version: '1.1.1'
+summary: Industrial-Grade Sovereign Security Agent
+description: |
+  High-Performance Offensive Intelligence Engine
+grade: stable
+confinement: strict
+
+apps:
+  myth:
+    command: bin/myth
+    extensions: [gnome]
+    plugs:
+      - network
+      - home
+      - opengl
+
+parts:
+  myth:
+    plugin: dump
+    source: .
+    stage-packages:
+      - libwebkit2gtk-4.0-37
+      - libssl3

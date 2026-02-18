@@ -1,0 +1,51 @@
+// MYTH Desktop — Crash Recovery Banner (Feature 17)
+// Shown after abnormal shutdown to inform user that session memory was cleared.
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+export default function CrashRecoveryBanner({ info, onDismiss }) {
+    const [visible, setVisible] = useState(true);
+
+    // Auto-dismiss after 15 seconds
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setVisible(false);
+            onDismiss?.();
+        }, 15000);
+        return () => clearTimeout(timer);
+    }, [onDismiss]);
+
+    return (
+        <AnimatePresence>
+            {visible && (
+                <motion.div
+                    initial={{ opacity: 0, y: -40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -40 }}
+                    className="fixed top-0 left-0 right-0 z-[9995] bg-amber-950/80 backdrop-blur-sm border-b border-amber-700/30"
+                >
+                    <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <span className="text-amber-400 text-lg">⚠️</span>
+                            <div>
+                                <p className="text-amber-200 text-sm font-medium">
+                                    Previous session ended unexpectedly
+                                </p>
+                                <p className="text-amber-400/60 text-xs mt-0.5">
+                                    Temporary session memory was cleared. Your saved data is intact.
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => { setVisible(false); onDismiss?.(); }}
+                            className="text-amber-400/50 hover:text-amber-300 text-sm ml-4 shrink-0"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+}

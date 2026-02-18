@@ -1,0 +1,10 @@
+$packageName = '{{NAME_LOWER}}'
+$url64 = '{{REPO_URL}}/releases/download/v{{VERSION}}/MYTH_{{VERSION}}_x64-setup.exe'
+$silentArgs = '/S'
+
+Install-ChocolateyPackage -PackageName $packageName `
+                          -FileType 'exe' `
+                          -SilentArgs $silentArgs `
+                          -Url64bit $url64 `
+                          -Checksum64 '' `
+                          -ChecksumType64 'sha256'

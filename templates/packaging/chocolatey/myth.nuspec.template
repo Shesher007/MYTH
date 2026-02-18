@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>{{NAME_LOWER}}</id>
+    <version>{{VERSION}}</version>
+    <title>{{NAME}} (Desktop)</title>
+    <authors>{{AUTHOR}}</authors>
+    <projectUrl>{{HOMEPAGE}}</projectUrl>
+    <licenseUrl>{{REPO_URL}}/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>{{DESCRIPTION}}</description>
+    <summary>{{SHORT_DESCRIPTION}}</summary>
+    <tags>security pentesting ai hacking</tags>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

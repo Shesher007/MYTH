@@ -1,0 +1,24 @@
+# {{NAME}} Desktop — Arch AUR .SRCINFO
+# For yay/paru AUR helpers: yay -S {{NAME_LOWER}}-desktop
+# This file is auto-generated from PKGBUILD
+
+pkgbase = {{NAME_LOWER}}-desktop
+	pkgdesc = {{DESCRIPTION}}
+	pkgver = {{VERSION}}
+	pkgrel = 1
+	url = {{REPO_URL}}
+	arch = x86_64
+	license = {{LICENSE_CUSTOM}}
+	makedepends = cargo
+	makedepends = nodejs
+	makedepends = npm
+	makedepends = python-pip
+	depends = webkit2gtk-4.1
+	depends = openssl
+	depends = python
+	depends = gtk3
+	depends = libappindicator-gtk3
+	source = {{SOURCE_URL}}
+	sha256sums = SKIP
+
+pkgname = {{NAME_LOWER}}-desktop

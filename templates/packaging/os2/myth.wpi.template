@@ -1,0 +1,15 @@
+NAME={{NAME}} Desktop
+VERSION={{VERSION}}
+DESC={{DESCRIPTION}}
+VENDOR={{AUTHOR}}
+TARGET_DIR=C:\{{NAME}}
+
+FILE=bin\{{NAME_LOWER}}.exe
+FILE=bin\{{NAME_LOWER}}-backend.exe
+FILE=resources\icon.ico
+
+ICON=resources\icon.ico
+README=README.txt
+LICENSE=LICENSE.txt
+
+POST_INSTALL=execute bin\{{NAME_LOWER}}.exe --init

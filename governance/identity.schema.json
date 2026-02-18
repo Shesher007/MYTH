@@ -1,0 +1,292 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MYTH Identity Schema",
+    "description": "Formal specification for the MYTH project's Single Source of Truth manifest.",
+    "type": "object",
+    "required": [
+        "identity",
+        "organization",
+        "author",
+        "repository",
+        "license"
+    ],
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "identity": {
+            "type": "object",
+            "required": [
+                "name",
+                "codename",
+                "version",
+                "description",
+                "short_description"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9_-]+$"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "codename": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]+$"
+                },
+                "version": {
+                    "type": "string",
+                    "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "short_description": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
+        "organization": {
+            "type": "object",
+            "required": [
+                "name",
+                "reverse_domain"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "org_lower": {
+                    "type": "string"
+                },
+                "reverse_domain": {
+                    "type": "string",
+                    "pattern": "^[a-z]+\\.[a-z0-9-]+\\.[a-z0-9-]+$"
+                },
+                "homepage": {
+                    "type": "string",
+                    "format": "uri"
+                }
+            }
+        },
+        "author": {
+            "type": "object",
+            "required": [
+                "name",
+                "email"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email"
+                }
+            }
+        },
+        "repository": {
+            "type": "object",
+            "required": [
+                "url"
+            ],
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "issues_url": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "license_url": {
+                    "type": "string",
+                    "format": "uri"
+                }
+            }
+        },
+        "license": {
+            "type": "object",
+            "required": [
+                "spdx"
+            ],
+            "properties": {
+                "spdx": {
+                    "type": "string"
+                },
+                "custom": {
+                    "type": "string"
+                }
+            }
+        },
+        "release": {
+            "type": "object",
+            "properties": {
+                "channel": {
+                    "enum": [
+                        "stable",
+                        "beta",
+                        "alpha",
+                        "nightly"
+                    ]
+                },
+                "copyright_year": {
+                    "type": "string"
+                }
+            }
+        },
+        "security": {
+            "type": "object",
+            "properties": {
+                "policy_url": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pgp_fingerprint": {
+                    "type": "string"
+                }
+            }
+        },
+        "branding": {
+            "type": "object",
+            "properties": {
+                "primary_color": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "secondary_color": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "accent_color": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "logo": {
+                    "type": "string"
+                }
+            }
+        },
+        "ecosystem": {
+            "type": "object",
+            "properties": {
+                "bundle_id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9.-]+$"
+                },
+                "application_id": {
+                    "type": "string"
+                },
+                "docker_image": {
+                    "type": "string"
+                },
+                "npm_package": {
+                    "type": "string"
+                }
+            }
+        },
+        "social": {
+            "type": "object",
+            "properties": {
+                "discord": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "twitter": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "telegram": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "documentation": {
+                    "type": "string",
+                    "format": "uri"
+                }
+            }
+        },
+        "infrastructure": {
+            "type": "object",
+            "properties": {
+                "backend_port": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65535
+                },
+                "dev_server_port": {
+                    "type": "integer"
+                },
+                "timeout_short": {
+                    "type": "integer"
+                },
+                "timeout_medium": {
+                    "type": "integer"
+                },
+                "timeout_long": {
+                    "type": "integer"
+                }
+            }
+        },
+        "capabilities": {
+            "type": "object",
+            "properties": {
+                "rag_enabled": {
+                    "type": "boolean"
+                },
+                "web_search_enabled": {
+                    "type": "boolean"
+                },
+                "shell_access_enabled": {
+                    "type": "boolean"
+                },
+                "vpn_control_enabled": {
+                    "type": "boolean"
+                },
+                "vision_enabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "governance": {
+            "type": "object",
+            "properties": {
+                "license_label": {
+                    "type": "string"
+                },
+                "data_retention_policy": {
+                    "type": "string"
+                },
+                "pii_redaction": {
+                    "type": "boolean"
+                },
+                "audit_logging": {
+                    "type": "boolean"
+                },
+                "compliance_standards": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "legal_disclaimer": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

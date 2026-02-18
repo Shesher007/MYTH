@@ -1,0 +1,193 @@
+// MYTH Desktop — Crash Reporting & Recovery (Features 15-17)
+// Crash detection, report generation, and recovery notices.
+// Never uploads agent memory contents.
+
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::PathBuf;
+use tauri::AppHandle;
+use log::{info, warn};
+use chrono::Local;
+
+const SESSION_LOCK_FILE: &str = "session.lock";
+const CRASH_REPORT_FILE: &str = "last_crash.json";
+
+/// Crash report structure
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CrashReport {
+    pub timestamp: String,
+    pub app_version: String,
+    pub os: String,
+    pub os_version: String,
+    pub arch: String,
+    pub crash_type: String,
+    pub message: String,
+    pub session_id: Option<String>,
+    // NEVER includes agent memory or reasoning data
+}
+
+/// Get the crash data directory
+fn get_crash_dir() -> Result<PathBuf, String> {
+    let base = dirs::data_local_dir()
+        .ok_or_else(|| "Cannot resolve local data directory".to_string())?;
+    let dir = base.join("MYTH").join("crash");
+    fs::create_dir_all(&dir).map_err(|e| format!("Cannot create crash dir: {}", e))?;
+    Ok(dir)
+}
+
+/// Write a session lock file (Feature 17 — abnormal shutdown detection)
+pub fn write_session_lock(_app: &AppHandle) {
+    if let Ok(dir) = get_crash_dir() {
+        let lock_path = dir.join(SESSION_LOCK_FILE);
+        let lock_data = serde_json::json!({
+            "pid": std::process::id(),
+            "timestamp": Local::now().to_rfc3339(),
+            "version": env!("CARGO_PKG_VERSION"),
+        });
+
+        if let Err(e) = fs::write(&lock_path, lock_data.to_string()) {
+            warn!("⚠️ [CRASH] Failed to write session lock: {}", e);
+        }
+    }
+}
+
+/// Remove the session lock (clean shutdown)
+pub fn remove_session_lock() {
+    if let Ok(dir) = get_crash_dir() {
+        let lock_path = dir.join(SESSION_LOCK_FILE);
+        let _ = fs::remove_file(&lock_path);
+    }
+}
+
+/// Check for abnormal shutdown (Feature 17)
+/// Returns true if a session lock exists from a previous session (crash detected)
+pub fn check_abnormal_shutdown(_app: &AppHandle) -> bool {
+    if let Ok(dir) = get_crash_dir() {
+        let lock_path = dir.join(SESSION_LOCK_FILE);
+        if lock_path.exists() {
+            // Previous session did not clean up — abnormal shutdown
+            info!("⚠️ [CRASH] Abnormal shutdown detected (stale session lock found)");
+
+            // Archive it as a crash report
+            if let Ok(lock_data) = fs::read_to_string(&lock_path) {
+                let crash_report = CrashReport {
+                    timestamp: Local::now().to_rfc3339(),
+                    app_version: env!("CARGO_PKG_VERSION").to_string(),
+                    os: std::env::consts::OS.to_string(),
+                    os_version: "unknown".to_string(),
+                    arch: std::env::consts::ARCH.to_string(),
+                    crash_type: "abnormal_shutdown".to_string(),
+                    message: format!("Previous session did not exit cleanly. Lock data: {}", lock_data),
+                    session_id: None,
+                };
+
+                let report_path = dir.join(CRASH_REPORT_FILE);
+                let _ = fs::write(&report_path, serde_json::to_string_pretty(&crash_report).unwrap_or_default());
+            }
+
+            // Remove the stale lock
+            let _ = fs::remove_file(&lock_path);
+            return true;
+        }
+    }
+
+    false
+}
+
+/// Save a crash report (Feature 15)
+fn save_crash_report(report: &CrashReport) -> Result<(), String> {
+    let dir = get_crash_dir()?;
+    let filename = format!(
+        "crash_{}_{}.json",
+        report.timestamp.replace(':', "-").replace(' ', "_"),
+        &uuid::Uuid::new_v4().to_string()[..8]
+    );
+    let path = dir.join(filename);
+
+    let json = serde_json::to_string_pretty(report)
+        .map_err(|e| format!("Serialize failed: {}", e))?;
+
+    fs::write(&path, &json)
+        .map_err(|e| format!("Write failed: {}", e))?;
+
+    info!("🔴 [CRASH] Report saved: {}", path.display());
+
+    // Also update the "last crash" quick-access file
+    let last_crash = dir.join(CRASH_REPORT_FILE);
+    let _ = fs::write(&last_crash, &json);
+
+    Ok(())
+}
+
+/// Tauri IPC: Get crash info for UI display (Feature 17)
+#[tauri::command]
+pub fn get_crash_info() -> Result<serde_json::Value, String> {
+    let dir = get_crash_dir()?;
+    let last_crash_path = dir.join(CRASH_REPORT_FILE);
+
+    if last_crash_path.exists() {
+        let data = fs::read_to_string(&last_crash_path)
+            .map_err(|e| format!("Read failed: {}", e))?;
+
+        let report: CrashReport = serde_json::from_str(&data)
+            .map_err(|e| format!("Parse failed: {}", e))?;
+
+        // Delete the report after reading (one-time notification)
+        let _ = fs::remove_file(&last_crash_path);
+
+        Ok(serde_json::json!({
+            "crash_detected": true,
+            "timestamp": report.timestamp,
+            "type": report.crash_type,
+            "message": "Previous session ended unexpectedly. Temporary session memory was cleared.",
+            "version": report.app_version,
+            "os": report.os
+        }))
+    } else {
+        Ok(serde_json::json!({
+            "crash_detected": false
+        }))
+    }
+}
+
+/// Tauri IPC: Report a crash from the frontend (Feature 15)
+#[tauri::command]
+pub fn report_crash(
+    crash_type: String,
+    message: String,
+    session_id: Option<String>,
+) -> Result<bool, String> {
+    let report = CrashReport {
+        timestamp: Local::now().to_rfc3339(),
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
+        os: std::env::consts::OS.to_string(),
+        os_version: "unknown".to_string(),
+        arch: std::env::consts::ARCH.to_string(),
+        crash_type,
+        message,
+        session_id,
+    };
+
+    save_crash_report(&report)?;
+    Ok(true)
+}
+
+/// Install a global panic hook for Rust-side crash handling
+pub fn install_panic_hook() {
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let report = CrashReport {
+            timestamp: Local::now().to_rfc3339(),
+            app_version: env!("CARGO_PKG_VERSION").to_string(),
+            os: std::env::consts::OS.to_string(),
+            os_version: "unknown".to_string(),
+            arch: std::env::consts::ARCH.to_string(),
+            crash_type: "rust_panic".to_string(),
+            message: format!("{}", info),
+            session_id: None,
+        };
+
+        let _ = save_crash_report(&report);
+        default_hook(info);
+    }));
+}

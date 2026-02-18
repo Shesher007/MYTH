@@ -1,0 +1,163 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MYTH Packaging Metadata",
+    "description": "Schema for packaging/meta.json — the single source of truth for all distribution manifests.",
+    "type": "object",
+    "required": [
+        "project",
+        "organization",
+        "maintainer",
+        "repository",
+        "license",
+        "artifacts"
+    ],
+    "properties": {
+        "project": {
+            "type": "object",
+            "required": [
+                "name",
+                "codename",
+                "description",
+                "short_description"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Display name of the project"
+                },
+                "codename": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "description": "Lowercase binary/package name"
+                },
+                "description": {
+                    "type": "string",
+                    "minLength": 10
+                },
+                "short_description": {
+                    "type": "string",
+                    "maxLength": 80
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "min_python": {
+                    "type": "string",
+                    "pattern": "^[0-9]+\\.[0-9]+$"
+                }
+            }
+        },
+        "organization": {
+            "type": "object",
+            "required": [
+                "name",
+                "homepage"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "reverse_domain": {
+                    "type": "string",
+                    "pattern": "^[a-z]+\\.[a-z0-9-]+\\.[a-z0-9-]+$"
+                },
+                "homepage": {
+                    "type": "string",
+                    "format": "uri"
+                }
+            }
+        },
+        "maintainer": {
+            "type": "object",
+            "required": [
+                "name",
+                "email"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email"
+                }
+            }
+        },
+        "repository": {
+            "type": "object",
+            "required": [
+                "url"
+            ],
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "issues": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "license_url": {
+                    "type": "string",
+                    "format": "uri"
+                }
+            }
+        },
+        "license": {
+            "type": "object",
+            "required": [
+                "spdx"
+            ],
+            "properties": {
+                "spdx": {
+                    "type": "string"
+                },
+                "custom": {
+                    "type": "string"
+                },
+                "copyright_year": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}(-[0-9]{4})?$"
+                }
+            }
+        },
+        "artifacts": {
+            "type": "object",
+            "properties": {
+                "deb": {
+                    "type": "string"
+                },
+                "rpm": {
+                    "type": "string"
+                },
+                "msi": {
+                    "type": "string"
+                },
+                "nsis": {
+                    "type": "string"
+                },
+                "dmg": {
+                    "type": "string"
+                },
+                "appimage": {
+                    "type": "string"
+                },
+                "tarball": {
+                    "type": "string"
+                }
+            }
+        },
+        "architectures": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    }
+}

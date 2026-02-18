@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>{{NAME}} ({{VERSION}})</title>
+    <options customize="never" require-scripts="false"/>
+    <organization>com.{{ORG_LOWER}}.{{PROJECT_LOWER}}</organization>
+    <domains enable_anywhere="true" enable_currentUserHome="true" enable_localSystem="true"/>
+    <background file="background.png" alignment="bottomleft" scaling="proportional"/>
+    <welcome file="welcome.html"/>
+    <license file="license.html"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.{{NAME_LOWER}}-tools.{{NAME_LOWER}}"/>
+        </line>
+    </choices-outline>
+    <choice id="default"/>
+    <choice id="com.{{NAME_LOWER}}-tools.{{NAME_LOWER}}" visible="false">
+        <pkg-ref id="com.{{NAME_LOWER}}-tools.{{NAME_LOWER}}"/>
+    </choice>
+    <pkg-ref id="com.{{NAME_LOWER}}-tools.{{NAME_LOWER}}" version="{{VERSION}}" onConclusion="none">component.pkg</pkg-ref>
+</installer-gui-script>

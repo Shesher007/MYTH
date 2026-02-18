@@ -1,0 +1,27 @@
+{
+    "version": "{{VERSION}}",
+    "description": "{{DESCRIPTION}}",
+    "homepage": "{{HOMEPAGE}}",
+    "license": "{{LICENSE}}",
+    "architecture": {
+        "64bit": {
+            "url": "{{REPO_URL}}/releases/download/v{{VERSION}}/{{NAME}}_{{VERSION}}_x64_en-US.msi",
+            "hash": "sha256:YOUR_SHA256_HASH_HERE"
+        }
+    },
+    "extract_dir": "{{NAME}}",
+    "shortcuts": [
+        [
+            "{{NAME}}.exe",
+            "{{NAME}}"
+        ]
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "{{REPO_URL}}/releases/download/v$version/{{NAME}}_$version_x64_en-US.msi"
+            }
+        }
+    }
+}

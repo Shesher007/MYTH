@@ -1,0 +1,31 @@
+{
+    "app-id": "org.{{ORG_LOWER}}.{{NAME_LOWER}}",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "45",
+    "sdk": "org.gnome.Sdk",
+    "command": "{{NAME_LOWER}}",
+    "finish-args": [
+        "--share=network",
+        "--share=ipc",
+        "--socket=x11",
+        "--socket=wayland",
+        "--device=dri",
+        "--filesystem=home"
+    ],
+    "modules": [
+        {
+            "name": "{{NAME_LOWER}}",
+            "buildsystem": "simple",
+            "build-commands": [
+                "install -D {{NAME_LOWER}} /app/bin/{{NAME_LOWER}}"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "path": "{{NAME_LOWER}}-linux-x64",
+                    "dest-filename": "{{NAME_LOWER}}"
+                }
+            ]
+        }
+    ]
+}

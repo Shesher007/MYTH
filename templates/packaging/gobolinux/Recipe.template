@@ -1,0 +1,26 @@
+name="{{PROJECT_LOWER}}"
+version="{{VERSION}}"
+url="{{REPO_URL}}/archive/v${version}.tar.gz"
+file_size=""
+file_md5=""
+recipe_type="configure"
+target_dir="{{NAME_LOWER}}-${version}"
+
+needs="rust nodejs python"
+
+build() {
+   cd ui
+   npm ci
+   npx tauri build --bundles none
+}
+
+install() {
+   mkdir -p ${target}/bin
+   cp ui/src-tauri/target/release/{{NAME_LOWER}} ${target}/bin/
+
+   mkdir -p ${target}/Shared/Icons
+   cp ui/src-tauri/icons/icon.png ${target}/Shared/Icons/{{NAME_LOWER}}.png
+
+   mkdir -p ${target}/Shared/Applications
+   cp packaging/linux/{{NAME_LOWER}}.desktop ${target}/Shared/Applications/
+}

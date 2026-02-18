@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>MYTH (1.1.1)</title>
+    <options customize="never" require-scripts="false"/>
+    <organization>com.myth.omega-prime</organization>
+    <domains enable_anywhere="true" enable_currentUserHome="true" enable_localSystem="true"/>
+    <background file="background.png" alignment="bottomleft" scaling="proportional"/>
+    <welcome file="welcome.html"/>
+    <license file="license.html"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.myth-tools.myth"/>
+        </line>
+    </choices-outline>
+    <choice id="default"/>
+    <choice id="com.myth-tools.myth" visible="false">
+        <pkg-ref id="com.myth-tools.myth"/>
+    </choice>
+    <pkg-ref id="com.myth-tools.myth" version="1.1.1" onConclusion="none">component.pkg</pkg-ref>
+</installer-gui-script>

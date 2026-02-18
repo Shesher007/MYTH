@@ -1,0 +1,16 @@
+[Desktop Entry]
+Name=MYTH
+Comment=High-Performance Offensive Intelligence Engine
+Exec=myth
+Icon=myth
+Terminal=false
+Type=Application
+Categories=Security;Network;
+Keywords=security;pentesting;ai;
+StartupWMClass=MYTH
+MimeType=
+Actions=
+
+[Desktop Action NewScan]
+Name=Start New Scan
+Exec=MYTH --scan

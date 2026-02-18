@@ -1,0 +1,8 @@
+{
+    "css.customData": [
+        ".vscode/css_custom_data.json"
+    ],
+    "css.lint.unknownAtRules": "ignore",
+    "workbench.editor.limit.enabled": true,
+    "workbench.editor.limit.value": 5
+}

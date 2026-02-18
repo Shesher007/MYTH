@@ -1,0 +1,27 @@
+; {{NAME}} Desktop — Inno Setup Script
+; Build: iscc inno.iss
+
+#define MyAppName "{{NAME}}"
+#define MyAppVersion "{{VERSION}}"
+#define MyAppPublisher "{{AUTHOR}}"
+#define MyAppURL "{{HOMEPAGE}}"
+#define MyAppExeName "{{NAME}}.exe"
+
+[Setup]
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+DefaultDirName={autopf}\{#MyAppName}
+DefaultGroupName={#MyAppName}
+OutputBaseFilename={#MyAppName}_{#MyAppVersion}_x64_setup
+Compression=lzma
+SolidCompression=yes
+ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
+
+[Files]
+Source: "..\src-tauri\target\release\{{NAME}}.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\src-tauri\binaries\{{NAME_LOWER}}-backend.exe"; DestDir: "{app}\binaries"; Flags: ignoreversion
+
+[Icons]
+Name: "{group}\{{NAME}}"; Filename: "{app}\{{NAME}}.exe"
+Name: "{autodesktop}\{{NAME}}"; Filename: "{app}\{{NAME}}.exe"

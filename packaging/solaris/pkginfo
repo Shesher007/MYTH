@@ -1,0 +1,10 @@
+PKG=MYTH
+NAME="High-Performance Offensive Intelligence Engine"
+VERSION="1.1.1"
+ARCH="x86"
+CATEGORY="application"
+VENDOR="Shesher Hasan"
+EMAIL="shesher0007@gmail.com"
+PSTAMP="Shesher Hasan"
+BASEDIR=/
+CLASSES=none

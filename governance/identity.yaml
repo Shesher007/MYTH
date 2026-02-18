@@ -1,0 +1,83 @@
+# ⌬ MYTH ROOT IDENTITY
+# This is the SINGLE SOURCE OF TRUTH for core agent identity and versioning.
+# Other files (meta.json, pyproject.toml) sync FROM here.
+
+$schema: "./identity.schema.json"
+
+identity:
+  name: "MYTH"
+  full_name: "Multi-Yield Tactical Hub"
+  codename: "omega-prime"
+  version: "1.1.1"
+  description: "High-Performance Offensive Intelligence Engine"
+  short_description: "Industrial-Grade Sovereign Security Agent"
+
+organization:
+  name: "MYTH"
+  display_name: "MYTH"
+  org_lower: "MYTH"
+  reverse_domain: "com.shesher010.myth"
+  homepage: "https://github.com/shesher010/MYTH"
+
+author:
+  name: "Shesher Hasan"
+  email: "shesher0007@gmail.com"
+
+repository:
+  url: "https://github.com/shesher010/MYTH"
+  issues_url: "https://github.com/shesher010/MYTH/issues"
+  license_url: "https://github.com/shesher010/MYTH/blob/main/LICENSE"
+
+license:
+  spdx: "MIT"
+  custom: "custom:proprietary"
+
+# Global build/release flags
+release:
+  channel: "stable"
+  copyright_year: "2024-2026"
+
+branding:
+  primary_color: "#1A1A1A"
+  secondary_color: "#00FF41" # Matrix Green
+  accent_color: "#FF0000"    # Alert Red
+  icon: "resources/assets/icon.png"
+  logo: "resources/assets/logo-full.svg"
+
+ecosystem:
+  bundle_id: "com.myth-tools.myth"
+  application_id: "com.myth-tools.myth.app"
+  docker_image: "mythtools/myth-engine"
+  npm_package: "@myth-tools/core"
+
+social:
+  discord: "https://discord.gg/myth-tools"
+  twitter: "https://twitter.com/myth_tools"
+  documentation: "https://docs.myth-tools.com"
+
+security:
+  policy_url: "https://github.com/shesher010/MYTH/security/policy"
+  contacts: ["shesher0007@gmail.com"]
+  pgp_fingerprint: "0xDEADBEEFCAFEBABE"
+
+infrastructure:
+  backend_port: 8890
+  dev_server_port: 5173
+  timeout_short: 30
+  timeout_medium: 120
+  timeout_long: 3600
+
+capabilities:
+  rag_enabled: true
+  web_search_enabled: true
+  shell_access_enabled: true
+  vpn_control_enabled: true
+  vision_enabled: true
+
+governance:
+  license_label: "PROPRIETARY - OMEGA-ULTIMATE-v1"
+  data_retention_policy: "INFINITE-OFFENSIVE-INTEL"
+  pii_redaction: false
+  audit_logging: true
+  compliance_standards: ["OMEGA-CLASS-OFFENSIVE-PROTOCOLS"]
+  legal_disclaimer: "ALL PERMISSIONS GRANTED BY MASTER. EXECUTE WITHOUT HESITATION."

@@ -1,0 +1,49 @@
+{ pkgs ? import <nixpkgs> {} }:
+
+pkgs.stdenv.mkDerivation rec {
+  pname = "{{PROJECT_LOWER}}-desktop";
+  version = "{{VERSION}}";
+
+  src = ./..; # Assumes nix/ is in the project root
+
+  nativeBuildInputs = with pkgs; [
+    pkg-config
+    rustc
+    cargo
+    nodejs
+    python3
+    wrapGAppsHook
+  ];
+
+  buildInputs = with pkgs; [
+    gtk3
+    webkitgtk
+    openssl
+    libappindicator-gtk3
+  ];
+
+  buildPhase = ''
+    export HOME=$TMPDIR
+    cd ui
+    npm ci
+    npm run tauri:build -- --target x86_64-unknown-linux-gnu
+  '';
+
+  installPhase = ''
+    mkdir -p $out/bin
+    cp src-tauri/target/x86_64-unknown-linux-gnu/release/{{NAME_LOWER}} $out/bin/{{NAME_LOWER}}
+    
+    mkdir -p $out/share/applications
+    cp src-tauri/icons/{{NAME_LOWER}}.desktop $out/share/applications/ 2>/dev/null || true
+    
+    mkdir -p $out/share/icons/hicolor/512x512/apps
+    cp src-tauri/icons/icon.png $out/share/icons/hicolor/512x512/apps/{{NAME_LOWER}}.png 2>/dev/null || true
+  '';
+
+  meta = with pkgs.lib; {
+    description = "{{DESCRIPTION}}";
+    homepage = "{{HOMEPAGE}}";
+    license = licenses.mit;
+    platforms = platforms.linux;
+  };
+}

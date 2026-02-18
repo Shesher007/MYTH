@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MYTH Desktop — MSIX/APPX Package Manifest -->
+<!-- Build: makeappx pack /d output/ /p MYTH_1.1.1.msix -->
+
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity
+    Name="com.shesher010.myth"
+    Publisher="CN=Shesher Hasan"
+    Version="1.1.1.0"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>MYTH</DisplayName>
+    <PublisherDisplayName>Shesher Hasan</PublisherDisplayName>
+    <Logo>icons\StoreLogo.png</Logo>
+    <Description>High-Performance Offensive Intelligence Engine</Description>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application Id="MYTH" Executable="MYTH.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="MYTH"
+        Description="Industrial-Grade Sovereign Security Agent"
+        BackgroundColor="transparent"
+        Square150x150Logo="icons\Square150x150Logo.png"
+        Square44x44Logo="icons\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="icons\Wide310x150Logo.png" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

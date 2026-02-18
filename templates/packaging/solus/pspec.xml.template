@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- {{NAME}} Desktop — Solus eopkg Package Spec (Binary) -->
+<PISI>
+    <Source>
+        <Name>{{NAME_LOWER}}</Name>
+        <Homepage>{{HOMEPAGE}}</Homepage>
+        <Packager>
+            <Name>{{AUTHOR}}</Name>
+            <Email>{{EMAIL}}</Email>
+        </Packager>
+        <License>proprietary</License>
+        <Summary>{{DESCRIPTION}} (Binary)</Summary>
+        <Description>
+            {{NAME}} is an industry-grade autonomous AI cybersecurity agent.
+            This version installs the pre-compiled binary.
+        </Description>
+        <Archive sha1sum="SKIP" type="binary">
+            {{REPO_URL}}/releases/download/v{{VERSION}}/myth_{{VERSION}}_amd64.deb
+        </Archive>
+    </Source>
+    <Package>
+        <Name>{{NAME_LOWER}}</Name>
+        <RuntimeDependencies>
+            <Dependency>libwebkit-gtk</Dependency>
+            <Dependency>openssl</Dependency>
+            <Dependency>python3</Dependency>
+            <Dependency>libgtk-3</Dependency>
+        </RuntimeDependencies>
+        <Files>
+            <Path fileType="executable">/usr/bin/{{NAME}}</Path>
+        </Files>
+    </Package>
+</PISI>

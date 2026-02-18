@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>myth</id>
+    <version>1.1.1</version>
+    <title>MYTH (Desktop)</title>
+    <authors>Shesher Hasan</authors>
+    <projectUrl>https://github.com/shesher010/MYTH</projectUrl>
+    <licenseUrl>{{REPO_URL}}/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>High-Performance Offensive Intelligence Engine</description>
+    <summary>Industrial-Grade Sovereign Security Agent</summary>
+    <tags>security pentesting ai hacking</tags>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

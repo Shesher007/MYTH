@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download MYTH for macOS | Professional Security Agent</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="bg-engine"></div>
+    <div class="grid-field"></div>
+
+    <nav>
+        <div class="container">
+            <a href="index.html" class="logo">⌬ <span>MYTH</span></a>
+            <a href="index.html" class="btn btn-outline" style="padding:10px 20px; font-size:0.8rem;">Back to Main</a>
+        </div>
+    </nav>
+
+    <section class="hero" style="padding-top:180px; padding-bottom:50px;">
+        <div class="container">
+            <div class="badge">macOS Distribution — Universal Binary</div>
+            <h1>Get MYTH for macOS</h1>
+            <p>Native performance on Apple Silicon M-Series and Intel processors. Hardened runtime enabled.</p>
+        </div>
+    </section>
+
+    <main class="container" style="padding-bottom:100px;">
+        <div class="dist-grid-titan">
+
+            <div class="dist-group">
+                <h3 style="display:flex; align-items:center; gap:12px; margin-bottom:15px; font-size:1.5rem;">
+                    <i data-lucide="apple" style="color:var(--accent-secondary)"></i> Universal Binary
+                </h3>
+                <div class="dist-list">
+                    <p style="color:var(--text-dim); font-size:0.9rem;">Single optimized DMG for M1, M2, M3 and Intel
+                        Macs.</p>
+                    <a href="#" class="dist-link" style="justify-content:center; text-align:center; padding:12px;">
+                        <span>Download .DMG</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="dist-group">
+                <h3 style="display:flex; align-items:center; gap:12px; margin-bottom:15px; font-size:1.5rem;">
+                    <i data-lucide="terminal" style="color:var(--accent-primary)"></i> Homebrew
+                </h3>
+                <div class="dist-list">
+                    <div class="dist-link" onclick="navigator.clipboard.writeText('brew install --cask myth')"
+                        style="cursor:pointer;">
+                        <span>brew install myth</span>
+                        <span class="tag-os">Copy</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>

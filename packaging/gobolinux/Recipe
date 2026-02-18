@@ -1,0 +1,26 @@
+name="omega-prime"
+version="1.1.1"
+url="{{REPO_URL}}/archive/v${version}.tar.gz"
+file_size=""
+file_md5=""
+recipe_type="configure"
+target_dir="myth-${version}"
+
+needs="rust nodejs python"
+
+build() {
+   cd ui
+   npm ci
+   npx tauri build --bundles none
+}
+
+install() {
+   mkdir -p ${target}/bin
+   cp ui/src-tauri/target/release/myth ${target}/bin/
+
+   mkdir -p ${target}/Shared/Icons
+   cp ui/src-tauri/icons/icon.png ${target}/Shared/Icons/myth.png
+
+   mkdir -p ${target}/Shared/Applications
+   cp packaging/linux/myth.desktop ${target}/Shared/Applications/
+}

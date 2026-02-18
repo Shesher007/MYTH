@@ -1,0 +1,240 @@
+# GitHub Actions CI/CD — Multi-Platform Desktop Builds
+# Produces: Windows (.msi, .exe NSIS), macOS (.dmg), Linux (.AppImage, .deb, .rpm)
+
+name: "Build MYTH Desktop App"
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            label: windows-x64
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            label: macos-arm64
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+            label: macos-x64
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            label: linux-x64
+
+    runs-on: ${{ matrix.platform }}
+    name: Build (${{ matrix.label }})
+    timeout-minutes: 60
+
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Maximize Disk Space
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          # Aggressive cleanup for ~20GB+ space
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/lib/jvm
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/local/lib/node_modules
+          
+          echo "Disk space after cleanup:"
+          df -h
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.12.0"
+          cache: "npm"
+          cache-dependency-path: "ui/package-lock.json"
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "ui/src-tauri -> target"
+
+      # Linux-specific dependencies
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            libgtk-3-dev \
+            rpm
+
+      # Setup Python for backend packaging
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Package Python Backend
+        env:
+          UV_LINK_MODE: "copy"
+          # Critical: Ensure python packager knows the target triple for correct binary naming
+          TAURI_TARGET_TRIPLE: ${{ matrix.target }}
+        run: |
+          uv pip install --system -r requirements-desktop.txt
+          python scripts/package_python.py
+
+      # Download TITAN Go binaries (nuclei, subfinder, etc.)
+      # These are listed in tauri.conf.json externalBin and must be present for bundling.
+      - name: Download TITAN Go Binaries
+        run: |
+          python scripts/install_titan_dependencies.py
+        env:
+          PDTM_HOME: ${{ github.workspace }}/ui/src-tauri/binaries
+
+      # Install frontend dependencies
+      - name: Install npm dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Debug Binaries (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          echo "Listing binaries directory:"
+          ls -R ui/src-tauri/binaries
+          echo "Checking permissions:"
+          ls -l ui/src-tauri/binaries/myth-backend-* || true
+
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.CUSTOM_DEPLOY_TOKEN }}
+          # Windows code signing (when certs are provided)
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_TARGET_TRIPLE: ${{ matrix.target }}
+        with:
+          projectPath: ui
+          tauriScript: npx tauri
+          args: --target ${{ matrix.target }}
+
+      - name: Generate Multi-Format Linux Packages
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          python scripts/linux_distribution_engine.py
+
+      - name: Build Snap
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: snapcore/action-build@v1
+        with:
+          path: packaging/snap
+
+      - name: Build Flatpak
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: myth.flatpak
+          manifest-path: packaging/flatpak/org.myth_myth.myth.json
+          repository-name: omega-prime-repo
+          repository-url: https://github.com/shesher010/MYTH/flatpak
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: myth-desktop-${{ matrix.label }}
+          path: |
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.exe
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.msi
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.dmg
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.AppImage
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.deb
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.rpm
+            ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.pkg.tar.zst
+            packaging/snap/*.snap
+            myth.flatpak
+            *.apk
+            *.xbps
+            *.ipk
+            *.eopkg
+            *.txz
+            *.pet
+            *.sfs
+            *_*
+            PKGBUILD
+            Dockerfile
+            *.tar.gz
+            *.zip
+          retention-days: 14
+
+  # Create GitHub Release with all artifacts
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          generate_release_notes: true
+          files: |
+            **/*.exe
+            **/*.msi
+            **/*.dmg
+            **/*.AppImage
+            **/*.deb
+            **/*.rpm
+            **/*.pkg.tar.zst
+            **/*.snap
+            **/*.flatpak
+            **/*.apk
+            **/*.xbps
+            **/*.ipk
+            **/*.eopkg
+            **/*.txz
+            **/*.pet
+            **/*.sfs
+            **/*_*
+            **/PKGBUILD
+            **/Dockerfile
+            **/*.tar.gz
+            **/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.CUSTOM_DEPLOY_TOKEN }}

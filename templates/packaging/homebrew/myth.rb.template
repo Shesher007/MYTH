@@ -1,0 +1,27 @@
+# Homebrew Formula — {{NAME}} Desktop
+# Install: brew install --cask {{NAME_LOWER}}
+
+cask "{{NAME_LOWER}}" do
+  version "{{VERSION}}"
+  sha256 "" # TO BE FILLED AFTER BUILD
+
+  url "{{REPO_URL}}/releases/download/v#{version}/{{NAME}}_#{version}_universal.dmg"
+  name "{{NAME}}"
+  desc "{{DESCRIPTION}}"
+  homepage "{{HOMEPAGE}}"
+
+  livecheck do
+    url :url
+    strategy :github_latest
+  end
+
+  depends_on macos: ">= :catalina"
+
+  app "{{NAME}}.app"
+
+  zap trash: [
+    "~/Library/Application Support/com.{{NAME_LOWER}}-tools.{{NAME_LOWER}}",
+    "~/Library/Caches/com.{{NAME_LOWER}}-tools.{{NAME_LOWER}}",
+    "~/Library/Preferences/com.{{NAME_LOWER}}-tools.{{NAME_LOWER}}.plist",
+  ]
+end

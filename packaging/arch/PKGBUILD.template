@@ -1,0 +1,15 @@
+# Maintainer: {{MAINTAINER_NAME}} <{{MAINTAINER_EMAIL}}>
+pkgname={{NAME_LOWER}}-bin
+pkgver={{VERSION}}
+pkgrel=1
+pkgdesc="{{SHORT_DESCRIPTION}}"
+arch=('x86_64')
+url="{{HOMEPAGE}}"
+license=('{{LICENSE}}')
+depends=('webkit2gtk' 'gtk3' 'libappindicator-gtk3' 'openssl')
+source=("{{REPO_URL}}/releases/download/v${pkgver}/{{NAME_LOWER}}_${pkgver}_amd64.deb")
+sha256sums=('SKIP')
+
+package() {
+	tar -x -f data.tar.zst -C "${pkgdir}"
+}

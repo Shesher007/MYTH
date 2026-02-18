@@ -1,0 +1,21 @@
+# Maintainer: Shesher Hasan <shesher0007@gmail.com>
+pkgname=myth
+pkgver=1.1.1
+pkgrel=0
+pkgdesc="High-Performance Offensive Intelligence Engine"
+url="https://github.com/shesher010/MYTH"
+arch="x86_64 aarch64"
+license="{{LICENSE}}"
+depends="webkit2gtk libappindicator3"
+makedepends="rust cargo nodejs npm python3"
+source="{{REPO_URL}}/archive/v${pkgver}.tar.gz"
+
+build() {
+	cd "$srcdir/MYTH/ui"
+	npm install
+	npm run tauri build -- --bundle deb # Use deb as base for extraction or build raw
+}
+
+package() {
+	install -Dm755 "$srcdir/MYTH/ui/src-tauri/target/release/myth" "$pkgdir/usr/bin/myth"
+}

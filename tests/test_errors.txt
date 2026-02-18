@@ -1,0 +1,2076 @@
+======================================================================
+  MYTH TEST SUITE — FAILURE REPORT
+  Generated: 2026-02-14 08:18:28
+======================================================================
+
+--- Module: Tool Invocations ---
+FAIL: Tool Count Validation
+Error Body:
+CRITICAL Discrepancy: Only 528 tools found, expected at least 672!
+----------------------------------------
+FAIL: multi_os_wrapper_factory
+Time: 27ms
+Details: args={}
+Error Body:
+Traceback (most recent call last):
+  File "C:\Users\shesh\Documents\MYTH\testing\test_tool_invocations.py", line 519, in _invoke_tool
+    result = await asyncio.wait_for(tool_obj.ainvoke({}), timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 642, in ainvoke
+    return await self.arun(tool_input, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1117, in arun
+    raise error_to_raise
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1071, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(tool_input, tool_call_id)
+                             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 848, in _to_args_and_kwargs
+    tool_input = self._parse_input(tool_input, tool_call_id)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 701, in _parse_input
+    result = input_args.model_validate(tool_input)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\pydantic\main.py", line 716, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        by_name=by_name,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for multi_os_wrapper_factoryArgs
+payloads
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\shesh\Documents\MYTH\testing\test_tool_invocations.py", line 522, in _invoke_tool
+    result = await asyncio.wait_for(tool_obj.ainvoke("test"), timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 642, in ainvoke
+    return await self.arun(tool_input, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1117, in arun
+    raise error_to_raise
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1071, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(tool_input, tool_call_id)
+                             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 848, in _to_args_and_kwargs
+    tool_input = self._parse_input(tool_input, tool_call_id)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 676, in _parse_input
+    input_args.model_validate({key_: tool_input})
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\pydantic\main.py", line 716, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        by_name=by_name,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for multi_os_wrapper_factoryArgs
+payloads
+  Input should be a valid dictionary [type=dict_type, input_value='test', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+----------------------------------------
+FAIL: libc_offset_database_lookup
+Time: 3ms
+Details: args={'address': '0x123...'}
+Error Body:
+Traceback (most recent call last):
+  File "C:\Users\shesh\Documents\MYTH\testing\test_tool_invocations.py", line 514, in _invoke_tool
+    result = await asyncio.wait_for(tool_obj.ainvoke(args), timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 642, in ainvoke
+    return await self.arun(tool_input, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1117, in arun
+    raise error_to_raise
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1071, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(tool_input, tool_call_id)
+                             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 848, in _to_args_and_kwargs
+    tool_input = self._parse_input(tool_input, tool_call_id)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 701, in _parse_input
+    result = input_args.model_validate(tool_input)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\pydantic\main.py", line 716, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        by_name=by_name,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for libc_offset_database_lookupArgs
+leaked_func
+  Field required [type=missing, input_value={'address': '0x123...'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+----------------------------------------
+FAIL: password_spraying_engine
+Time: 2ms
+Details: args={'password': 'testpassword123'}
+Error Body:
+Traceback (most recent call last):
+  File "C:\Users\shesh\Documents\MYTH\testing\test_tool_invocations.py", line 514, in _invoke_tool
+    result = await asyncio.wait_for(tool_obj.ainvoke(args), timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 642, in ainvoke
+    return await self.arun(tool_input, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1117, in arun
+    raise error_to_raise
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1071, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(tool_input, tool_call_id)
+                             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 848, in _to_args_and_kwargs
+    tool_input = self._parse_input(tool_input, tool_call_id)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 701, in _parse_input
+    result = input_args.model_validate(tool_input)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\pydantic\main.py", line 716, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        by_name=by_name,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for password_spraying_engineArgs
+target_users
+  Field required [type=missing, input_value={'password': 'testpassword123'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+----------------------------------------
+FAIL: security_diff_analyzer
+Time: 1ms
+Details: args={'file_path_v2': '/tmp/test.txt'}
+Error Body:
+Traceback (most recent call last):
+  File "C:\Users\shesh\Documents\MYTH\testing\test_tool_invocations.py", line 514, in _invoke_tool
+    result = await asyncio.wait_for(tool_obj.ainvoke(args), timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 642, in ainvoke
+    return await self.arun(tool_input, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1117, in arun
+    raise error_to_raise
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1071, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(tool_input, tool_call_id)
+                             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 848, in _to_args_and_kwargs
+    tool_input = self._parse_input(tool_input, tool_call_id)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 701, in _parse_input
+    result = input_args.model_validate(tool_input)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\pydantic\main.py", line 716, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        by_name=by_name,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for security_diff_analyzerArgs
+file_path_v1
+  Field required [type=missing, input_value={'file_path_v2': '/tmp/test.txt'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+----------------------------------------
+FAIL: semantic_logic_differ
+Time: 1ms
+Details: args={'file_path_v2': '/tmp/test.txt'}
+Error Body:
+Traceback (most recent call last):
+  File "C:\Users\shesh\Documents\MYTH\testing\test_tool_invocations.py", line 514, in _invoke_tool
+    result = await asyncio.wait_for(tool_obj.ainvoke(args), timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 642, in ainvoke
+    return await self.arun(tool_input, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1117, in arun
+    raise error_to_raise
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1071, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(tool_input, tool_call_id)
+                             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 848, in _to_args_and_kwargs
+    tool_input = self._parse_input(tool_input, tool_call_id)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 701, in _parse_input
+    result = input_args.model_validate(tool_input)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\pydantic\main.py", line 716, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        by_name=by_name,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for semantic_logic_differArgs
+file_path_v1
+  Field required [type=missing, input_value={'file_path_v2': '/tmp/test.txt'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+----------------------------------------
+WARN: rfid_cloner_util
+Time: 1703374ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: syscall_event_correlator
+Time: 1703469ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: rfid_nfc_scanner
+Time: 1703474ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: statistical_byte_distributor
+Time: 1703479ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: system_mitigation_equilibrium_analyser
+Time: 1703481ms
+Details: args={'binary_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: syscall_interaction_analyzer
+Time: 1703518ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: universal_arch_context_generator
+Time: 1703537ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: reverse_dns_lookup
+Time: 1703544ms
+Details: args={'ip_address': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: universal_base_decoder
+Time: 1703561ms
+Details: args={'encoded_str': 'AABBAA', 'kwargs': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: universal_firmware_extractor
+Time: 1703611ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: universal_flag_hunter
+Time: 1703614ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: unsafe_function_scanner
+Time: 1703651ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: vigenere_breaker
+Time: 1703679ms
+Details: args={'ciphertext': 'AABAA ABBAA ABAAA ABAAA ABBAB', 'kwargs': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: virtualization_stub_detector
+Time: 1703682ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: secure_delete_file
+Time: 1710233ms
+Details: args={'path': '/tmp'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: query_postgres
+Time: 1710230ms
+Details: args={'connection_string': 'postgresql://user:pass@localhost:5432/db', 'sql': 'SELECT 1', 'params': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: query_redis
+Time: 1710228ms
+Details: args={'uri': 'redis://localhost:6379', 'command': 'echo test', 'args': []}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: check_db_health
+Time: 1710226ms
+Details: args={'connection_string': 'postgresql://user:pass@localhost:5432/db'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: security_run_container
+Time: 1710226ms
+Details: args={'image': 'nginx:latest', 'command': 'echo test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: live_container_forensics
+Time: 1710228ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: forensic_browse
+Time: 1710223ms
+Details: args={'url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: capture_scout
+Time: 1710219ms
+Details: args={'url': 'http://example.com', 'full_page': False}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: recon_fetch
+Time: 1710220ms
+Details: args={'url': 'http://example.com', 'headers': {'User-Agent': 'Test'}, 'proxy': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: bulk_recon_scan
+Time: 1710220ms
+Details: args={'urls': ['http://example.com']}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: deep_fingerprint_scout
+Time: 1704082ms
+Details: args={'host': '127.0.0.1', 'ports': [80, 443]}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: protocol_fingerprint
+Time: 1704079ms
+Details: args={'host': '127.0.0.1', 'port': 80}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: shodan_host_info
+Time: 1704078ms
+Details: args={'ip': '127.0.0.1', 'key': 'test-key'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: censys_search_hosts
+Time: 1704074ms
+Details: args={'query': 'test', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: cens_cert_search
+Time: 1704073ms
+Details: args={'fingerprint': 'test-fingerprint', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: quick_subdomain_check
+Time: 1710965ms
+Details: args={'domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: quantum_stable_passive_scanner
+Time: 1711104ms
+Details: args={'target_domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: ssrf_redirect_prober
+Time: 1705217ms
+Details: args={'url': 'http://example.com', 'parameter': 'id', 'kwargs': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: ping_sweep
+Time: 1712926ms
+Details: args={'network_range': '127.0.0.1/32'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: semantic_content_prober
+Time: 1710950ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: passive_intel_deep_scanner
+Time: 1717309ms
+Details: args={'target_domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: persistence_mechanism_detector
+Time: 1717532ms
+Details: args={'target_ip': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: nosql_logic_prober
+Time: 1717616ms
+Details: args={'url': 'http://example.com', 'parameter': 'id'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: param_miner_lite
+Time: 1717686ms
+Details: args={'url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: protocol_relay_auditor
+Time: 1717791ms
+Details: args={'target_ip': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: securitytrails_subdomains
+Time: 10632ms
+Details: args={'domain': 'example.com', 'key': 'test-key'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: service_banner_correlator
+Time: 11796ms
+Details: args={'target_ip': '127.0.0.1', 'ports': [80, 443]}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: securitytrails_dns_history
+Time: 11872ms
+Details: args={'domain': 'example.com', 'key': 'test-key'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: smb_share_enumerator
+Time: 11948ms
+Details: args={'target_ip': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: virustotal_domain_report
+Time: 11835ms
+Details: args={'domain': 'example.com', 'key': 'test-key'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: docker_cleanup
+Time: 1722999ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: serverless_endpoint_hunter
+Time: 13274ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: semantic_drift_analyzer
+Time: 13481ms
+Details: args={'target_domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: virustotal_ip_report
+Time: 16041ms
+Details: args={'ip': '127.0.0.1', 'key': 'test-key'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: pd_health_check
+Time: 1727165ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: hunter_domain_search
+Time: 15873ms
+Details: args={'domain': 'example.com', 'key': 'test-key'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: hibp_check_account
+Time: 15774ms
+Details: args={'account': 'test-account', 'key': 'test-key'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: nvd_get_cve
+Time: 15381ms
+Details: args={'cve_id': 'CVE-2023-1234', 'key': 'test-key'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: shuffledns_scan
+Time: 16032ms
+Details: args={'domains': "['example.com']", 'wordlist': "['admin', 'test']"}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: service_config_audit
+Time: 17899ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: shodan_search
+Time: 22051ms
+Details: args={'query': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: github_get_advisories
+Time: 34880ms
+Details: args={'ecosystem': 'npm', 'package': 'test-package'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: cisa_search_kev
+Time: 34521ms
+Details: args={'query': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: run_nuclei_scan
+Time: 33991ms
+Details: args={'target': '127.0.0.1', 'templates': ['default'], 'severity': 'high'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: list_nuclei_templates
+Time: 32433ms
+Details: args={'query': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: socks5_pivot_generator
+Time: 45892ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: exploitdb_search
+Time: 43677ms
+Details: args={'query': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: burp_send_to_repeater
+Time: 40280ms
+Details: args={'host': '127.0.0.1', 'port': 80, 'use_https': True, 'request_b64': 'R0VUIC8gSFRUUC8xLjENCkhvc3Q6IGV4YW1wbGUuY29tDQoNCg=='}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: burp_trigger_scan
+Time: 40278ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: track_new_asset
+Time: 40246ms
+Details: args={'host': '127.0.0.1', 'program': 'test-program'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: check_asset_scope
+Time: 39951ms
+Details: args={'host': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: fast_subdomain_discovery
+Time: 41151ms
+Details: args={'domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: payload_entropy_auditor
+Time: 31752ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: revelation_kernel_fuzzer_bridge
+Time: 31779ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: dependency_confusion_scanner
+Time: 28611ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: persistence_script_generator
+Time: 43629ms
+Details: args={'command': 'echo test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: revelation_mitigation_equilibrium_solver
+Time: 43633ms
+Details: args={'mitigations': []}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: dom_xss_analyzer
+Time: 43589ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: revelation_object_layout_prober
+Time: 55146ms
+Details: args={'binary_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'class_name': 'TestClass'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: session_enumerator
+Time: 1786805ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: search_local_exploits
+Time: 70115ms
+Details: args={'query': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: download_exploit_poc
+Time: 69643ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: calculate_cvss_v3
+Time: 69557ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: generate_markdown_report
+Time: 65375ms
+Details: args={'title': 'Test Finding', 'findings': []}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: entropy_prediction_engine
+Time: 50151ms
+Details: args={'token_sample': ['token1', 'token2']}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: process_protection_auditor
+Time: 50154ms
+Details: args={'pid': 1234}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: subdomain_enumeration
+Time: 81182ms
+Details: args={'domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: rapid_port_scan
+Time: 76486ms
+Details: args={'target': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: systemic_intel_persistence_engine
+Time: 80290ms
+Details: args={'target': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: wifi_network_scanner
+Time: 91638ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: tlsx_scan
+Time: 75192ms
+Details: args={'targets': "['http://test.com']", 'vulnerabilities': True}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: traceroute
+Time: 75124ms
+Details: args={'target': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: uncover_scan
+Time: 70952ms
+Details: args={'query': 'test', 'limit': 10}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: vlan_hopping_detect
+Time: 46225ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: global_traffic_masquerade
+Time: 45849ms
+Details: args={'payload_type': 'json', 'kwargs': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: reflective_stub_generator
+Time: 45942ms
+Details: args={'kwargs': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: revelation_v8_analyzer
+Time: 46395ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: cisa_get_kev_catalog
+Time: 90579ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: create_pull_request
+Time: 35842ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'title': 'Test Finding', 'body': 'test body', 'head': 'feature', 'base': 'main', 'draft': False, 'maintainer_can_modify': False}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: graphql_introspection_fuzzer
+Time: 51169ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: rop_gadget_harvester
+Time: 51420ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'kwargs': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: grid_swarm_orchestrator
+Time: 52015ms
+Details: args={'target_list': '', 'kwargs': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: grpc_web_logic_mapper
+Time: 44548ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: shellcode_encrypter
+Time: 44640ms
+Details: args={'shellcode_hex': '909090', 'key_hex': '00112233445566778899aabbccddeeff', 'kwargs': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: subfinder_scan
+Time: 102826ms
+Details: args={'domain': 'example.com', 'recursive': False}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: urlfinder_scan
+Time: 72164ms
+Details: args={'target': '127.0.0.1', 'depth': 1, 'params': True}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: create_or_update_file
+Time: 89205ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'path': '/tmp', 'content': "b'test content'", 'message': 'test message', 'branch': 'main', 'sha': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: universal_interface_enumerator
+Time: 89479ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: process_ghosting_builder
+Time: 89475ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: wayback_machine_lookup
+Time: 61168ms
+Details: args={'url': 'http://example.com', 'limit': 10}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: whois_lookup
+Time: 34412ms
+Details: args={'domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: web_technology_fingerprint
+Time: 62736ms
+Details: args={'url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: vulnerability_correlator
+Time: 148607ms
+Details: args={'scan_results': '[]', 'target': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: h2c_smuggling_prober
+Time: 111547ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: singularity_autonomous_heap_reconstructor
+Time: 111557ms
+Details: args={'chunk_ptr': 0, 'next_ptr': 0, 'size': 1024}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: whois_universal_lookup
+Time: 119035ms
+Details: args={'domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: heuristic_zero_day_hunter
+Time: 118935ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: wmi_persistence_builder
+Time: 118949ms
+Details: args={'command': 'echo test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: singularity_deep_logic_flaw_synthesizer
+Time: 118989ms
+Details: args={'class_hierarchy': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: search_repositories
+Time: 174122ms
+Details: args={'query': 'test', 'page': 1.0, 'perPage': 1.0}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: revelation_sandbox_escaper
+Time: 171555ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: cross_cloud_identity_mapper
+Time: 119045ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: jwt_integrity_checker
+Time: 118152ms
+Details: args={'token': 'ej...'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: singularity_jit_formal_verifier
+Time: 118103ms
+Details: args={'ir_graph': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: lattice_trapdoor_finder
+Time: 111722ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: aws_iam_privilege_escalation_checker
+Time: 111733ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: windows_priv_escalation_checker
+Time: 219179ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_file_contents
+Time: 173065ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'path': '/tmp', 'branch': 'main'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: create_issue
+Time: 165351ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'title': 'Test Finding', 'body': 'test body', 'assignees': [], 'milestone': 1.0, 'labels': []}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: push_files
+Time: 172990ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'branch': 'main', 'files': [{'readonly.txt': 'content'}], 'message': 'test message'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: create_repository
+Time: 175622ms
+Details: args={'name': 'test-repo', 'description': 'test description', 'private': False, 'autoInit': False}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: sandbox_evader
+Time: 173064ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: update_issue
+Time: 111869ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'issue_number': 1.0, 'title': 'Test Finding', 'body': 'test body', 'assignees': [], 'milestone': 1.0, 'labels': [], 'state': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: sandbox_evasion_prober
+Time: 165587ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: alpha_numeric_encoder
+Time: 120921ms
+Details: args={'shellcode_hex': '909090'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: sandbox_boundary_prober
+Time: 165550ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: oauth_flow_auditor
+Time: 120934ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: crtsh_lookup
+Time: 128579ms
+Details: args={'domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: singularity_active_mitigation_predator
+Time: 168065ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: aws_persistence_generator
+Time: 114691ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: singularity_omega_exploit_synthesizer
+Time: 114687ms
+Details: args={'primitives': []}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: deep_ics_protocol_analyzer
+Time: 114631ms
+Details: args={'target_ip': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: ct_log_monitor
+Time: 123647ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: omnipotence_cache_poisoning_orchestrator
+Time: 28367ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: azure_role_analyzer
+Time: 29934ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: create_branch
+Time: 144618ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'branch': 'main', 'from_branch': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: fork_repository
+Time: 146372ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'organization': 'test-org'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: stub_integrity_checker
+Time: 146867ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: dependency_risk_mapper
+Time: 35388ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: antivirus_evasion_checker
+Time: 35646ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: omnipotence_cp_dos_engine
+Time: 27427ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: cicd_pipeline_audit
+Time: 27592ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: search_issues
+Time: 28498ms
+Details: args={'q': 'test', 'order': 'desc', 'page': 1.0, 'per_page': 1.0, 'sort': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: list_commits
+Time: 146729ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'sha': 'test', 'page': 1.0, 'perPage': 1.0}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: devops_leak_hunter
+Time: 28825ms
+Details: args={'keyword': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: api_specification_analyzer
+Time: 30067ms
+Details: args={'url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: omnipotence_http2_desync_auditor
+Time: 32246ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: aws_advanced_enumerator
+Time: 150355ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: cloud_trail_analyzer
+Time: 32235ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: sovereign_global_gadget_indexer
+Time: 32235ms
+Details: args={'lib_path': '/usr/lib', 'kwargs': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: advanced_vba_macro_stager
+Time: 150056ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: list_issues
+Time: 142855ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'direction': 'test', 'labels': [], 'page': 1.0, 'per_page': 1.0, 'since': 'test', 'sort': 'test', 'state': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: apk_analyzer
+Time: 22026ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: omnipotence_jwt_cracker_logic
+Time: 24841ms
+Details: args={'token': 'ej...'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: singularity_kernel_immortality_orchestrator
+Time: 145757ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+FAIL: proxy_rotator_daemon
+Time: 116ms
+Details: args={'kwargs': {}}
+Error Body:
+Traceback (most recent call last):
+  File "C:\Users\shesh\Documents\MYTH\testing\test_tool_invocations.py", line 514, in _invoke_tool
+    try:
+    
+  File "C:\Program Files\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 642, in ainvoke
+    return await self.arun(tool_input, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1117, in arun
+    raise error_to_raise
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1071, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(tool_input, tool_call_id)
+                             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 848, in _to_args_and_kwargs
+    tool_input = self._parse_input(tool_input, tool_call_id)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 701, in _parse_input
+    result = input_args.model_validate(tool_input)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\pydantic\main.py", line 716, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        by_name=by_name,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for proxy_rotator_daemonArgs
+current_proxy
+  Field required [type=missing, input_value={'kwargs': {}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+----------------------------------------
+WARN: sovereign_jit_fuzzer_orchestrator
+Time: 25177ms
+Details: args={'engines': ['test-engine']}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: appdomain_manager_persistence
+Time: 22666ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: omnipotence_oauth_attack_chain
+Time: 22754ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: gcp_service_account_scanner
+Time: 22872ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: sovereign_mitigation_stress_tester
+Time: 22906ms
+Details: args={'target_mitigations': []}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: add_issue_comment
+Time: 50282ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'issue_number': 1.0, 'body': 'test body'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: omnipotence_smuggling_chain_reactor
+Time: 26784ms
+Details: args={'target_host': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: iac_misconfig_scanner
+Time: 26778ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: sovereign_polymorphic_payload_engine
+Time: 26785ms
+Details: args={'shellcode_hex': '909090', 'arch': 'x86'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: amsi_bypass_generator
+Time: 132195ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: singularity_self_healing_isolation_grid
+Time: 56333ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: search_code
+Time: 42192ms
+Details: args={'q': 'test', 'order': 'desc', 'page': 1.0, 'per_page': 1.0}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: omnipotence_websocket_hijacker
+Time: 20461ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: dns_history_lookup
+Time: 29037ms
+Details: args={'domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: sovereign_type_confusion_engine
+Time: 19731ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: sovereign_cross_platform_escaper
+Time: 46979ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: tcache_house_auditor
+Time: 16722ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: prototype_pollution_scanner
+Time: 15475ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: dynamic_probe_mutator
+Time: 19846ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: container_escape_prober
+Time: 44593ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: directory_bruteforce
+Time: 42080ms
+Details: args={'url': 'http://example.com', 'wordlist': ['admin', 'test']}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_pull_request
+Time: 45322ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_issue
+Time: 45403ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'issue_number': 1.0}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: search_users
+Time: 45446ms
+Details: args={'q': 'test', 'order': 'desc', 'page': 1.0, 'per_page': 1.0, 'sort': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: c2_infrastructure_generator
+Time: 19072ms
+Details: args={'domain': 'example.com', 'ip': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: quantum_tls_cracker
+Time: 18609ms
+Details: args={'target_host': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: secrets_in_depth
+Time: 18608ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: transcendence_mitigation_evolution_simulator
+Time: 18599ms
+Details: args={'years_horizon': 5}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: dnsx_scan
+Time: 28712ms
+Details: args={'domains': "['example.com']"}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: av_sandbox_detector
+Time: 37159ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: k8s_rbac_audit
+Time: 36981ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: request_smuggling_analyzer
+Time: 16746ms
+Details: args={'target_host': '127.0.0.1', 'target_port': 443}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: terraform_c2_infrastructure
+Time: 13439ms
+Details: args={'provider': 'aws'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: kubelet_anonymous_prober
+Time: 32094ms
+Details: args={'target_ip': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: list_pull_requests
+Time: 38114ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'state': 'test', 'head': 'feature', 'base': 'main', 'sort': 'test', 'direction': 'test', 'per_page': 1.0, 'page': 1.0}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+FAIL: arch_integrity_nexus_checker
+Time: 101ms
+Details: args={'detected_arch': 'x64'}
+Error Body:
+Traceback (most recent call last):
+  File "C:\Users\shesh\Documents\MYTH\testing\test_tool_invocations.py", line 514, in _invoke_tool
+    try:
+    
+  File "C:\Program Files\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 642, in ainvoke
+    return await self.arun(tool_input, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1117, in arun
+    raise error_to_raise
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1071, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(tool_input, tool_call_id)
+                             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 848, in _to_args_and_kwargs
+    tool_input = self._parse_input(tool_input, tool_call_id)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 701, in _parse_input
+    result = input_args.model_validate(tool_input)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\pydantic\main.py", line 716, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        by_name=by_name,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for arch_integrity_nexus_checkerArgs
+context_report
+  Field required [type=missing, input_value={'detected_arch': 'x64'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+----------------------------------------
+WARN: dhcp_starvation_test
+Time: 15311ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: rest_api_discovery_engine
+Time: 13044ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: vtable_hijack_surface_mapper
+Time: 13081ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: dhcp_infrastructure_auditor
+Time: 52382ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: ad_schema_mapper
+Time: 181655ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: create_pull_request_review
+Time: 32675ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0, 'commit_id': 'abcdef123456', 'body': 'test body', 'event': 'COMMENT', 'comments': []}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: export_results
+Time: 20885ms
+Details: args={'results_data': '{}', 'format': 'elf'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: merge_pull_request
+Time: 32114ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0, 'commit_title': 'test commit', 'commit_message': 'test', 'merge_method': 'merge'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_pull_request_status
+Time: 25674ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: update_pull_request_branch
+Time: 23628ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0, 'expected_head_sha': 'abcdef123456'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_pull_request_comments
+Time: 20227ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: universal_metadata_probe
+Time: 17959ms
+Details: args={'timeout': 30}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: arpspoof_detector
+Time: 53091ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_pull_request_files
+Time: 33934ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+FAIL: dependency_drift_mapper
+Time: 43ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Traceback (most recent call last):
+  File "C:\Users\shesh\Documents\MYTH\testing\test_tool_invocations.py", line 514, in _invoke_tool
+    try:
+    
+  File "C:\Program Files\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 642, in ainvoke
+    return await self.arun(tool_input, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1117, in arun
+    raise error_to_raise
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 1071, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(tool_input, tool_call_id)
+                             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 848, in _to_args_and_kwargs
+    tool_input = self._parse_input(tool_input, tool_call_id)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\langchain_core\tools\base.py", line 701, in _parse_input
+    result = input_args.model_validate(tool_input)
+  File "C:\Users\shesh\Documents\MYTH\.venv\Lib\site-packages\pydantic\main.py", line 716, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        by_name=by_name,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for dependency_drift_mapperArgs
+previous_dependency_manifest
+  Field required [type=missing, input_value={'file_path': 'C:\\Users\...ins\\dummy_payload.bin'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+----------------------------------------
+WARN: analyze_binary_entropy
+Time: 13883ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_all_subdomains
+Time: 13769ms
+Details: args={'domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: analyze_file_hash
+Time: 54617ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'recursive': False}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: gpp_password_decryptor
+Time: 47203ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: state_machine_inverter
+Time: 47174ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: driver_security_policy_checker
+Time: 45840ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_pull_request_reviews
+Time: 67560ms
+Details: args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: hardware_attestation_auditor
+Time: 53601ms
+Details: args={'target_ip': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: alterx_generate
+Time: 57577ms
+Details: args={'base_domain': 'example.com', 'wordlist': "['admin', 'test']"}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: time_travel_race_explorer
+Time: 45960ms
+Details: args={'target_url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: entropy_scanner
+Time: 45980ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: asset_correlation_engine
+Time: 45995ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: decode_base64
+Time: 54178ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: encode_base64
+Time: 53040ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: check_open_ports
+Time: 52971ms
+Details: args={'host': '127.0.0.1', 'ports': '[80, 443]'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: process_list
+Time: 52897ms
+Details: args={'filter_name': 'test-filter'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: analyze_password_strength
+Time: 52575ms
+Details: args={'password': 'testpassword123'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: generate_password
+Time: 48412ms
+Details: args={'length': 16, 'use_special': 'test', 'use_special_chars': 'test', 'special': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_file_metadata
+Time: 48154ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_system_health
+Time: 59871ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: analyze_process_tree
+Time: 46185ms
+Details: args={'pid': 1234}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: heuristic_spider
+Time: 53032ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: graphql_depth_tester
+Time: 46265ms
+Details: args={'url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: http_header_analysis
+Time: 48153ms
+Details: args={'url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: hardware_clock_skew_analyzer
+Time: 53614ms
+Details: args={'target_ip': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_pd_status
+Time: 60484ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: alterx_pattern_generator
+Time: 56339ms
+Details: args={'base_domain': 'example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: apex_intelligence_fuser
+Time: 53830ms
+Details: args={'keyword': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: extract_strings
+Time: 57942ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: bluetooth_device_discovery
+Time: 90830ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: httpx_scan
+Time: 153236ms
+Details: args={'targets': "['http://test.com']", 'title': True, 'status_code': True}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: asnmap_scan
+Time: 153249ms
+Details: args={'target': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: industrial_parallel_discoverer
+Time: 107082ms
+Details: args={'target': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: advanced_string_classifier
+Time: 106730ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: firmware_magic_identifier
+Time: 106729ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: industrial_port_scanner
+Time: 106642ms
+Details: args={'target': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: baconian_cipher_solver
+Time: 106645ms
+Details: args={'ciphertext': 'AABAA ABBAA ABAAA ABAAA ABBAB'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: function_signature_prober
+Time: 106651ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'function_name': 'main'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: autonomous_surface_optimizer
+Time: 106629ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: import_scan_results
+Time: 107584ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'format': 'elf'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: ipa_analyzer
+Time: 106593ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: base91_decoder
+Time: 106601ms
+Details: args={'encoded_str': 'AABBAA'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: gdb_script_factory
+Time: 106756ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: binary_symbol_mapper
+Time: 106800ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'kwargs': {}}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: hardcoded_secret_hunter
+Time: 107254ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_system_info
+Time: 154699ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_process_info
+Time: 107911ms
+Details: args={'pid': 1234, 'name': 'test-repo'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: execute_command
+Time: 107899ms
+Details: args={'command': 'echo test', 'timeout': 30, 'cwd': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: registry_read
+Time: 107040ms
+Details: args={'root_key': 'HKEY_LOCAL_MACHINE', 'subkey': 'SOFTWARE', 'value_name': 'TestValue'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: list_services
+Time: 106835ms
+Details: args={'status_filter': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: ip_geolocation
+Time: 106990ms
+Details: args={'ip_address': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: brainfuck_interpreter
+Time: 106996ms
+Details: args={'code': '++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.', 'input_data': 'start'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: heap_logic_prober
+Time: 106965ms
+Details: args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: banner_grabbing
+Time: 107731ms
+Details: args={'target': '127.0.0.1', 'port': 80}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: chaos_client_scan
+Time: 106828ms
+Details: args={'domain': 'example.com', 'limit': 10}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: autonomous_dependency_tree_auditor
+Time: 108911ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: ics_service_mapper
+Time: 112563ms
+Details: args={'target_ip': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: autonomous_infrastructure_validator
+Time: 112920ms
+Details: args={'target_ip': '127.0.0.1', 'port': 80}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: iot_device_fingerprint
+Time: 112928ms
+Details: args={'target_ip': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: hyper_recon
+Time: 119139ms
+Details: args={'target': '127.0.0.1'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: autonomous_ics_threat_hunter
+Time: 115321ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: katana_scan
+Time: 10680ms
+Details: args={'target': '127.0.0.1', 'depth': 1}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: ldap_domain_discovery
+Time: 10671ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: virustotal_url_scan
+Time: 10801ms
+Details: args={'url': 'http://example.com'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: cloud_bucket_enumerator
+Time: 10801ms
+Details: args={'keyword': 'test'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: naabu_scan
+Time: 10011ms
+Details: args={'target': '127.0.0.1', 'ports': '[80, 443]'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_network_info
+Time: 118619ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_active_connections
+Time: 117737ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_disk_usage
+Time: 120614ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: hibp_password_check
+Time: 10373ms
+Details: args={'password': 'testpassword123'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: kerberos_delegation_auditor
+Time: 117377ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: cve_details
+Time: 10512ms
+Details: args={'cve_id': 'CVE-2023-1234'}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: threat_intelligence_search
+Time: 10537ms
+Details: args={'indicators': ['127.0.0.1']}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: get_realtime_telemetry
+Time: 127033ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: scan_directory
+Time: 10614ms
+Details: args={'path': '/tmp', 'pattern': 'test', 'recursive': False}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: atomic_write_file
+Time: 10131ms
+Details: args={'path': '/tmp', 'content': "b'test content'"}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: read_file_content
+Time: 10407ms
+Details: args={'path': '/tmp', 'encoding': 'utf-8', 'head': 1}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: kerberoasting_mapper
+Time: 124404ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+WARN: check_windows_compatibility
+Time: 20476ms
+Details: args={}
+Error Body:
+Timed out after 10s (tool may be network-dependent)
+----------------------------------------
+
+
+Summary: 9 failures and 287 warnings in 529 tests.

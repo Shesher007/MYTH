@@ -1,0 +1,41 @@
+Name:           {{NAME_LOWER}}
+Version:        {{VERSION}}
+Release:        1%{?dist}
+Summary:        {{DESCRIPTION}}
+
+License:        {{LICENSE}}
+URL:            {{HOMEPAGE}}
+Source0:        {{NAME_LOWER}}-%{version}.tar.gz
+
+BuildRequires:  rust
+BuildRequires:  cargo
+BuildRequires:  nodejs
+BuildRequires:  npm
+BuildRequires:  webkit2gtk3-devel
+BuildRequires:  libappindicator3-devel
+
+Requires:       webkit2gtk3
+Requires:       libappindicator3
+
+%description
+{{SHORT_DESCRIPTION}}
+
+%prep
+%setup -q
+
+%build
+cd ui
+npm install
+npm run tauri build
+
+%install
+mkdir -p %{buildroot}%{_bindir}
+install -m 755 ui/src-tauri/target/release/{{NAME_LOWER}} %{buildroot}%{_bindir}/{{NAME_LOWER}}
+
+%files
+%{_bindir}/{{NAME_LOWER}}
+%doc readme.md
+
+%changelog
+* Sun Feb 15 2026 {{MAINTAINER_NAME}} <{{MAINTAINER_EMAIL}}> - {{VERSION}}-1
+- Initial standalone release for {{NAME}}.

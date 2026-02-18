@@ -1,0 +1,9 @@
+# MYTH — Fedora COPR Build Configuration
+# Upstream: copr-cli create myth --chroot fedora-rawhide-x86_64 --chroot fedora-40-x86_64
+
+[main]
+enabled = 1
+name = MYTH — Industrial-Grade Sovereign Security Agent
+baseurl = https://copr-be.cloud.fedoraproject.org/results/myth/myth/fedora-$releasever-$basearch/
+gpgcheck = 1
+gpgkey = https://copr-be.cloud.fedoraproject.org/results/myth/myth/pubkey.gpg

@@ -1,0 +1,27 @@
+{
+    "version": "1.1.1",
+    "description": "High-Performance Offensive Intelligence Engine",
+    "homepage": "https://github.com/shesher010/MYTH",
+    "license": "{{LICENSE}}",
+    "architecture": {
+        "64bit": {
+            "url": "{{REPO_URL}}/releases/download/v1.1.1/MYTH_1.1.1_x64_en-US.msi",
+            "hash": "sha256:YOUR_SHA256_HASH_HERE"
+        }
+    },
+    "extract_dir": "MYTH",
+    "shortcuts": [
+        [
+            "MYTH.exe",
+            "MYTH"
+        ]
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "{{REPO_URL}}/releases/download/v$version/MYTH_$version_x64_en-US.msi"
+            }
+        }
+    }
+}

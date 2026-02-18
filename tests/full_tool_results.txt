@@ -1,0 +1,1753 @@
+Full Tool Invocation Report - 2026-02-14 08:18:29
+Total Tools Discovered: 528
+Total Tools Invoked: 528
+--------------------------------------------------------------------------------
+[FAIL] Tool Count Validation                    (     0ms) None
+      ERROR: CRITICAL Discrepancy: Only 528 tools found, expected at least 672!
+[FAIL] multi_os_wrapper_factory                 (    27ms) args={}
+      ERROR: Traceback (most recent call last):
+[FAIL] libc_offset_database_lookup              (     3ms) args={'address': '0x123...'}
+      ERROR: Traceback (most recent call last):
+[FAIL] password_spraying_engine                 (     2ms) args={'password': 'testpassword123'}
+      ERROR: Traceback (most recent call last):
+[FAIL] security_diff_analyzer                   (     1ms) args={'file_path_v2': '/tmp/test.txt'}
+      ERROR: Traceback (most recent call last):
+[FAIL] semantic_logic_differ                    (     1ms) args={'file_path_v2': '/tmp/test.txt'}
+      ERROR: Traceback (most recent call last):
+[PASS] packet_sniffing                          (  5217ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:00.840277",
+ 
+[PASS] jwt_security_fuzzer                      (  5194ms) args=['token', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:00.840542",
+ 
+[PASS] nexus_diff_integrity_validator           (  5197ms) args=['diff_results', 'binary_metadata_nexus'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:00.840803",
+ 
+[PASS] ntlm_relay_auditor                       (  5203ms) args=['subnet'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:01.085719",
+ 
+[PASS] obfuscation_primitive_detector           (  5223ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:01.105015",
+ 
+[PASS] lsb_stego_prober                         (  5267ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:01.351228",
+ 
+[PASS] pseudo_logic_summarizer                  (  5276ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:01.351324",
+ 
+[PASS] magic_byte_carver                        (  5284ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:01.396249",
+ 
+[PASS] race_condition_auditor                   (  5327ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.808191",
+ 
+[PASS] pd_scan_workflow                         (  5373ms) args=['target'] result={
+  "error": "'StructuredTool' object is not callable"
+}
+[PASS] phishing_campaign_manager                (  5390ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.808981",
+ 
+[PASS] morse_code_translator                    (  5421ms) args=['text'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.809043",
+ 
+[PASS] re_nexus_orchestrator                    (  5425ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.809480",
+ 
+[PASS] poisoning_surface_mapper                 (  5443ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.815284",
+ 
+[PASS] robust_vulnerability_validation_layer    (  5529ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.816544",
+ 
+[PASS] port_scan                                (  5585ms) args=['target', 'ports'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.816615",
+ 
+[PASS] polymorphic_mutator                      (  5600ms) args=['shellcode_hex'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.816666",
+ 
+[PASS] section_entropy_mapper                   (  5634ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.820875",
+ 
+[PASS] predictive_cloud_expansion_monitor       (  5640ms) args=['keyword'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.821020",
+ 
+[PASS] process_ghosting_generator               (  5655ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.821068",
+ 
+[PASS] pcap_sensitive_extractor                 (  5663ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.821197",
+ 
+[PASS] process_hollowing_engine                 (  5702ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.879329",
+ 
+[PASS] prototype_pollution_payload_generator    (  5724ms) args=['url', 'parameter'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.879431",
+ 
+[PASS] rop_gadget_mapper_lite                   (  5744ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.967417",
+ 
+[PASS] semantic_vulnerability_context_generator (  5779ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:03.967500",
+ 
+[PASS] recon_genesis_monitor                    (  5791ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:04.001409",
+ 
+[PASS] reflective_dll_generator                 (  5846ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:04.001548",
+ 
+[PASS] rsa_solver_generator                     (  5873ms) args=['n', 'c', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:04.001821",
+ 
+[PASS] string_semantic_analyzer                 (  5938ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T07:42:04.002176",
+ 
+[WARN] rfid_cloner_util                         (1703374ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] syscall_event_correlator                 (1703469ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] rfid_nfc_scanner                         (1703474ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] statistical_byte_distributor             (1703479ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] system_mitigation_equilibrium_analyser   (1703481ms) args={'binary_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] syscall_interaction_analyzer             (1703518ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] universal_arch_context_generator         (1703537ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] reverse_dns_lookup                       (1703544ms) args={'ip_address': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] universal_base_decoder                   (1703561ms) args={'encoded_str': 'AABBAA', 'kwargs': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] universal_firmware_extractor             (1703611ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] universal_flag_hunter                    (1703614ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] unsafe_function_scanner                  (1703651ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] vigenere_breaker                         (1703679ms) args={'ciphertext': 'AABAA ABBAA ABAAA ABAAA ABBAB', 'kwargs': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] virtualization_stub_detector             (1703682ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] secure_delete_file                       (1710233ms) args={'path': '/tmp'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] query_postgres                           (1710230ms) args={'connection_string': 'postgresql://user:pass@localhost:5432/db', 'sql': 'SELECT 1', 'params': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] query_redis                              (1710228ms) args={'uri': 'redis://localhost:6379', 'command': 'echo test', 'args': []}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] check_db_health                          (1710226ms) args={'connection_string': 'postgresql://user:pass@localhost:5432/db'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] security_run_container                   (1710226ms) args={'image': 'nginx:latest', 'command': 'echo test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] live_container_forensics                 (1710228ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] forensic_browse                          (1710223ms) args={'url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] capture_scout                            (1710219ms) args={'url': 'http://example.com', 'full_page': False}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] recon_fetch                              (1710220ms) args={'url': 'http://example.com', 'headers': {'User-Agent': 'Test'}, 'proxy': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] bulk_recon_scan                          (1710220ms) args={'urls': ['http://example.com']}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] deep_fingerprint_scout                   (1704082ms) args={'host': '127.0.0.1', 'ports': [80, 443]}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] protocol_fingerprint                     (1704079ms) args={'host': '127.0.0.1', 'port': 80}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] shodan_host_info                         (1704078ms) args={'ip': '127.0.0.1', 'key': 'test-key'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] censys_search_hosts                      (1704074ms) args={'query': 'test', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] cens_cert_search                         (1704073ms) args={'fingerprint': 'test-fingerprint', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] quick_subdomain_check                    (1710965ms) args={'domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] quantum_stable_passive_scanner           (1711104ms) args={'target_domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] ssrf_redirect_prober                     (1705217ms) args={'url': 'http://example.com', 'parameter': 'id', 'kwargs': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] recursive_shadow_it_hunter               (1705236ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:28.804424",
+ 
+[PASS] recon_genesis_orchestrator               (1706651ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:29.153483",
+ 
+[PASS] resonance_internal_preflight             (1706688ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:29.882416",
+ 
+[PASS] secret_hunter                            (1706751ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:29.889706",
+ 
+[WARN] ping_sweep                               (1712926ms) args={'network_range': '127.0.0.1/32'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] skeleton_key_code_generator              (1710938ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:29.953956",
+ 
+[WARN] semantic_content_prober                  (1710950ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] skeleton_key_injector_stub               (1711027ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:29.982898",
+ 
+[WARN] passive_intel_deep_scanner               (1717309ms) args={'target_domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] persistence_mechanism_detector           (1717532ms) args={'target_ip': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] nosql_logic_prober                       (1717616ms) args={'url': 'http://example.com', 'parameter': 'id'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] param_miner_lite                         (1717686ms) args={'url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] protocol_relay_auditor                   (1717791ms) args={'target_ip': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] arbitrary_read_write_finder              (  9049ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:30.428927",
+ 
+[PASS] snmp_community_bruteforcer               (  9009ms) args=['target_ip', 'wordlist_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:30.644567",
+ 
+[PASS] backdoor_scanner                         (  9017ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:31.302414",
+ 
+[PASS] arraybuffer_primitive_auditor            (  9017ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:31.321280",
+ 
+[PASS] social_engineering_toolkit               (  8981ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:31.340758",
+ 
+[PASS] call_stack_spoofing_generator            (  8980ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:31.346650",
+ 
+[PASS] aslr_entropy_analyzer                    (  8503ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:36.107294",
+ 
+[PASS] chained_obfuscator                       (  8660ms) args=['shellcode_hex', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:36.520185",
+ 
+[PASS] cfi_edge_mapper                          (  8595ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:36.592465",
+ 
+[PASS] stp_attack_detector                      (  8528ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:36.731646",
+ 
+[PASS] data_exfiltration_tester                 (  8545ms) args=['file_path', 'method'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:36.734413",
+ 
+[PASS] eminence_ai_exploit_optimizer            (  8470ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:36.801520",
+ 
+[PASS] wifi_cap_file_analyzer                   (  8455ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:37.830558",
+ 
+[PASS] dll_sideload_hunter                      (  8454ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:37.996171",
+ 
+[PASS] eminence_kernel_race_condition_solver    (  8359ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:38.018217",
+ 
+[WARN] securitytrails_subdomains                ( 10632ms) args={'domain': 'example.com', 'key': 'test-key'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] driver_blocklist_bypass                  (  1578ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:38.785086",
+ 
+[PASS] eminence_mitigation_resilience_auditor   (  1568ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:38.841363",
+ 
+[PASS] snmp_logic_walker                        (  1555ms) args=['target_ip'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:38.880115",
+ 
+[PASS] edr_hook_analyzer                        (  1519ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.139434",
+ 
+[PASS] eminence_semantic_gadget_search          (  1520ms) args=['file_path', 'command', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.147770",
+ 
+[PASS] sovereign_dependency_remediator          (  1517ms) args=['keyword', 'dependency_tree'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.233689",
+ 
+[PASS] wmi_event_subscription_persistence       (  1511ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.260057",
+ 
+[PASS] edr_hook_detector                        (  2692ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.263863",
+ 
+[PASS] eminence_type_confusion_root_cause_analyzer (  2695ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.265799",
+ 
+[WARN] service_banner_correlator                ( 11796ms) args={'target_ip': '127.0.0.1', 'ports': [80, 443]}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] securitytrails_dns_history               ( 11872ms) args={'domain': 'example.com', 'key': 'test-key'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] smb_share_enumerator                     ( 11948ms) args={'target_ip': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] service_fingerprint                      ( 10687ms) args=['target', 'port'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.305447",
+ 
+[WARN] virustotal_domain_report                 ( 11835ms) args={'domain': 'example.com', 'key': 'test-key'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] docker_cleanup                           (1722999ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] sovereign_identity_deobfuscator          (  3484ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.316953",
+ 
+[PASS] xll_payload_generator                    (  3479ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.324084",
+ 
+[PASS] ekko_sleep_generator                     (  3475ms) args=['kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.326779",
+ 
+[PASS] eminence_universal_sandbox_persistence   (  3487ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.337352",
+ 
+[PASS] robots_sitemap_analysis                  (1716946ms) args=['url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.516696",
+ 
+[PASS] sovereign_iot_remediator                 (  2964ms) args=['target_ip'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.622365",
+ 
+[PASS] auth_logic_breaker                       (  2966ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:39.628734",
+ 
+[PASS] evasion_arsenal_health_check             (  2960ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:40.817571",
+ 
+[PASS] eminence_v8_jit_exploit_generator        (  2988ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:40.842393",
+ 
+[WARN] serverless_endpoint_hunter               ( 13274ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] sovereign_network_zenith                 (  3018ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:40.856503",
+ 
+[PASS] jwt_exploiter                            (  3007ms) args=['token'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:40.857125",
+ 
+[PASS] forensic_artifact_finder                 (  3027ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:40.857446",
+ 
+[WARN] semantic_drift_analyzer                  ( 13481ms) args={'target_domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] exploit_skeleton_generator               (  3415ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:41.938378",
+ 
+[WARN] virustotal_ip_report                     ( 16041ms) args={'ip': '127.0.0.1', 'key': 'test-key'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] pd_health_check                          (1727165ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] hunter_domain_search                     ( 15873ms) args={'domain': 'example.com', 'key': 'test-key'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] hibp_check_account                       ( 15774ms) args={'account': 'test-account', 'key': 'test-key'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] nvd_get_cve                              ( 15381ms) args={'cve_id': 'CVE-2023-1234', 'key': 'test-key'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] shuffledns_scan                          ( 16032ms) args={'domains': "['example.com']", 'wordlist': "['admin', 'test']"}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] smuggling_engine                         (  5748ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:42.728012",
+ 
+[PASS] ghosting_viability_auditor               (  5771ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:42.768357",
+ 
+[PASS] jit_spray_surface_mapper                 (  5755ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:42.839578",
+ 
+[PASS] sqli_detector                            (  5725ms) args=['target_url', 'parameter'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:42.944183",
+ 
+[PASS] hardware_breakpoint_detector             (  5729ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:42.950177",
+ 
+[PASS] jop_dispatcher_finder                    (  5734ms) args=['file_path', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:42.950747",
+ 
+[PASS] subdomain_takeover_monitor               (  5748ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:46.041154",
+ 
+[PASS] ssrf_master                              (  5815ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:46.056343",
+ 
+[PASS] herpaderping_builder                     (  5817ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:46.058179",
+ 
+[PASS] kslide_entropy_auditor                   (  5831ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:46.062666",
+ 
+[WARN] service_config_audit                     ( 17899ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] applocker_bypass_hunter                  ( 19064ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:46.739569",
+ 
+[PASS] ssti_optimizer                           (  5908ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:46.774767",
+ 
+[PASS] indirect_syscall_mapper                  (  5927ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:46.774997",
+ 
+[PASS] lfh_entropy_prober                       (  5929ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:46.780793",
+ 
+[WARN] shodan_search                            ( 22051ms) args={'query': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] xss_scanner                              (  9606ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:47.738585",
+ 
+[PASS] injection_technique_evaluator            ( 10232ms) args=['target_pid', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:47.747904",
+ 
+[PASS] object_lifecycle_auditor                 ( 10339ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:47.761244",
+ 
+[PASS] arsenal_integrity_monitor                ( 12748ms) args=['kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:47.777342",
+ 
+[PASS] instrumentation_bypass_prober            ( 12745ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:47.779894",
+ 
+[PASS] ssl_tls_scan                             ( 13817ms) args=['hostname'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:47.780090",
+ 
+[PASS] payload_encoder_factory                  (  9703ms) args=['shellcode_hex', 'encoding', 'arch'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:47.880178",
+ 
+[PASS] tcp_stack_analyzer                       (  8466ms) args=['target_ip'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:50.398360",
+ 
+[PASS] cache_poisoning_prober                   (  8547ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:50.408222",
+ 
+[PASS] lolbin_discovery_scanner                 (  8602ms) args=['kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:52.352443",
+ 
+[PASS] revelation_exploit_scaffolder            (  8641ms) args=['primitives'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:52.359146",
+ 
+[PASS] tls_jarm_generator                       ( 24974ms) args=['target_ip', 'target_port'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:55.705169",
+ 
+[PASS] passive_genesis_integrity_monitor        (1754060ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:55.819654",
+ 
+[WARN] github_get_advisories                    ( 34880ms) args={'ecosystem': 'npm', 'package': 'test-package'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] cisa_search_kev                          ( 34521ms) args={'query': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] run_nuclei_scan                          ( 33991ms) args={'target': '127.0.0.1', 'templates': ['default'], 'severity': 'high'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] list_nuclei_templates                    ( 32433ms) args={'query': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] campaign_manager                         ( 25388ms) args=['campaign_name', 'action'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:55.844110",
+ 
+[PASS] module_stomping_evaluator                ( 25406ms) args=['target_pid', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:55.845212",
+ 
+[PASS] revelation_gadget_chain_architect        ( 25416ms) args=['file_path', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:55.904957",
+ 
+[PASS] cloud_metadata_prober                    ( 25457ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:55.963999",
+ 
+[PASS] ntdll_hook_cleaner                       ( 27706ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:56.002413",
+ 
+[WARN] socks5_pivot_generator                   ( 45892ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] revelation_heap_shaper                   ( 27779ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:56.022307",
+ 
+[PASS] context_aware_ssti_fuzzer                ( 31156ms) args=['target_url', 'parameter'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:10:56.194049",
+ 
+[WARN] exploitdb_search                         ( 43677ms) args={'query': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] burp_send_to_repeater                    ( 40280ms) args={'host': '127.0.0.1', 'port': 80, 'use_https': True, 'request_b64': 'R0VUIC8gSFRUUC8xLjENCkhvc3Q6IGV4YW1wbGUuY29tDQoNCg=='}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] burp_trigger_scan                        ( 40278ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] track_new_asset                          ( 40246ms) args={'host': '127.0.0.1', 'program': 'test-program'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] check_asset_scope                        ( 39951ms) args={'host': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] fast_subdomain_discovery                 ( 41151ms) args={'domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] payload_entropy_auditor                  ( 31752ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] revelation_kernel_fuzzer_bridge          ( 31779ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] dependency_confusion_scanner             ( 28611ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] persistence_script_generator             ( 43629ms) args={'command': 'echo test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] revelation_mitigation_equilibrium_solver ( 43633ms) args={'mitigations': []}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] dom_xss_analyzer                         ( 43589ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] revelation_object_layout_prober          ( 55146ms) args={'binary_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'class_name': 'TestClass'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] session_enumerator                       (1786805ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] search_local_exploits                    ( 70115ms) args={'query': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] download_exploit_poc                     ( 69643ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] calculate_cvss_v3                        ( 69557ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] generate_markdown_report                 ( 65375ms) args={'title': 'Test Finding', 'findings': []}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] entropy_prediction_engine                ( 50151ms) args={'token_sample': ['token1', 'token2']}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] process_protection_auditor               ( 50154ms) args={'pid': 1234}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] subdomain_enumeration                    ( 81182ms) args={'domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] rapid_port_scan                          ( 76486ms) args={'target': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] systemic_intel_persistence_engine        ( 80290ms) args={'target': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] wifi_network_scanner                     ( 91638ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] tlsx_scan                                ( 75192ms) args={'targets': "['http://test.com']", 'vulnerabilities': True}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] traceroute                               ( 75124ms) args={'target': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] uncover_scan                             ( 70952ms) args={'query': 'test', 'limit': 10}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] synchronized_infra_enumerator            ( 80699ms) args=['target_ip'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:11:32.042312",
+ 
+[WARN] vlan_hopping_detect                      ( 46225ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] global_traffic_masquerade                ( 45849ms) args={'payload_type': 'json', 'kwargs': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] reflective_stub_generator                ( 45942ms) args={'kwargs': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] revelation_v8_analyzer                   ( 46395ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] cisa_get_kev_catalog                     ( 90579ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] create_pull_request                      ( 35842ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'title': 'Test Finding', 'body': 'test body', 'head': 'feature', 'base': 'main', 'draft': False, 'maintainer_can_modify': False}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] graphql_introspection_fuzzer             ( 51169ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] rop_gadget_harvester                     ( 51420ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'kwargs': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] grid_swarm_orchestrator                  ( 52015ms) args={'target_list': '', 'kwargs': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] grpc_web_logic_mapper                    ( 44548ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] shellcode_encrypter                      ( 44640ms) args={'shellcode_hex': '909090', 'key_hex': '00112233445566778899aabbccddeeff', 'kwargs': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] subfinder_scan                           (102826ms) args={'domain': 'example.com', 'recursive': False}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] urlfinder_scan                           ( 72164ms) args={'target': '127.0.0.1', 'depth': 1, 'params': True}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] create_or_update_file                    ( 89205ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'path': '/tmp', 'content': "b'test content'", 'message': 'test message', 'branch': 'main', 'sha': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] universal_interface_enumerator           ( 89479ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] process_ghosting_builder                 ( 89475ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] wayback_machine_lookup                   ( 61168ms) args={'url': 'http://example.com', 'limit': 10}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] whois_lookup                             ( 34412ms) args={'domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] web_technology_fingerprint               ( 62736ms) args={'url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] vulnerability_correlator                 (148607ms) args={'scan_results': '[]', 'target': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] h2c_smuggling_prober                     (111547ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] singularity_autonomous_heap_reconstructor (111557ms) args={'chunk_ptr': 0, 'next_ptr': 0, 'size': 1024}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] whois_universal_lookup                   (119035ms) args={'domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] heuristic_zero_day_hunter                (118935ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] wmi_persistence_builder                  (118949ms) args={'command': 'echo test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] singularity_deep_logic_flaw_synthesizer  (118989ms) args={'class_hierarchy': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] search_repositories                      (174122ms) args={'query': 'test', 'page': 1.0, 'perPage': 1.0}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] revelation_sandbox_escaper               (171555ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] cross_cloud_identity_mapper              (119045ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] jwt_integrity_checker                    (118152ms) args={'token': 'ej...'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] singularity_jit_formal_verifier          (118103ms) args={'ir_graph': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] lattice_trapdoor_finder                  (111722ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] aws_iam_privilege_escalation_checker     (111733ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] windows_priv_escalation_checker          (219179ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] get_file_contents                        (173065ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'path': '/tmp', 'branch': 'main'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] create_issue                             (165351ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'title': 'Test Finding', 'body': 'test body', 'assignees': [], 'milestone': 1.0, 'labels': []}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] push_files                               (172990ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'branch': 'main', 'files': [{'readonly.txt': 'content'}], 'message': 'test message'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] create_repository                        (175622ms) args={'name': 'test-repo', 'description': 'test description', 'private': False, 'autoInit': False}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] sandbox_evader                           (173064ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] update_issue                             (111869ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'issue_number': 1.0, 'title': 'Test Finding', 'body': 'test body', 'assignees': [], 'milestone': 1.0, 'labels': [], 'state': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] sandbox_evasion_prober                   (165587ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] alpha_numeric_encoder                    (120921ms) args={'shellcode_hex': '909090'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] sandbox_boundary_prober                  (165550ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] oauth_flow_auditor                       (120934ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] crtsh_lookup                             (128579ms) args={'domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] singularity_active_mitigation_predator   (168065ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] aws_persistence_generator                (114691ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] singularity_omega_exploit_synthesizer    (114687ms) args={'primitives': []}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] deep_ics_protocol_analyzer               (114631ms) args={'target_ip': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] ct_log_monitor                           (123647ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] omnipotence_cache_poisoning_orchestrator ( 28367ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] azure_role_analyzer                      ( 29934ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] create_branch                            (144618ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'branch': 'main', 'from_branch': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] fork_repository                          (146372ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'organization': 'test-org'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] stub_integrity_checker                   (146867ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] dependency_risk_mapper                   ( 35388ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] antivirus_evasion_checker                ( 35646ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] omnipotence_cp_dos_engine                ( 27427ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] cicd_pipeline_audit                      ( 27592ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] search_issues                            ( 28498ms) args={'q': 'test', 'order': 'desc', 'page': 1.0, 'per_page': 1.0, 'sort': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] list_commits                             (146729ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'sha': 'test', 'page': 1.0, 'perPage': 1.0}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] devops_leak_hunter                       ( 28825ms) args={'keyword': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] api_specification_analyzer               ( 30067ms) args={'url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] omnipotence_http2_desync_auditor         ( 32246ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] aws_advanced_enumerator                  (150355ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] cloud_trail_analyzer                     ( 32235ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] sovereign_global_gadget_indexer          ( 32235ms) args={'lib_path': '/usr/lib', 'kwargs': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] advanced_vba_macro_stager                (150056ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] list_issues                              (142855ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'direction': 'test', 'labels': [], 'page': 1.0, 'per_page': 1.0, 'since': 'test', 'sort': 'test', 'state': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] apk_analyzer                             ( 22026ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] omnipotence_jwt_cracker_logic            ( 24841ms) args={'token': 'ej...'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] singularity_kernel_immortality_orchestrator (145757ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[FAIL] proxy_rotator_daemon                     (   116ms) args={'kwargs': {}}
+      ERROR: Traceback (most recent call last):
+[WARN] sovereign_jit_fuzzer_orchestrator        ( 25177ms) args={'engines': ['test-engine']}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] appdomain_manager_persistence            ( 22666ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] omnipotence_oauth_attack_chain           ( 22754ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] gcp_service_account_scanner              ( 22872ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] sovereign_mitigation_stress_tester       ( 22906ms) args={'target_mitigations': []}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] add_issue_comment                        ( 50282ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'issue_number': 1.0, 'body': 'test body'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] omnipotence_smuggling_chain_reactor      ( 26784ms) args={'target_host': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] iac_misconfig_scanner                    ( 26778ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] sovereign_polymorphic_payload_engine     ( 26785ms) args={'shellcode_hex': '909090', 'arch': 'x86'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] amsi_bypass_generator                    (132195ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] singularity_self_healing_isolation_grid  ( 56333ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] search_code                              ( 42192ms) args={'q': 'test', 'order': 'desc', 'page': 1.0, 'per_page': 1.0}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] omnipotence_websocket_hijacker           ( 20461ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] dns_history_lookup                       ( 29037ms) args={'domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] sovereign_type_confusion_engine          ( 19731ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] sovereign_cross_platform_escaper         ( 46979ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] dns_zone_transfer_attempt                ( 13667ms) args=['domain', 'ns_server'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:42.712518",
+ 
+[PASS] bad_usb_payload_generator                ( 16952ms) args=['target_os'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:42.770290",
+ 
+[PASS] protocol_anomaly_fuzzer                  ( 16917ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:43.048622",
+ 
+[WARN] tcache_house_auditor                     ( 16722ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] prototype_pollution_scanner              ( 15475ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] kubernetes_misconfig_scanner             ( 15639ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:46.977921",
+ 
+[PASS] transcendence_autonomous_exploit_synthesizer ( 18621ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:49.171014",
+ 
+[WARN] dynamic_probe_mutator                    ( 19846ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] container_escape_prober                  ( 44593ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] s3_ransomware_simulator                  ( 19360ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:52.532666",
+ 
+[PASS] transcendence_distributed_sandbox_grid   ( 19369ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:52.532774",
+ 
+[WARN] directory_bruteforce                     ( 42080ms) args={'url': 'http://example.com', 'wordlist': ['admin', 'test']}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] eminence_discovery_orchestrator          ( 22377ms) args=['target'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:52.602968",
+ 
+[WARN] get_pull_request                         ( 45322ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] get_issue                                ( 45403ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'issue_number': 1.0}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] search_users                             ( 45446ms) args={'q': 'test', 'order': 'desc', 'page': 1.0, 'per_page': 1.0, 'sort': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] c2_infrastructure_generator              ( 19072ms) args={'domain': 'example.com', 'ip': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] quantum_tls_cracker                      ( 18609ms) args={'target_host': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] secrets_in_depth                         ( 18608ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] transcendence_mitigation_evolution_simulator ( 18599ms) args={'years_horizon': 5}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] eternity_signature_correlator            ( 16507ms) args=['spectral_signature'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:54.974462",
+ 
+[PASS] repo_typosquatting_generator             ( 16537ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:55.930269",
+ 
+[PASS] storage_account_enumeration              ( 16560ms) args=['account_name', 'provider'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:57.981762",
+ 
+[PASS] transcendence_neural_jit_analyzer        ( 16620ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:14:57.990424",
+ 
+[WARN] dnsx_scan                                ( 28712ms) args={'domains': "['example.com']"}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] av_sandbox_detector                      ( 37159ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] k8s_rbac_audit                           ( 36981ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] request_smuggling_analyzer               ( 16746ms) args={'target_host': '127.0.0.1', 'target_port': 443}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] terraform_c2_infrastructure              ( 13439ms) args={'provider': 'aws'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] kubelet_anonymous_prober                 ( 32094ms) args={'target_ip': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] list_pull_requests                       ( 38114ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'state': 'test', 'head': 'feature', 'base': 'main', 'sort': 'test', 'direction': 'test', 'per_page': 1.0, 'page': 1.0}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[FAIL] arch_integrity_nexus_checker             (   101ms) args={'detected_arch': 'x64'}
+      ERROR: Traceback (most recent call last):
+[WARN] dhcp_starvation_test                     ( 15311ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] rest_api_discovery_engine                ( 13044ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] vtable_hijack_surface_mapper             ( 13081ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] dhcp_infrastructure_auditor              ( 52382ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] ad_schema_mapper                         (181655ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] create_pull_request_review               ( 32675ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0, 'commit_id': 'abcdef123456', 'body': 'test body', 'event': 'COMMENT', 'comments': []}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] firewall_detection                       ( 17357ms) args=['target_ip'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:05.950204",
+ 
+[PASS] browser_credential_harvester             ( 27651ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:05.968316",
+ 
+[WARN] export_results                           ( 20885ms) args={'results_data': '{}', 'format': 'elf'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] dll_sideloading_generator                (  8080ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:05.979939",
+ 
+[PASS] semantic_payload_hider                   (  5713ms) args=['payload'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:06.929860",
+ 
+[WARN] merge_pull_request                       ( 32114ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0, 'commit_title': 'test commit', 'commit_message': 'test', 'merge_method': 'merge'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] adaptive_analysis_scheduler              (  6029ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:07.985018",
+ 
+[PASS] wasm_exploitation_surface_mapper         (  6375ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:07.990394",
+ 
+[PASS] genesis_network_preflight_checker        (  6452ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:08.051323",
+ 
+[PASS] dns_tunnel_stager                        (  6392ms) args=['domain', 'data'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:08.056488",
+ 
+[PASS] singularity_business_logic_solver        (  6771ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:09.737936",
+ 
+[PASS] advanced_dynamic_trace_analyzer          (  6765ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:09.743515",
+ 
+[PASS] advanced_subdomain_enumeration           (  6781ms) args=['domain'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:09.744635",
+ 
+[WARN] get_pull_request_status                  ( 25674ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] dns_txt_stager_factory                   (  6774ms) args=['domain', 'shellcode_hex'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:10.082845",
+ 
+[PASS] singularity_waf_oracle                   (  6775ms) args=['target_url', 'payload_type'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:10.083242",
+ 
+[PASS] container_escape_detector                ( 23521ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:10.105536",
+ 
+[PASS] generate_results_dashboard               ( 10689ms) args=['scan_results'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:05.972057",
+ 
+[PASS] arch_fingerprinter                       (  6820ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:10.234349",
+ 
+[PASS] dynamic_gate_finder                      (  5886ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:11.327104",
+ 
+[PASS] transcendence_quantum_memory_auditor     ( 20214ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:11.328227",
+ 
+[PASS] sovereign_cloud_metadata_extractor       (  5027ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:11.434823",
+ 
+[WARN] update_pull_request_branch               ( 23628ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0, 'expected_head_sha': 'abcdef123456'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] get_pull_request_comments                ( 20227ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] adaptive_service_prober                  ( 10758ms) args=['target', 'port'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:11.579885",
+ 
+[WARN] universal_metadata_probe                 ( 17959ms) args={'timeout': 30}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] dynamic_unhooking_engine                 (  3393ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:12.624175",
+ 
+[PASS] sovereign_dom_taint_tracer               (  3416ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:12.624354",
+ 
+[WARN] arpspoof_detector                        ( 53091ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] autonomous_analysis_recovery_engine      (  3515ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:12.687067",
+ 
+[PASS] google_dork_generator                    (  3242ms) args=['target_domain'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:12.802204",
+ 
+[PASS] edr_bypass_checker                       (  3259ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:12.804067",
+ 
+[PASS] sovereign_graphql_predator               (  2361ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:12.815286",
+ 
+[PASS] autonomous_flaw_discoverer               (  2148ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:12.821447",
+ 
+[WARN] get_pull_request_files                   ( 33934ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[FAIL] dependency_drift_mapper                  (    43ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Traceback (most recent call last):
+[PASS] egress_filter_mapper                     (  5310ms) args=['target_host'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:12.920277",
+ 
+[PASS] sovereign_grpc_reflection_auditor        (  4868ms) args=['target_host', 'target_port'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:12.922484",
+ 
+[PASS] autonomous_packer_identifier             (  4839ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:13.238330",
+ 
+[PASS] etw_bypass_generator                     (  4901ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:13.321528",
+ 
+[PASS] sovereign_ssrf_orchestrator              (  4869ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:13.522944",
+ 
+[PASS] base_address_finder                      (  5335ms) args=['file_path', 'arch'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:13.624774",
+ 
+[PASS] apex_internal_resonance_scanner          (  5327ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:16.676652",
+ 
+[PASS] exploitation_arsenal_health_check        (  5350ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:17.366139",
+ 
+[PASS] sovereign_ssti_polyglot_injector         (  5355ms) args=['target_url', 'parameter'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:17.367348",
+ 
+[PASS] bypass_viability_scorer                  (  5355ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:17.368520",
+ 
+[PASS] apex_service_hardening_auditor           (  6696ms) args=['target_ip', 'service_map'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:17.472171",
+ 
+[PASS] fiber_injection_util                     (  6459ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:17.479651",
+ 
+[PASS] sovereign_xss_mutation_engine            (  6402ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:17.594041",
+ 
+[PASS] checksec_advanced                        (  6406ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:17.594563",
+ 
+[PASS] api_key_leak_check                       (  6133ms) args=['domain_or_term'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:17.669155",
+ 
+[PASS] firmware_analyzer                        (  6039ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:18.159415",
+ 
+[PASS] ssrf_redirect_bypasser                   (  2637ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:18.206828",
+ 
+[WARN] analyze_binary_entropy                   ( 13883ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] advanced_spectral_stack_analyser         ( 14121ms) args=['target_ip'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:18.209429",
+ 
+[WARN] get_all_subdomains                       ( 13769ms) args={'domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] arp_ndp_scanner                          ( 43532ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:19.619795",
+ 
+[PASS] holographic_identity_correlator          ( 43538ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:19.619980",
+ 
+[PASS] golden_ticket_command                    ( 43574ms) args=['domain', 'sid', 'krbtgt_hash'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:19.640251",
+ 
+[PASS] ssti_engine_identifier                   ( 43530ms) args=['target_url', 'parameter'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:19.649504",
+ 
+[WARN] analyze_file_hash                        ( 54617ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'recursive': False}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] dependency_mapper                        ( 44931ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:15:19.651521",
+ 
+[WARN] gpp_password_decryptor                   ( 47203ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] state_machine_inverter                   ( 47174ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] driver_security_policy_checker           ( 45840ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] adversarial_infra_mapper                 ( 59542ms) args=['target_domain'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:02.544647",
+ 
+[WARN] get_pull_request_reviews                 ( 67560ms) args={'owner': 'test-owner', 'repo': 'test-repo', 'pull_number': 1.0}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] hardware_attestation_auditor             ( 53601ms) args={'target_ip': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] alterx_generate                          ( 57577ms) args={'base_domain': 'example.com', 'wordlist': "['admin', 'test']"}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] time_travel_race_explorer                ( 45960ms) args={'target_url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] entropy_scanner                          ( 45980ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] asset_correlation_engine                 ( 45995ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] decode_base64                            ( 54178ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] encode_base64                            ( 53040ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] check_open_ports                         ( 52971ms) args={'host': '127.0.0.1', 'ports': '[80, 443]'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] process_list                             ( 52897ms) args={'filter_name': 'test-filter'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] analyze_password_strength                ( 52575ms) args={'password': 'testpassword123'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] generate_password                        ( 48412ms) args={'length': 16, 'use_special': 'test', 'use_special_chars': 'test', 'special': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] get_file_metadata                        ( 48154ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] get_system_health                        ( 59871ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] analyze_process_tree                     ( 46185ms) args={'pid': 1234}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] heuristic_spider                         ( 53032ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] graphql_depth_tester                     ( 46265ms) args={'url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] graphql_introspector                     (  5292ms) args=['url', 'headers'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:05.467631",
+ 
+[WARN] http_header_analysis                     ( 48153ms) args={'url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] web_arsenal_orchestrator                 (  5192ms) args=['target_url', 'objective'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:05.474454",
+ 
+[PASS] exploit_primitive_identifier             (  3783ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:05.538897",
+ 
+[PASS] autonomous_attack_surface_mapper         (  3791ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:05.542153",
+ 
+[PASS] apex_evasion_profiler                    ( 54473ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:05.548496",
+ 
+[WARN] hardware_clock_skew_analyzer             ( 53614ms) args={'target_ip': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] arp_scan                                 ( 48289ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:05.557120",
+ 
+[WARN] get_pd_status                            ( 60484ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] cloud_metadata_pivot                     ( 77324ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:05.566738",
+ 
+[WARN] alterx_pattern_generator                 ( 56339ms) args={'base_domain': 'example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] hash_identifier                          (  3058ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:05.621072",
+ 
+[PASS] web_cache_deception_auditor              (  3069ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:05.681603",
+ 
+[PASS] firmware_integrity_genesis_monitor       (  2877ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:05.709561",
+ 
+[WARN] apex_intelligence_fuser                  ( 53830ms) args={'keyword': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] hidden_parameter_fuzzer                  ( 54612ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:06.429028",
+ 
+[WARN] extract_strings                          ( 57942ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] bluetooth_device_discovery               ( 90830ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] icmp_exfiltration_stager                 (106934ms) args=['target_ip', 'data'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:06.596551",
+ 
+[PASS] websocket_security_fuzzer                (106933ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:06.607418",
+ 
+[PASS] firmware_iot_vulnerability_scanner       (107029ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:06.631048",
+ 
+[WARN] httpx_scan                               (153236ms) args={'targets': "['http://test.com']", 'title': True, 'status_code': True}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] asnmap_scan                              (153249ms) args={'target': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] dns_lookup                               (212733ms) args=['domain'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:16:07.352942",
+ 
+[WARN] industrial_parallel_discoverer           (107082ms) args={'target': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] advanced_string_classifier               (106730ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] firmware_magic_identifier                (106729ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] industrial_port_scanner                  (106642ms) args={'target': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] baconian_cipher_solver                   (106645ms) args={'ciphertext': 'AABAA ABBAA ABAAA ABAAA ABBAB'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] function_signature_prober                (106651ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'function_name': 'main'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] autonomous_surface_optimizer             (106629ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] import_scan_results                      (107584ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'format': 'elf'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] ipa_analyzer                             (106593ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] base91_decoder                           (106601ms) args={'encoded_str': 'AABBAA'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] gdb_script_factory                       (106756ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] binary_symbol_mapper                     (106800ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin', 'kwargs': {}}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] hardcoded_secret_hunter                  (107254ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] get_system_info                          (154699ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] get_process_info                         (107911ms) args={'pid': 1234, 'name': 'test-repo'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] execute_command                          (107899ms) args={'command': 'echo test', 'timeout': 30, 'cwd': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] registry_read                            (107040ms) args={'root_key': 'HKEY_LOCAL_MACHINE', 'subkey': 'SOFTWARE', 'value_name': 'TestValue'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] list_services                            (106835ms) args={'status_filter': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] ip_geolocation                           (106990ms) args={'ip_address': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] brainfuck_interpreter                    (106996ms) args={'code': '++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.', 'input_data': 'start'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] heap_logic_prober                        (106965ms) args={'file_path': 'C:\\Users\\shesh\\Documents\\MYTH\\testing\\bins\\dummy_payload.bin'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] banner_grabbing                          (107731ms) args={'target': '127.0.0.1', 'port': 80}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] chaos_client_scan                        (106828ms) args={'domain': 'example.com', 'limit': 10}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] autonomous_dependency_tree_auditor       (108911ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] brute_force_rot_tester                   (  2769ms) args=['ciphertext'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:54.289981",
+ 
+[WARN] ics_service_mapper                       (112563ms) args={'target_ip': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] heuristic_symbol_reconstructor           (  4435ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:54.351979",
+ 
+[PASS] indirect_syscall_generator               (111201ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:54.354343",
+ 
+[PASS] linux_priv_escalation_checker            (  5113ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:54.655651",
+ 
+[PASS] crypto_attack_suite                      (  5125ms) args=['ciphertext', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:54.656467",
+ 
+[PASS] global_package_integrity_auditor         (170736ms) args=['keyword'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:54.795967",
+ 
+[WARN] autonomous_infrastructure_validator      (112920ms) args={'target_ip': '127.0.0.1', 'port': 80}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] iot_device_fingerprint                   (112928ms) args={'target_ip': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] industrial_binary_identifier             (  6267ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:55.587216",
+ 
+[PASS] lnk_payload_generator                    (  5611ms) args=['command'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:56.095978",
+ 
+[PASS] integer_overflow_prober                  (  5615ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:56.099625",
+ 
+[WARN] hyper_recon                              (119139ms) args={'target': '127.0.0.1'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] network_mapper                           (  5976ms) args=['target'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:57.453475",
+ 
+[PASS] ctf_shellcode_factory                    (  5983ms) args=['arch'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:58.210089",
+ 
+[PASS] interface_signature_hunter               (  6000ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:58.226638",
+ 
+[PASS] lock_picking_detector                    (  5224ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:59.414171",
+ 
+[PASS] cyclic_pattern_generator                 (  5211ms) args=['length', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:59.470147",
+ 
+[PASS] ioctl_dispatcher_auditor                 (  5217ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:59.471991",
+ 
+[PASS] cloud_resource_enumerator                (  5008ms) args=['keyword'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:59.491131",
+ 
+[PASS] log_clearing_detector                    (  5006ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:59.889603",
+ 
+[PASS] elf_security_checker                     (  5006ms) args=['file_path', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:59.917806",
+ 
+[PASS] jtag_boundary_scan_analyzer              (  2668ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:00.370671",
+ 
+[PASS] interactsh_register                      (114434ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:58.239418",
+ 
+[PASS] notify_alert                             (  5968ms) args=['webhook_url', 'message', 'title', 'severity', 'data'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:17:59.415037",
+ 
+[PASS] broadcast_protocol_auditor               (113683ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:00.599309",
+ 
+[WARN] autonomous_ics_threat_hunter             (115321ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] corp_profile_generator                   (  1617ms) args=['company_name'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:00.623916",
+ 
+[PASS] mitm_engine                              (  1748ms) args=['target_ip'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:00.703911",
+ 
+[PASS] file_entropy_mapper                      (  1764ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:00.704630",
+ 
+[PASS] kernel_audit_preflight_validator         (  1413ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:00.731948",
+ 
+[PASS] org_leak_status_auditor                  (  1686ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:00.840245",
+ 
+[PASS] mobile_app_traffic_capture               (  1636ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:00.911532",
+ 
+[PASS] format_string_exploit_generator          (  1609ms) args=['binary_path', 'offset'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:00.916469",
+ 
+[PASS] kernel_pool_prober                       (  1584ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:00.939192",
+ 
+[PASS] nuclei_templates                         (  2548ms) args=['action'] result={
+  "categories": [
+    "cves",
+    "default-logins",
+    "exposed-panels",
+    "exposures",
+    "mi
+[PASS] credential_leak_auditor                  (  1395ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:01.282863",
+ 
+[PASS] jwt_secret_bruteforcer                   (  1303ms) args=['token', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:01.737756",
+ 
+[PASS] mmio_mapping_finder                      (  1310ms) args=['file_path'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:02.023212",
+ 
+[PASS] mapcidr_operations                       (  8950ms) args=['cidr', 'subnet'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:02.051387",
+ 
+[PASS] local_network_mapper                     (  7788ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:02.062836",
+ 
+[PASS] nuclei_scan                              (  6581ms) args=['target', 'templates', 'severity', 'timeout'] result={
+  "scan_type": "nuclei_vulnerability_scan",
+  "target": "127.0.0.1",
+  "success": false,
+  "total_
+[PASS] os_detection                             (  2137ms) args=['target_ip'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:02.511459",
+ 
+[PASS] virustotal_file_report                   ( 10454ms) args=[] result=Error running pooled tool 'virustotal_file_report': unhandled errors in a TaskGroup (1 sub-exception
+[WARN] katana_scan                              ( 10680ms) args={'target': '127.0.0.1', 'depth': 1}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] ldap_domain_discovery                    ( 10671ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] cloud_metadata_check                     (  8587ms) args=['target_ip'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:03.521613",
+ 
+[WARN] virustotal_url_scan                      ( 10801ms) args={'url': 'http://example.com'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] cloud_bucket_enumerator                  ( 10801ms) args={'keyword': 'test'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] high_fidelity_protocol_fuzzer            (170581ms) args=['target_url'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:04.176887",
+ 
+[PASS] modbus_protocol_scanner                  (  3492ms) args=['target_ip', 'port'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:04.189850",
+ 
+[PASS] ctf_directory_bruteforcer                (  9933ms) args=['target_url', 'custom_paths', 'kwargs'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:04.241348",
+ 
+[WARN] naabu_scan                               ( 10011ms) args={'target': '127.0.0.1', 'ports': '[80, 443]'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] get_network_info                         (118619ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] get_active_connections                   (117737ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] get_disk_usage                           (120614ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] hibp_password_check                      ( 10373ms) args={'password': 'testpassword123'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] kerberos_delegation_auditor              (117377ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] cve_details                              ( 10512ms) args={'cve_id': 'CVE-2023-1234'}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] threat_intelligence_search               ( 10537ms) args={'indicators': ['127.0.0.1']}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] ssl_cert_check                           ( 10697ms) args=['hostname', 'port'] result=Error running pooled tool 'ssl_cert_check': unhandled errors in a TaskGroup (1 sub-exception)
+[WARN] get_realtime_telemetry                   (127033ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] scan_directory                           ( 10614ms) args={'path': '/tmp', 'pattern': 'test', 'recursive': False}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] atomic_write_file                        ( 10131ms) args={'path': '/tmp', 'content': "b'test content'"}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] corporate_structure_mapper               ( 10666ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:10.965956",
+ 
+[WARN] read_file_content                        ( 10407ms) args={'path': '/tmp', 'encoding': 'utf-8', 'head': 1}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] kerberoasting_mapper                     (124404ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[WARN] check_windows_compatibility              ( 20476ms) args={}
+      ERROR: Timed out after 10s (tool may be network-dependent)
+[PASS] cloud_bucket_scanner                     ( 22724ms) args=[] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:17.069644",
+ 
+[PASS] iot_firmware_fingerprinter               (141408ms) args=['target_ip'] result={
+  "tool_audit": {
+    "engine": "OMEGA-PRIME-V3",
+    "timestamp": "2026-02-14T08:18:28.037702",
+ 

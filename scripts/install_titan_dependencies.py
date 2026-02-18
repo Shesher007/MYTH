@@ -1,0 +1,198 @@
+"""
+MYTH Desktop — TITAN Dependency Installer
+Downloads and configures external Go binaries for the Tauri sidecar.
+Renames them with the host's target triple (e.g., nuclei-x86_64-pc-windows-msvc.exe)
+so that Tauri can bundle them correctly.
+"""
+
+import os
+import sys
+import platform
+import shutil
+import tarfile
+import zipfile
+import urllib.request
+import subprocess
+from pathlib import Path
+
+# MISSION CRITICAL: Force UTF-8 encoding for stdout/stderr on Windows to avoid UnicodeEncodeError with emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, Exception):
+        pass
+
+# --- Configuration ---
+TOOLS = {
+    "nuclei": "v3.1.0",
+    "subfinder": "v2.6.4",
+    "naabu": "v2.1.1",
+    "httpx": "v1.3.7",
+    "dnsx": "v1.1.6",
+    "asnmap": "v1.0.6",
+    "shuffledns": "v1.0.9",
+    "katana": "v1.0.5",
+    "notify": "v1.0.5",
+    "tlsx": "v1.1.5",
+    "mapcidr": "v1.1.16",
+    "uncover": "v1.0.7",
+    "alterx": "v0.0.2",
+    "chaos": "v0.5.1",
+    "interactsh-client": "v1.1.7",
+    "urlfinder": "v0.0.3",
+}
+
+PROJECT_ROOT = Path(__file__).parent.parent
+BIN_DIR = PROJECT_ROOT / "ui" / "src-tauri" / "binaries"
+
+def get_target_triple():
+    """Determine the Rust-style target triple for the current platform."""
+    # Priority 1: Environment Variable Override (Industry Standard for CI)
+    env_triple = os.environ.get("TAURI_TARGET_TRIPLE")
+    if env_triple:
+        return env_triple
+
+    machine = platform.machine().lower()
+    system = platform.system().lower()
+
+    arch_map = {
+        "x86_64": "x86_64", "amd64": "x86_64",
+        "aarch64": "aarch64", "arm64": "aarch64",
+        "i686": "i686", "x86": "i686",
+    }
+    arch = arch_map.get(machine, machine)
+
+    if system == "windows":
+        return f"{arch}-pc-windows-msvc"
+    elif system == "darwin":
+        return f"{arch}-apple-darwin"
+    elif system == "linux":
+        return f"{arch}-unknown-linux-gnu"
+    else:
+        return f"{arch}-unknown-{system}"
+
+def get_asset_name(tool_name, version, system, arch):
+    """Construct the GitHub asset name for the tool."""
+    os_map = {"windows": "windows", "linux": "linux", "darwin": "macOS", "macOS": "macOS"}
+    arch_map = {"x86_64": "amd64", "aarch64": "arm64", "i686": "386", "amd64": "amd64", "arm64": "arm64"}
+    
+    os_name = os_map.get(system, system)
+    arch_name = arch_map.get(arch, arch)
+    
+    # ProjectDiscovery uses .zip for Windows/macOS and often .tar.gz for Linux
+    # We'll try .zip first as it's becoming the standard for PD tools.
+    ext = "zip"
+    ver_clean = version.lstrip("v")
+    
+    return f"{tool_name}_{ver_clean}_{os_name}_{arch_name}.{ext}"
+
+def install_tool(tool_name, version, target_triple):
+    print(f"[TITAN] Installing {tool_name} {version}...")
+    
+    triple_parts = target_triple.split("-")
+    target_arch = triple_parts[0]
+    target_sys_raw = triple_parts[2]
+    
+    sys_map = {"windows": "windows", "linux": "linux", "darwin": "macOS", "apple": "macOS"}
+    system = "linux"
+    for k, v in sys_map.items():
+        if k in target_sys_raw.lower():
+            system = v
+            break
+
+    arch_map = {"x86_64": "amd64", "aarch64": "arm64", "i686": "386"}
+    arch = arch_map.get(target_arch, "amd64")
+
+    asset_name = get_asset_name(tool_name, version, system, arch)
+    base_url = f"https://github.com/projectdiscovery/{tool_name}/releases/download/{version}/"
+    url = f"{base_url}{asset_name}"
+    
+    dest_file = BIN_DIR / asset_name
+    
+    try:
+        if not dest_file.exists():
+            print(f"   Downloading from {url}")
+            try:
+                with urllib.request.urlopen(url) as response, open(dest_file, 'wb') as out_file:
+                    shutil.copyfileobj(response, out_file)
+            except urllib.error.HTTPError as e:
+                if e.code == 404:
+                    # Fallback Logic for macOS arm64 -> amd64
+                    if arch == "arm64" and system == "macOS":
+                        print(f"   404 encountered for arm64, retrying with fallback to amd64...")
+                        fallback_asset = get_asset_name(tool_name, version, system, "x86_64")
+                        fallback_url = f"{base_url}{fallback_asset}"
+                        dest_file_fb = BIN_DIR / fallback_asset
+                        try:
+                            with urllib.request.urlopen(fallback_url) as response, open(dest_file_fb, 'wb') as out_file:
+                                shutil.copyfileobj(response, out_file)
+                            print(f"   Successfully downloaded fallback: {fallback_asset}")
+                            asset_name = fallback_asset
+                            dest_file = dest_file_fb
+                        except Exception:
+                            # If fallback extension fallback is needed later
+                            pass
+
+                    # Extension Fallback: .zip -> .tar.gz
+                    if asset_name.endswith(".zip"):
+                        asset_name_tar = asset_name.replace(".zip", ".tar.gz")
+                        url_tar = f"{base_url}{asset_name_tar}"
+                        dest_file_tar = BIN_DIR / asset_name_tar
+                        print(f"   Retrying with fallback extension: {url_tar}")
+                        try:
+                            with urllib.request.urlopen(url_tar) as response, open(dest_file_tar, 'wb') as out_file:
+                                shutil.copyfileobj(response, out_file)
+                            asset_name = asset_name_tar
+                            dest_file = dest_file_tar
+                        except Exception:
+                            raise e
+                    else:
+                        raise e
+                else:
+                    raise
+        else:
+            print(f"   found cached {asset_name}")
+            
+    except Exception as e:
+        print(f"   Failed to download {tool_name}: {e}")
+        return
+
+    # Extract
+    try:
+        print(f"   Extracting...")
+        if asset_name.endswith(".zip"):
+            with zipfile.ZipFile(dest_file, 'r') as zip_ref:
+                zip_ref.extractall(BIN_DIR)
+        elif asset_name.endswith(".tar.gz"):
+            with tarfile.open(dest_file, "r:gz") as tar_ref:
+                tar_ref.extractall(BIN_DIR)
+    except Exception as e:
+        print(f"   Failed to extract {tool_name}: {e}")
+        return
+
+    # Rename to target triple
+    ext = ".exe" if system == "windows" else ""
+    raw_bin = BIN_DIR / f"{tool_name}{ext}"
+    target_bin = BIN_DIR / f"{tool_name}-{target_triple}{ext}"
+    
+    if raw_bin.exists():
+        if target_bin.exists():
+            target_bin.unlink()
+        raw_bin.rename(target_bin)
+        if system != "windows":
+            target_bin.chmod(0o755)
+        print(f"   Installed to {target_bin.name}")
+    else:
+        print(f"   Could not find binary {raw_bin.name} in extracted files")
+
+def main():
+    BIN_DIR.mkdir(parents=True, exist_ok=True)
+    target_triple = get_target_triple()
+    print(f"Starting MYTH TITAN Dependency Install for target: {target_triple}")
+    for tool, version in TOOLS.items():
+        install_tool(tool, version, target_triple)
+    print("\n✨ Dependency installation complete.")
+
+if __name__ == "__main__":
+    main()

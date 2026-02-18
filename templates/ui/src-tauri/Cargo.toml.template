@@ -1,0 +1,47 @@
+[package]
+name = "{{NAME_LOWER}}-desktop"
+version = "{{VERSION}}"
+description = "{{NAME}} - {{DESCRIPTION}}"
+authors = ["{{MAINTAINER_LINE}}"]
+license = "Proprietary"
+edition = "2021"
+
+[lib]
+name = "{{CODENAME_SNAKE}}_desktop_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["devtools"] }
+tauri-plugin-shell = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-process = "2"
+tauri-plugin-os = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-log = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+aes-gcm = "0.10"
+rand = "0.8"
+base64 = "0.22"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+machine-uid = "0.5"
+pbkdf2 = { version = "0.12", features = ["simple"] }
+hmac = "0.12"
+chrono = { version = "0.4", features = ["serde"] }
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json"] }
+log = "0.4"
+env_logger = "0.11"
+dirs = "6"
+uuid = { version = "1", features = ["v4"] }
+thiserror = "2"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

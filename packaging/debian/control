@@ -1,0 +1,21 @@
+# MYTH Desktop — Debian Control File
+# Used by dpkg for .deb package metadata
+# Build: dpkg-deb --build MYTH_1.1.1_amd64
+
+Package: myth
+Version: 1.1.1
+Section: security
+Priority: optional
+Architecture: amd64
+Depends: libwebkit2gtk-4.1-0, libssl3, python3 (>= 3.10), libgtk-3-0, libappindicator3-1
+Installed-Size: 150000
+Maintainer: Shesher Hasan <shesher0007@gmail.com>
+Homepage: https://github.com/shesher010/MYTH
+Description: Multi-Yield Tactical Hub — Autonomous AI Cybersecurity Agent
+ MYTH is an industry-grade autonomous AI cybersecurity agent with 672+
+ security tools, MCP servers, RAG-powered knowledge system, and real-time
+ vulnerability scanning. Built with Tauri v2 for ultra-fast native
+ desktop performance.
+ .
+ Features include encrypted local storage, Ed25519-based licensing,
+ runtime integrity checks, automatic updates, and native OS integration.

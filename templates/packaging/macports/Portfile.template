@@ -1,0 +1,31 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem          1.0
+
+name                {{NAME_LOWER}}
+version             {{VERSION}}
+categories          security net
+platforms           darwin
+license             Proprietary
+maintainers         {{EMAIL}}
+
+description         {{SHORT_DESCRIPTION}}
+long_description    {{DESCRIPTION}}
+
+homepage            {{HOMEPAGE}}
+master_sites        {{REPO_URL}}/archive/v${version}.tar.gz
+
+depends_build       port:nodejs20 \
+                    port:npm
+
+depends_lib         port:webkit2gtk
+
+use_configure       no
+
+build {
+    system -W ${worksrcpath}/ui "npm install && npm run tauri build"
+}
+
+destroot {
+    xinstall -m 755 ${worksrcpath}/ui/src-tauri/target/release/{{NAME_LOWER}} ${destroot}${prefix}/bin/{{NAME_LOWER}}
+}

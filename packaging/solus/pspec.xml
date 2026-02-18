@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MYTH Desktop — Solus eopkg Package Spec (Binary) -->
+<PISI>
+    <Source>
+        <Name>myth</Name>
+        <Homepage>https://github.com/shesher010/MYTH</Homepage>
+        <Packager>
+            <Name>Shesher Hasan</Name>
+            <Email>shesher0007@gmail.com</Email>
+        </Packager>
+        <License>proprietary</License>
+        <Summary>High-Performance Offensive Intelligence Engine (Binary)</Summary>
+        <Description>
+            MYTH is an industry-grade autonomous AI cybersecurity agent.
+            This version installs the pre-compiled binary.
+        </Description>
+        <Archive sha1sum="SKIP" type="binary">
+            {{REPO_URL}}/releases/download/v1.1.1/myth_1.1.1_amd64.deb
+        </Archive>
+    </Source>
+    <Package>
+        <Name>myth</Name>
+        <RuntimeDependencies>
+            <Dependency>libwebkit-gtk</Dependency>
+            <Dependency>openssl</Dependency>
+            <Dependency>python3</Dependency>
+            <Dependency>libgtk-3</Dependency>
+        </RuntimeDependencies>
+        <Files>
+            <Path fileType="executable">/usr/bin/MYTH</Path>
+        </Files>
+    </Package>
+</PISI>

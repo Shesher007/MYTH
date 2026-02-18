@@ -1,0 +1,25 @@
+name: {{NAME_LOWER}}
+base: core22
+version: '{{VERSION}}'
+summary: {{SHORT_DESCRIPTION}}
+description: |
+  {{DESCRIPTION}}
+grade: stable
+confinement: strict
+
+apps:
+  {{NAME_LOWER}}:
+    command: bin/{{NAME_LOWER}}
+    extensions: [gnome]
+    plugs:
+      - network
+      - home
+      - opengl
+
+parts:
+  {{NAME_LOWER}}:
+    plugin: dump
+    source: .
+    stage-packages:
+      - libwebkit2gtk-4.0-37
+      - libssl3

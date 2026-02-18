@@ -1,0 +1,19 @@
+{
+    "manifest_version": 3,
+    "name": "{{NAME}}",
+    "short_name": "{{NAME}}",
+    "version": "{{VERSION}}",
+    "description": "{{DESCRIPTION}}",
+    "action": {
+        "default_popup": "index.html",
+        "default_icon": "icons/128x128.png"
+    },
+    "permissions": [
+        "nativeMessaging",
+        "storage",
+        "tabs"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    }
+}

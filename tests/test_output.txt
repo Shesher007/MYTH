@@ -1,0 +1,399 @@
+
+[1m======================================================================
+  TOOL INVOCATIONS (ainvoke)
+======================================================================[0m
+  [94mLoading tools via get_all_tools()...[0m
+ΓÜí [CACHE] Successfully validated and loaded 111 tools.
+  [92mLoaded 672 tools in 2236ms[0m
+
+  [94mTesting tools[0m    ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'path': '/tmp', 'content': "b'test content'"}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'path': '/tmp', 'content': "b'test content'"}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for atomic_write_file
+   ≡ƒÉ¢ DEBUG Input kwargs: {'path': '/tmp', 'content': "b'test content'"}
+   ≡ƒÉ¢ DEBUG Final kwargs for atomic_write_file: {'path': '/tmp', 'content': "b'test content'"}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'path': '/tmp'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'path': '/tmp'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for secure_delete_file
+   ≡ƒÉ¢ DEBUG Input kwargs: {'path': '/tmp'}
+   ≡ƒÉ¢ DEBUG Final kwargs for secure_delete_file: {'path': '/tmp'}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'connection_string': 'postgresql://user:pass@localhost:5432/db', 'sql': 'SELECT 1', 'params': {}}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'connection_string': 'postgresql://user:pass@localhost:5432/db', 'sql': 'SELECT 1', 'params': {}}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for query_postgres
+   ≡ƒÉ¢ DEBUG Input kwargs: {'connection_string': 'postgresql://user:pass@localhost:5432/db', 'sql': 'SELECT 1', 'params': {}}
+   ≡ƒÉ¢ DEBUG Final kwargs for query_postgres: {'connection_string': 'postgresql://user:pass@localhost:5432/db', 'sql': 'SELECT 1', 'params': {}}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'uri': 'redis://localhost:6379', 'command': 'echo test', 'args': []}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'uri': 'redis://localhost:6379', 'command': 'echo test', 'args': []}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for query_redis
+   ≡ƒÉ¢ DEBUG Input kwargs: {'uri': 'redis://localhost:6379', 'command': 'echo test', 'args': []}
+   ≡ƒÉ¢ DEBUG Final kwargs for query_redis: {'uri': 'redis://localhost:6379', 'command': 'echo test', 'args': []}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'connection_string': 'postgresql://user:pass@localhost:5432/db'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'connection_string': 'postgresql://user:pass@localhost:5432/db'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for check_db_health
+   ≡ƒÉ¢ DEBUG Input kwargs: {'connection_string': 'postgresql://user:pass@localhost:5432/db'}
+   ≡ƒÉ¢ DEBUG Final kwargs for check_db_health: {'connection_string': 'postgresql://user:pass@localhost:5432/db'}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'image': 'nginx:latest', 'command': 'echo test'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'image': 'nginx:latest', 'command': 'echo test'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for security_run_container
+   ≡ƒÉ¢ DEBUG Input kwargs: {'image': 'nginx:latest', 'command': 'echo test'}
+   ≡ƒÉ¢ DEBUG Final kwargs for security_run_container: {'image': 'nginx:latest', 'command': 'echo test'}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'str'>, value: test
+   ≡ƒÉ¢ DEBUG kwargs: {}
+   ≡ƒÉ¢ DEBUG Combined input from string: {'input': 'test'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for live_container_forensics
+   ≡ƒÉ¢ DEBUG Input kwargs: {'input': 'test'}
+   ≡ƒÉ¢ DEBUG Final kwargs for live_container_forensics: {'input': 'test'}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'str'>, value: test
+   ≡ƒÉ¢ DEBUG kwargs: {}
+   ≡ƒÉ¢ DEBUG Combined input from string: {'input': 'test'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for docker_cleanup
+   ≡ƒÉ¢ DEBUG Input kwargs: {'input': 'test'}
+   ≡ƒÉ¢ DEBUG Final kwargs for docker_cleanup: {'input': 'test'}
+Can't open '/tmp/test.txt'
+
+C:\Users\shesh\Downloads\MYTH\tools\intelligence\social.py:320: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  with DDGS() as ddgs:
+INFO:primp:response: https://www.bing.com/search?q=site%3Alinkedin.com%2Fin%2F+%22John+Doe%22+%22TestCorp%22 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Alinkedin.com%2Fin%2F+%22John+Doe%22+%22TestCorp%22&first=11&FORM=PERE 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Alinkedin.com%2Fin%2F+%22John+Doe%22+%22TestCorp%22&first=21&FORM=PERE1 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Alinkedin.com%2Fin%2F+%22John+Doe%22+%22TestCorp%22&first=31&FORM=PERE2 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Alinkedin.com%2Fin%2F+%22John+Doe%22+%22TestCorp%22&first=41&FORM=PERE3 200
+C:\Users\shesh\Downloads\MYTH\tools\recon\network.py:596: ResourceWarning: unclosed <socket.socket fd=1380, family=2, type=1, proto=0, laddr=('10.0.2.15', 65234), raddr=('8.8.8.8', 53)>
+  socket.create_connection(("8.8.8.8", 53), timeout=3)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+INFO:ddgs.ddgs:Error in engine grokipedia: DDGSException("RuntimeError: RuntimeError('error sending request for url (https://wt.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=test%20exploit): client error (Connect)\\n\\nCaused by:\\n    0: client error (Connect)\\n    1: dns error: No such host is known. (os error 11001)\\n    2: No such host is known. (os error 11001)')")
+INFO:primp:response: https://search.yahoo.com/search;_ylt=igKevjDRsCUAF1jLNDJsAZmo;_ylu=5PTqYFS4fxetDaDUcbFjP4UBfR8UYgKZEwiJPfT9R-0DiNo?p=test+exploit&btf=y 200
+INFO:primp:response: https://grokipedia.com/api/typeahead?query=test+exploit&limit=1 200
+
+======================================================================
+[*] ASYNC RECON START: EXAMPLE.COM (Infinite Mode)
+======================================================================
+[*] Wildcard DNS: False
+    [93mΓÜá dynamic_probe_mutator[0m [2m(59468ms)[0m
+    [93mΓÜá dns_tunnel_stager[0m [2m(59465ms)[0m
+    [93mΓÜá sovereign_ssrf_orchestrator[0m [2m(59464ms)[0m
+    [93mΓÜá drag_element_to_target[0m [2m(59458ms)[0m
+    [93mΓÜá heap_logic_prober[0m [2m(59450ms)[0m
+    [93mΓÜá eminence_discovery_orchestrator[0m [2m(59449ms)[0m
+    [93mΓÜá dns_txt_stager_factory[0m [2m(59449ms)[0m
+    [93mΓÜá sovereign_ssti_polyglot_injector[0m [2m(59449ms)[0m
+    [93mΓÜá email_breach_check[0m [2m(59446ms)[0m
+    [93mΓÜá heuristic_symbol_reconstructor[0m [2m(59444ms)[0m
+    [93mΓÜá eternity_signature_correlator[0m [2m(59442ms)[0m
+    [93mΓÜá dynamic_gate_finder[0m [2m(59442ms)[0m
+    [93mΓÜá sovereign_xss_mutation_engine[0m [2m(59441ms)[0m
+    [93mΓÜá email_harvesting[0m [2m(59441ms)[0m
+    [93mΓÜá industrial_binary_identifier[0m [2m(59440ms)[0m
+    [93mΓÜá dynamic_unhooking_engine[0m [2m(59436ms)[0m
+    [93mΓÜá ssrf_redirect_bypasser[0m [2m(59436ms)[0m
+    [93mΓÜá employee_profile_generator[0m [2m(59436ms)[0m
+    [93mΓÜá integer_overflow_prober[0m [2m(59435ms)[0m
+    [93mΓÜá edr_bypass_checker[0m [2m(59434ms)[0m
+    [93mΓÜá ssti_engine_identifier[0m [2m(59434ms)[0m
+    [93mΓÜá execute_js[0m [2m(59434ms)[0m
+    [93mΓÜá interface_signature_hunter[0m [2m(59434ms)[0m
+    [93mΓÜá egress_filter_mapper[0m [2m(59431ms)[0m
+    [93mΓÜá state_machine_inverter[0m [2m(59431ms)[0m
+    [93mΓÜá exploit_code_generator[0m [2m(59428ms)[0m
+    [93mΓÜá ioctl_dispatcher_auditor[0m [2m(59428ms)[0m
+    [93mΓÜá genesis_network_preflight_checker[0m [2m(59426ms)[0m
+    [93mΓÜá etw_bypass_generator[0m [2m(59427ms)[0m
+    [93mΓÜá time_travel_race_explorer[0m [2m(59427ms)[0m
+    [93mΓÜá exploit_framework_search[0m [2m(59426ms)[0m
+    [93mΓÜá jtag_boundary_scan_analyzer[0m [2m(59426ms)[0m
+    [93mΓÜá exploitation_arsenal_health_check[0m [2m(59422ms)[0m
+    [93mΓÜá web_arsenal_orchestrator[0m [2m(59421ms)[0m
+    [93mΓÜá get_browser_tabs[0m [2m(59421ms)[0m
+    [93mΓÜá kernel_audit_preflight_validator[0m [2m(59420ms)[0m
+    [93mΓÜá fiber_injection_util[0m [2m(59421ms)[0m
+    [93mΓÜá secure_delete_file[0m [2m(59447ms)[0m
+    [93mΓÜá query_postgres[0m [2m(59444ms)[0m
+    [93mΓÜá query_redis[0m [2m(59441ms)[0m
+    [93mΓÜá check_db_health[0m [2m(59439ms)[0m
+    [93mΓÜá security_run_container[0m [2m(59433ms)[0m
+    [93mΓÜá live_container_forensics[0m [2m(59430ms)[0m
+    [93mΓÜá docker_cleanup[0m [2m(59426ms)[0m
+    [92mΓ£ô firewall_detection[0m [2m(59478ms)[0m
+  [ΓåÆ] Starting subfinder (Binary)...
+    [93mΓÜá export_results[0m [2m(59520ms)[0m
+    [93mΓÜá generate_results_dashboard[0m [2m(59516ms)[0m
+    [93mΓÜá get_all_subdomains[0m [2m(59510ms)[0m
+    [93mΓÜá get_pd_status[0m [2m(59507ms)[0m
+....   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'url': 'http://example.com', 'capture_har': True}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'url': 'http://example.com', 'capture_har': True}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for forensic_browse
+   ≡ƒÉ¢ DEBUG Input kwargs: {'url': 'http://example.com', 'capture_har': True}
+   ≡ƒÉ¢ DEBUG Final kwargs for forensic_browse: {'url': 'http://example.com', 'capture_har': True}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'url': 'http://example.com', 'full_page': False}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'url': 'http://example.com', 'full_page': False}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for capture_scout
+   ≡ƒÉ¢ DEBUG Input kwargs: {'url': 'http://example.com', 'full_page': False}
+   ≡ƒÉ¢ DEBUG Final kwargs for capture_scout: {'url': 'http://example.com', 'full_page': False}
+  [ΓåÆ] Querying crt.sh (Passive)...
+  [ΓåÆ] Querying HackerTarget (Passive)...
+  [ΓåÆ] Querying AlienVault OTX (Passive)...
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'url': 'http://example.com', 'headers': {'User-Agent': 'Test'}, 'proxy': 'test', 'ghost_mode': True}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'url': 'http://example.com', 'headers': {'User-Agent': 'Test'}, 'proxy': 'test', 'ghost_mode': True}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for recon_fetch
+   ≡ƒÉ¢ DEBUG Input kwargs: {'url': 'http://example.com', 'headers': {'User-Agent': 'Test'}, 'proxy': 'test', 'ghost_mode': True}
+   ≡ƒÉ¢ DEBUG Final kwargs for recon_fetch: {'url': 'http://example.com', 'headers': {'User-Agent': 'Test'}, 'proxy': 'test', 'ghost_mode': True}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'urls': ['http://example.com'], 'max_concurrency': 10}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'urls': ['http://example.com'], 'max_concurrency': 10}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for bulk_recon_scan
+   ≡ƒÉ¢ DEBUG Input kwargs: {'urls': ['http://example.com'], 'max_concurrency': 10}
+   ≡ƒÉ¢ DEBUG Final kwargs for bulk_recon_scan: {'urls': ['http://example.com'], 'max_concurrency': 10}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'host': '127.0.0.1', 'ports': [80, 443]}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'host': '127.0.0.1', 'ports': [80, 443]}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for deep_fingerprint_scout
+   ≡ƒÉ¢ DEBUG Input kwargs: {'host': '127.0.0.1', 'ports': [80, 443]}
+   ≡ƒÉ¢ DEBUG Final kwargs for deep_fingerprint_scout: {'host': '127.0.0.1', 'ports': [80, 443]}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'host': '127.0.0.1', 'port': 80}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'host': '127.0.0.1', 'port': 80}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for protocol_fingerprint
+   ≡ƒÉ¢ DEBUG Input kwargs: {'host': '127.0.0.1', 'port': 80}
+   ≡ƒÉ¢ DEBUG Final kwargs for protocol_fingerprint: {'host': '127.0.0.1', 'port': 80}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'ip': '127.0.0.1', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'ip': '127.0.0.1', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for shodan_host_info
+   ≡ƒÉ¢ DEBUG Input kwargs: {'ip': '127.0.0.1', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Final kwargs for shodan_host_info: {'ip': '127.0.0.1', 'key': 'test-key'}
+C:\Users\shesh\Downloads\MYTH\tools\intelligence\social.py:214: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  with DDGS() as ddgs:
+INFO:primp:response: https://www.bing.com/search?q=site%3Agithub.com+127.0.0.1+password 200
+  [+] AlienVault finished: 0 found.
+  [+] HackerTarget finished: 2 found.
+INFO:primp:response: https://www.bing.com/search?q=site%3Agithub.com+127.0.0.1+password&first=11&FORM=PERE 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agithub.com+127.0.0.1+password&first=21&FORM=PERE1 200
+  [+] crt.sh finished: 10 found.
+INFO:primp:response: https://www.bing.com/search?q=site%3Agithub.com+127.0.0.1+password&first=31&FORM=PERE2 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agithub.com+127.0.0.1+password&first=41&FORM=PERE3 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agithub.com+127.0.0.1+api_key 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agithub.com+127.0.0.1+api_key&first=11&FORM=PERE 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agithub.com+127.0.0.1+api_key&first=21&FORM=PERE1 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agithub.com+127.0.0.1+api_key&first=31&FORM=PERE2 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agithub.com+127.0.0.1+api_key&first=41&FORM=PERE3 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agitlab.com+127.0.0.1+secret 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agitlab.com+127.0.0.1+secret&first=11&FORM=PERE 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agitlab.com+127.0.0.1+secret&first=21&FORM=PERE1 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agitlab.com+127.0.0.1+secret&first=31&FORM=PERE2 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Agitlab.com+127.0.0.1+secret&first=41&FORM=PERE3 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Abitbucket.org+127.0.0.1+credentials 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Abitbucket.org+127.0.0.1+credentials&first=11&FORM=PERE 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Abitbucket.org+127.0.0.1+credentials&first=21&FORM=PERE1 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Abitbucket.org+127.0.0.1+credentials&first=31&FORM=PERE2 200
+INFO:primp:response: https://www.bing.com/search?q=site%3Abitbucket.org+127.0.0.1+credentials&first=41&FORM=PERE3 200
+Can't open '/tmp/test.txt'
+
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'query': 'test', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'query': 'test', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for censys_search_hosts
+   ≡ƒÉ¢ DEBUG Input kwargs: {'query': 'test', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+   ≡ƒÉ¢ DEBUG Final kwargs for censys_search_hosts: {'query': 'test', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+    [93mΓÜá atomic_write_file[0m [2m(130127ms)[0m
+C:\Users\shesh\Downloads\MYTH\.venv\Lib\site-packages\anyio\streams\memory.py:189: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 2003de53380>
+  warnings.warn(
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\shesh\Downloads\MYTH\.venv\Lib\site-packages\anyio\streams\memory.py:189: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 2003deff250>
+  warnings.warn(
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+    [93mΓÜá web_cache_deception_auditor[0m [2m(73409ms)[0m
+    [93mΓÜá get_element_details[0m [2m(73407ms)[0m
+    [93mΓÜá kernel_pool_prober[0m [2m(73407ms)[0m
+    [93mΓÜá firmware_analyzer[0m [2m(73390ms)[0m
+    [93mΓÜá websocket_security_fuzzer[0m [2m(73391ms)[0m
+    [93mΓÜá get_local_storage[0m [2m(73391ms)[0m
+    [93mΓÜá mmio_mapping_finder[0m [2m(73390ms)[0m
+    [93mΓÜá google_dork_generator[0m [2m(73391ms)[0m
+    [93mΓÜá golden_ticket_command[0m [2m(73392ms)[0m
+    [93mΓÜá advanced_string_classifier[0m [2m(73391ms)[0m
+    [93mΓÜá get_page_content[0m [2m(73391ms)[0m
+    [93mΓÜá nexus_diff_integrity_validator[0m [2m(73387ms)[0m
+    [93mΓÜá gpp_password_decryptor[0m [2m(73381ms)[0m
+    [93mΓÜá baconian_cipher_solver[0m [2m(73382ms)[0m
+    [93mΓÜá git_repo_scanner_passive[0m [2m(73385ms)[0m
+    [93mΓÜá obfuscation_primitive_detector[0m [2m(73385ms)[0m
+    [93mΓÜá base91_decoder[0m [2m(73366ms)[0m
+    [93mΓÜá handle_next_dialog[0m [2m(73365ms)[0m
+    [93mΓÜá pseudo_logic_summarizer[0m [2m(73364ms)[0m
+    [93mΓÜá graphql_introspector[0m [2m(73363ms)[0m
+    [93mΓÜá binary_symbol_mapper[0m [2m(73354ms)[0m
+    [93mΓÜá highlight_page_element[0m [2m(73354ms)[0m
+    [93mΓÜá race_condition_auditor[0m [2m(73354ms)[0m
+    [93mΓÜá hash_identifier[0m [2m(73351ms)[0m
+    [93mΓÜá brainfuck_interpreter[0m [2m(73351ms)[0m
+    [93mΓÜá hover_element[0m [2m(73401ms)[0m
+    [93mΓÜá re_nexus_orchestrator[0m [2m(73401ms)[0m
+    [93mΓÜá icmp_exfiltration_stager[0m [2m(73398ms)[0m
+    [93mΓÜá brute_force_rot_tester[0m [2m(73398ms)[0m
+    [91mΓ£ù security_diff_analyzer[0m [2m(701ms)[0m
+      [91mΓöé file_path_v1[0m
+      [91mΓöé   Field required [type=missing, input_value={'file_path_v2': '/tmp/test.txt'}, input_type=dict][0m
+      [91mΓöé     For further information visit https://errors.pydantic.dev/2.12/v/missing[0m
+    [91mΓ£ù semantic_logic_differ[0m [2m(9ms)[0m
+      [91mΓöé file_path_v1[0m
+      [91mΓöé   Field required [type=missing, input_value={'file_path_v2': '/tmp/test.txt'}, input_type=dict][0m
+      [91mΓöé     For further information visit https://errors.pydantic.dev/2.12/v/missing[0m
+    [93mΓÜá robust_vulnerability_validation_layer[0m [2m(73763ms)[0m
+...    [93mΓÜá holographic_identity_correlator[0m [2m(73769ms)[0m
+    [93mΓÜá indirect_syscall_generator[0m [2m(73772ms)[0m
+    [93mΓÜá crypto_attack_suite[0m [2m(73757ms)[0m
+    [93mΓÜá capture_scout[0m [2m(74369ms)[0m
+    [93mΓÜá recon_fetch[0m [2m(74361ms)[0m
+    [93mΓÜá bulk_recon_scan[0m [2m(74362ms)[0m
+    [93mΓÜá deep_fingerprint_scout[0m [2m(74358ms)[0m
+    [93mΓÜá protocol_fingerprint[0m [2m(74346ms)[0m
+    [93mΓÜá shodan_host_info[0m [2m(74345ms)[0m
+    [93mΓÜá censys_search_hosts[0m [2m(73811ms)[0m
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'fingerprint': 'test-fingerprint', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'fingerprint': 'test-fingerprint', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for cens_cert_search
+   ≡ƒÉ¢ DEBUG Input kwargs: {'fingerprint': 'test-fingerprint', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+   ≡ƒÉ¢ DEBUG Final kwargs for cens_cert_search: {'fingerprint': 'test-fingerprint', 'api_id': 'test-id', 'api_secret': 'test-secret'}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'domain': 'example.com', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'domain': 'example.com', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for securitytrails_subdomains
+   ≡ƒÉ¢ DEBUG Input kwargs: {'domain': 'example.com', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Final kwargs for securitytrails_subdomains: {'domain': 'example.com', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'domain': 'example.com', 'record_type': 'a', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'domain': 'example.com', 'record_type': 'a', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for securitytrails_dns_history
+   ≡ƒÉ¢ DEBUG Input kwargs: {'domain': 'example.com', 'record_type': 'a', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Final kwargs for securitytrails_dns_history: {'domain': 'example.com', 'record_type': 'a', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'domain': 'example.com', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'domain': 'example.com', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for virustotal_domain_report
+   ≡ƒÉ¢ DEBUG Input kwargs: {'domain': 'example.com', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Final kwargs for virustotal_domain_report: {'domain': 'example.com', 'key': 'test-key'}
+    [93mΓÜá forensic_browse[0m [2m(77887ms)[0m
+C:\Users\shesh\Downloads\MYTH\.venv\Lib\site-packages\anyio\streams\memory.py:189: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 2003df54f50>
+  warnings.warn(
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\shesh\Downloads\MYTH\.venv\Lib\site-packages\anyio\streams\memory.py:189: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 2003e3502b0>
+  warnings.warn(
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'ip': '127.0.0.1', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'ip': '127.0.0.1', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for virustotal_ip_report
+   ≡ƒÉ¢ DEBUG Input kwargs: {'ip': '127.0.0.1', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Final kwargs for virustotal_ip_report: {'ip': '127.0.0.1', 'key': 'test-key'}
+.    [91mΓ£ù metadata_user_hunter[0m [2m(3ms)[0m
+      [91mΓöé file_url[0m
+      [91mΓöé   Field required [type=missing, input_value={'kwargs': {}}, input_type=dict][0m
+      [91mΓöé     For further information visit https://errors.pydantic.dev/2.12/v/missing[0m
+    [93mΓÜá hardware_clock_skew_analyzer[0m [2m(77974ms)[0m
+    [93mΓÜá graphql_depth_tester[0m [2m(77974ms)[0m
+    [93mΓÜá heuristic_spider[0m [2m(77977ms)[0m
+    [93mΓÜá hidden_parameter_fuzzer[0m [2m(77965ms)[0m
+Can't open '/tmp/test.txt'
+
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'domain': 'example.com', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'domain': 'example.com', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for hunter_domain_search
+   ≡ƒÉ¢ DEBUG Input kwargs: {'domain': 'example.com', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Final kwargs for hunter_domain_search: {'domain': 'example.com', 'key': 'test-key'}
+.    [93mΓÜá image_metadata_extractor[0m [2m(82944ms)[0m
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'account': 'test-account', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'account': 'test-account', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for hibp_check_account
+   ≡ƒÉ¢ DEBUG Input kwargs: {'account': 'test-account', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Final kwargs for hibp_check_account: {'account': 'test-account', 'key': 'test-key'}
+INFO:ddgs.ddgs:Error in engine grokipedia: DDGSException("RuntimeError: RuntimeError('error sending request for url (https://wt.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=vulnerability%20research): client error (Connect)\\n\\nCaused by:\\n    0: client error (Connect)\\n    1: dns error: No such host is known. (os error 11001)\\n    2: No such host is known. (os error 11001)')")
+INFO:primp:response: https://grokipedia.com/api/typeahead?query=vulnerability+research&limit=1 200
+INFO:ddgs.ddgs:Error in engine grokipedia: DDGSException("RuntimeError: RuntimeError('error sending request for url (https://wt.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=test%20malware%20analysis): client error (Connect)\\n\\nCaused by:\\n    0: client error (Connect)\\n    1: dns error: No such host is known. (os error 11001)\\n    2: No such host is known. (os error 11001)')")
+INFO:ddgs.ddgs:Error in engine grokipedia: DDGSException("RuntimeError: RuntimeError('error sending request for url (https://wt.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=exploits): client error (Connect)\\n\\nCaused by:\\n    0: client error (Connect)\\n    1: dns error: No such host is known. (os error 11001)\\n    2: No such host is known. (os error 11001)')")
+INFO:primp:response: https://search.yahoo.com/search;_ylt=32YiA4XAk-DG875RYpK_bKiQ;_ylu=L9NAj_5vIT5pC4_6Cx_dw-7CAxzwW0qoxAh9_yYGJSI6RiM?p=exploits&btf=y 200
+INFO:primp:response: https://grokipedia.com/api/typeahead?query=exploits&limit=1 200
+INFO:primp:response: https://grokipedia.com/api/typeahead?query=test+malware+analysis&limit=1 200
+INFO:primp:response: https://search.brave.com/search?q=vulnerability+research&source=web&tf=py 200
+INFO:primp:response: https://www.mojeek.com/search?q=test+malware+analysis 403
+INFO:httpx:HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+C:\Program Files\Python313\Lib\asyncio\events.py:89: ResourceWarning: unclosed <socket.socket fd=1784, family=2, type=2, proto=0, laddr=('0.0.0.0', 54568)>
+  self._context.run(self._callback, *self._args)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+   ≡ƒÉ¢ DEBUG MCPTool._arun called
+   ≡ƒÉ¢ DEBUG tool_input type: <class 'NoneType'>, value: None
+   ≡ƒÉ¢ DEBUG kwargs: {'cve_id': 'CVE-2023-1234', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Combined input from kwargs only: {'cve_id': 'CVE-2023-1234', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG ParameterMapper.map_parameters for nvd_get_cve
+   ≡ƒÉ¢ DEBUG Input kwargs: {'cve_id': 'CVE-2023-1234', 'key': 'test-key'}
+   ≡ƒÉ¢ DEBUG Final kwargs for nvd_get_cve: {'cve_id': 'CVE-2023-1234', 'key': 'test-key'}
+Can't open '/bin/echo'
+
+    [93mΓÜá hardware_attestation_auditor[0m [2m(91793ms)[0m
+C:\Program Files\Python313\Lib\threading.py:293: ResourceWarning: unclosed <ssl.SSLSocket fd=1712, family=2, type=1, proto=0, laddr=('10.0.2.15', 61965), raddr=('20.204.244.192', 443)>
+  if hasattr(lock, '_acquire_restore'):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Exception calling "FindAll" with "0" argument(s): "The specified domain either does not 
+exist or could not be contacted.
+"
+At line:1 char:76
++ ... lName=*))'; $searcher.FindAll() | ForEach-Object { $_.Properties.sama ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
+    + FullyQualifiedErrorId : COMException
+ 
+  [+] subfinder finished: 39900 found.
+[*] Passive Collection: 39905 potential subdomains.
+[*] Checking for Cloud Bucket Takeovers...
+Get-ADUser : The term 'Get-ADUser' is not recognized as the name of a cmdlet, function, script 
+file, or operable program. Check the spelling of the name, or if a path was included, verify 
+that the path is correct and try again.
+At line:1 char:1
++ Get-ADUser -Filter 'TrustedForDelegation -eq $true' | Select-Object S ...
++ ~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Get-ADUser:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Get-ADComputer : The term 'Get-ADComputer' is not recognized as the name of a cmdlet, function, 
+script file, or operable program. Check the spelling of the name, or if a path was included, 
+verify that the path is correct and try again.
+At line:2 char:1
++ Get-ADComputer -Filter 'TrustedForDelegation -eq $true' | Select-Obje ...
++ ~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Get-ADComputer:String) [], CommandNotFoundExcepti 
+   on
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 

@@ -1,0 +1,13 @@
+# {{NAME}} OS/2 Warp Installer Script (WPI)
+# Component: Core Application
+# Target: \{{NAME}}
+# Version: {{VERSION}}
+
+<GROUP NAME="{{NAME}} Core">
+    <FILE SRC="ui\src-tauri\target\release\{{NAME_LOWER}}-i686-pc-windows-msvc.exe" DEST="{{NAME_LOWER}}.exe" SIZE="50000000" DATE="20250215" TIME="0248">
+    <ICON SRC="icons\icon.ico" TITLE="{{NAME}} Tools">
+</GROUP>
+
+<PRE_INSTALL>
+    # Check for Open32 or Odin compatibility layer if needed
+</PRE_INSTALL>

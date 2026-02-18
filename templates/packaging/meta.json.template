@@ -1,0 +1,51 @@
+{
+    "$schema": "./meta.schema.json",
+    "project": {
+        "name": "{{NAME}}",
+        "codename": "{{PROJECT_LOWER}}",
+        "description": "{{DESCRIPTION}}",
+        "short_description": "{{SHORT_DESCRIPTION}}",
+        "keywords": [
+            "security",
+            "pentesting",
+            "ai",
+            "hacking",
+            "offensive-security"
+        ],
+        "min_python": "3.10"
+    },
+    "organization": {
+        "name": "{{ORG}}",
+        "display_name": "{{NAME}} Tools",
+        "org_lower": "{{ORG_LOWER}}",
+        "reverse_domain": "{{REVERSE_DOMAIN}}",
+        "homepage": "{{HOMEPAGE}}"
+    },
+    "maintainer": {
+        "name": "{{AUTHOR}}",
+        "email": "{{EMAIL}}"
+    },
+    "repository": {
+        "url": "{{REPO_URL}}",
+        "issues": "{{ISSUES_URL}}",
+        "license_url": "{{LICENSE_URL}}"
+    },
+    "license": {
+        "spdx": "{{LICENSE}}",
+        "custom": "{{LICENSE_CUSTOM}}",
+        "copyright_year": "{{COPYRIGHT_YEAR}}"
+    },
+    "artifacts": {
+        "deb": "{{NAME_LOWER}}_{{VERSION}}_amd64.deb",
+        "rpm": "{{NAME_LOWER}}-{{VERSION}}-1.x86_64.rpm",
+        "msi": "{{NAME}}_{{VERSION}}_x64_en-US.msi",
+        "nsis": "{{NAME}}_{{VERSION}}_x64-setup.exe",
+        "dmg": "{{NAME}}_{{VERSION}}_universal.dmg",
+        "appimage": "{{NAME}}_{{VERSION}}_amd64.AppImage",
+        "tarball": "v{{VERSION}}.tar.gz"
+    },
+    "architectures": [
+        "x86_64",
+        "aarch64"
+    ]
+}

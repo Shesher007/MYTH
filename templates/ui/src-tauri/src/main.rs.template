@@ -1,0 +1,6 @@
+// {{NAME}} Desktop Application — Entry Point
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+fn main() {
+    {{NAME_LOWER}}_desktop_lib::run();
+}

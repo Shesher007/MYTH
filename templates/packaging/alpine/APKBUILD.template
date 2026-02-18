@@ -1,0 +1,21 @@
+# Maintainer: {{AUTHOR}} <{{EMAIL}}>
+pkgname={{NAME_LOWER}}
+pkgver={{VERSION}}
+pkgrel=0
+pkgdesc="{{DESCRIPTION}}"
+url="{{HOMEPAGE}}"
+arch="x86_64 aarch64"
+license="{{LICENSE}}"
+depends="webkit2gtk libappindicator3"
+makedepends="rust cargo nodejs npm python3"
+source="{{REPO_URL}}/archive/v${pkgver}.tar.gz"
+
+build() {
+	cd "$srcdir/{{NAME}}/ui"
+	npm install
+	npm run tauri build -- --bundle deb # Use deb as base for extraction or build raw
+}
+
+package() {
+	install -Dm755 "$srcdir/{{NAME}}/ui/src-tauri/target/release/{{NAME_LOWER}}" "$pkgdir/usr/bin/{{NAME_LOWER}}"
+}

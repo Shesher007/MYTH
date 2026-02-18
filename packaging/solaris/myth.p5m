@@ -1,0 +1,11 @@
+set name=pkg.fmri value=myth@1.1.1,5.11-0
+set name=pkg.description value="High-Performance Offensive Intelligence Engine"
+set name=pkg.summary value="Industrial-Grade Sovereign Security Agent"
+set name=info.classification value="org.opensolaris.category.2008:Applications/System Utilities"
+set name=variant.arch value=i386
+
+dir path=usr group=sys mode=0755 owner=root
+dir path=usr/bin group=bin mode=0755 owner=root
+file path=usr/bin/myth mode=0755 owner=root group=bin source=ui/src-tauri/target/release/myth-x86_64-unknown-solaris
+depend fmri=library/desktop/webkitgtk2 type=require
+depend fmri=system/library type=require

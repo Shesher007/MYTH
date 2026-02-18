@@ -1,0 +1,22 @@
+# {{NAME}} Desktop — Void Linux xbps-src Template (Binary)
+# Build: ./xbps-src pkg {{NAME_LOWER}}
+# Install: xbps-install {{NAME_LOWER}}
+
+pkgname={{NAME_LOWER}}
+version={{VERSION}}
+revision=1
+short_desc="{{DESCRIPTION}} (Binary)"
+maintainer="{{AUTHOR}} <{{EMAIL}}>"
+license="{{LICENSE_CUSTOM}}"
+homepage="{{REPO_URL}}"
+# Download the binary directly
+distfiles="{{REPO_URL}}/releases/download/v${version}/myth_${version}_amd64.deb"
+checksum="SKIP" # Replace with actual checksum in production
+
+depends="webkit2gtk openssl python3 gtk+3 libappindicator"
+
+do_install() {
+    vbin ${XBPS_SRCDIR}/MYTH_x86_64 {{NAME}}
+    # Icons and desktop files can be added here if bundled in the release
+}
+
