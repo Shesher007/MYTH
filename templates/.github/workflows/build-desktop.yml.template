@@ -114,7 +114,7 @@ jobs:
           # Critical: Ensure python packager knows the target triple for correct binary naming
           TAURI_TARGET_TRIPLE: ${{ matrix.target }}
         run: |
-          uv sync --extra build
+          uv sync --all-extras
           uv run scripts/package_python.py
 
       # Download TITAN Go binaries (nuclei, subfinder, etc.)

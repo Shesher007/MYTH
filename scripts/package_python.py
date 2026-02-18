@@ -237,7 +237,10 @@ def build_backend(skip_if_exists=False):
 
     print(f"🔍 [VALIDATOR] Checking {len(hidden_imports)} hidden imports for presence...")
     missing_critical = []
-    optional_imports = ["nvidia", "torch", "transformers", "sentence_transformers"]
+    # Strict Enforcement: 100% of dependencies mentioned in requirements-desktop.txt
+    # and the TOML extras MUST be present for the build to proceed.
+    # Exception: 'nvidia' can be missing on non-GPU build runners.
+    optional_imports = ["nvidia"]
     
     for imp in hidden_imports:
         # Skip validation for submodules where parent is validated or complex globs
