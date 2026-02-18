@@ -2,7 +2,7 @@
 # Install: pkg install myth
 
 PORTNAME=       myth
-PORTVERSION=    1.1.2
+PORTVERSION=    1.1.3
 CATEGORIES=     security net
 MASTER_SITES=   https://github.com/shesher010/MYTH/releases/download/v${PORTVERSION}/
 DISTFILES=      myth_${PORTVERSION}_amd64.deb

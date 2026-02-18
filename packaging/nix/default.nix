@@ -2,7 +2,7 @@
 
 pkgs.stdenv.mkDerivation rec {
   pname = "myth-desktop";
-  version = "1.1.2";
+  version = "1.1.3";
 
   src = ./..; # Assumes nix/ is in the project root
 
