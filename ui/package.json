@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "uv run --extra build ../scripts/package_python.py && vite build",
+    "build": "uv run --extra build ../scripts/package_python.py --skip-if-exists && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "tauri": "tauri",

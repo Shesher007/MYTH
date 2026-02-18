@@ -46,7 +46,6 @@
     "resources": [
       "../../governance/agent_manifest.yaml",
       "../../governance/identity.yaml",
-      "../../secrets.yaml",
       "../../governance/secrets.template.yaml",
       "../../resources/nvidia_nim_models.txt",
       "../../resources/mistral_models.txt",
