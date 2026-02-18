@@ -114,8 +114,8 @@ jobs:
           # Critical: Ensure python packager knows the target triple for correct binary naming
           TAURI_TARGET_TRIPLE: ${{ matrix.target }}
         run: |
-          uv pip install --system -r requirements-desktop.txt
-          python scripts/package_python.py
+          uv sync --extra build
+          uv run scripts/package_python.py
 
       # Download TITAN Go binaries (nuclei, subfinder, etc.)
       # These are listed in tauri.conf.json externalBin and must be present for bundling.
@@ -149,6 +149,17 @@ jobs:
             ls -la ui/src-tauri/binaries/ || echo "Directory does not exist"
             exit 1
           fi
+
+      - name: Ensure optional resource directories exist
+        shell: bash
+        run: |
+          # Tauri's resource globs fail fatally if a path doesn't exist.
+          # These dirs are populated on Windows (Nmap, Node.js, driver installers)
+          # but are empty/absent on Linux and macOS CI runners.
+          for dir in nodejs nmap driver_installers; do
+            mkdir -p "ui/src-tauri/binaries/$dir"
+            touch "ui/src-tauri/binaries/$dir/.gitkeep"
+          done
 
       - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0

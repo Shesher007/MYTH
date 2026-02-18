@@ -9,6 +9,7 @@ import sys
 import platform
 import subprocess
 import warnings
+import argparse
 
 # Suppress annoying SyntaxWarnings from third-party libs (like ropper) during build
 warnings.simplefilter("ignore", category=SyntaxWarning)
@@ -56,7 +57,7 @@ def get_target_triple():
         return f"{arch}-unknown-{system}"
 
 
-def build_backend():
+def build_backend(skip_if_exists=False):
     """Package the Python backend using PyInstaller."""
     target_triple = get_target_triple()
     system = platform.system().lower()
@@ -65,11 +66,16 @@ def build_backend():
     # Tauri expects: {{NAME_LOWER}}-backend-{target_triple}[.exe]
     ext = ".exe" if system == "windows" else ""
     output_name = f"{{NAME_LOWER}}-backend-{target_triple}{ext}"
- 
+    output_path = os.path.join(DIST_DIR, output_name)
+
+    if skip_if_exists and os.path.exists(output_path):
+        print(f"⏭️  [PACKAGER] Output exists and --skip-if-exists set. Skipping: {output_name}")
+        return
+
     os.makedirs(DIST_DIR, exist_ok=True)
  
     print(f"Packaging {{NAME}} backend for: {target_triple}")
-    print(f"Output: {os.path.join(DIST_DIR, output_name)}")
+    print(f"Output: {output_path}")
 
     # PyInstaller invocation
     cmd = [
@@ -223,6 +229,32 @@ def build_backend():
     except ImportError:
         print("⚠️ [PACKAGER] PyInstaller hooks unavailable. Using static list.")
 
+    # Strict Dependency Validation: Ensure every hidden import is actually importable
+    # This prevents the "successful" build of a broken binary in CI environments
+    # where the backend might be built without sufficient hydration.
+    if PROJECT_ROOT not in sys.path:
+        sys.path.insert(0, PROJECT_ROOT)
+
+    print(f"🔍 [VALIDATOR] Checking {len(hidden_imports)} hidden imports for presence...")
+    missing_critical = []
+    optional_imports = ["nvidia", "torch", "transformers", "sentence_transformers"]
+    
+    for imp in hidden_imports:
+        # Skip validation for submodules where parent is validated or complex globs
+        if "." in imp or "*" in imp: continue 
+        try:
+            __import__(imp)
+        except ImportError:
+            if any(opt in imp for opt in optional_imports):
+                print(f"💡 [VALIDATOR] Optional import missing (skipping): {imp}")
+            else:
+                missing_critical.append(imp)
+    
+    if missing_critical:
+        print(f"❌ [VALIDATOR] CRITICAL DEPENDENCIES MISSING: {missing_critical}")
+        print("💡 The current environment is incomplete. Run 'uv sync' or activate the correct .venv.")
+        sys.exit(1)
+
     for imp in hidden_imports:
         cmd += ["--hidden-import", imp]
 
@@ -248,8 +280,10 @@ def build_backend():
         "sentence_transformers", "onnxruntime", "scikit_learn", "scipy",
         # --- Windows crash prevention ---
         "magic.compat",  # access violation in libmagic ctypes on Windows
+        # --- Platform Specific Exclusions (Noise Reduction) ---
+        "pywin32", "pypiwin32", "win32com", "win32api", "comtypes" if system != "windows" else None,
     ]
-    for ex in exclusions:
+    for ex in [e for e in exclusions if e]:
         cmd += ["--exclude-module", ex]
     
     hidden_imports += ["watchdog"] # Required for FIM
@@ -270,7 +304,6 @@ def build_backend():
     result = subprocess.run(cmd, cwd=PROJECT_ROOT)
 
     if result.returncode == 0:
-        output_path = os.path.join(DIST_DIR, output_name)
         if os.path.exists(output_path):
             # Ensure executable permissions on POSIX systems
             if os.name == 'posix':
@@ -289,5 +322,11 @@ def build_backend():
         sys.exit(1)
 
 
+def main():
+    parser = argparse.ArgumentParser(description="Package {{NAME}} backend for Tauri sidecar.")
+    parser.add_argument("--skip-if-exists", action="store_true", help="Skip build if output already exists.")
+    args = parser.parse_args()
+    build_backend(skip_if_exists=args.skip_if_exists)
+
 if __name__ == "__main__":
-    build_backend()
+    main()

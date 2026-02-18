@@ -55,7 +55,7 @@ logs/
 myth_system.log
 .myth_audit.log
 ui/src-tauri/logs/
-honeypot/
+# honeypot/ (Whitelisted for commitment)
 asset_inventory/
 uploads/
 .mcp_cache/
