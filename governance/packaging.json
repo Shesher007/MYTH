@@ -1,10 +1,10 @@
 {
     "$schema": "./packaging.schema.json",
     "project": {
-        "name": "{{NAME}}",
-        "codename": "{{PROJECT_LOWER}}",
-        "description": "{{DESCRIPTION}}",
-        "short_description": "{{SHORT_DESCRIPTION}}",
+        "name": "MYTH",
+        "codename": "omega-prime",
+        "description": "High-Performance Offensive Intelligence Engine",
+        "short_description": "Industrial-Grade Sovereign Security Agent",
         "keywords": [
             "security",
             "pentesting",
@@ -15,34 +15,34 @@
         "min_python": "3.10"
     },
     "organization": {
-        "name": "{{ORG}}",
-        "display_name": "{{NAME}} Tools",
-        "org_lower": "{{ORG_LOWER}}",
-        "reverse_domain": "{{REVERSE_DOMAIN}}",
-        "homepage": "{{HOMEPAGE}}"
+        "name": "MYTH",
+        "display_name": "MYTH Tools",
+        "org_lower": "myth",
+        "reverse_domain": "com.shesher010.myth",
+        "homepage": "https://github.com/shesher010/MYTH"
     },
     "maintainer": {
-        "name": "{{AUTHOR}}",
-        "email": "{{EMAIL}}"
+        "name": "Shesher Hasan",
+        "email": "shesher0007@gmail.com"
     },
     "repository": {
-        "url": "{{REPO_URL}}",
-        "issues": "{{ISSUES_URL}}",
-        "license_url": "{{LICENSE_URL}}"
+        "url": "https://github.com/shesher010/MYTH",
+        "issues": "https://github.com/shesher010/MYTH/issues",
+        "license_url": "https://github.com/shesher010/MYTH/blob/main/LICENSE"
     },
     "license": {
-        "spdx": "{{LICENSE}}",
-        "custom": "{{LICENSE_CUSTOM}}",
-        "copyright_year": "{{COPYRIGHT_YEAR}}"
+        "spdx": "MIT",
+        "custom": "custom:proprietary",
+        "copyright_year": "2024-2026"
     },
     "artifacts": {
-        "deb": "myth_{{VERSION}}_amd64.deb",
-        "rpm": "{{NAME_LOWER}}-{{VERSION}}-1.x86_64.rpm",
-        "msi": "MYTH_{{VERSION}}_x64_en-US.msi",
-        "nsis": "MYTH_{{VERSION}}_x64-setup.exe",
-        "dmg": "MYTH_{{VERSION}}_universal.dmg",
-        "appimage": "MYTH_{{VERSION}}_amd64.AppImage",
-        "tarball": "v{{VERSION}}.tar.gz"
+        "deb": "myth_1.1.1_amd64.deb",
+        "rpm": "myth-1.1.1-1.x86_64.rpm",
+        "msi": "MYTH_1.1.1_x64_en-US.msi",
+        "nsis": "MYTH_1.1.1_x64-setup.exe",
+        "dmg": "MYTH_1.1.1_universal.dmg",
+        "appimage": "MYTH_1.1.1_amd64.AppImage",
+        "tarball": "v1.1.1.tar.gz"
     },
     "architectures": [
         "x86_64",

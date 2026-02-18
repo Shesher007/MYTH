@@ -110,12 +110,18 @@ def install_tool(tool_name, version, target_triple):
     
     dest_file = BIN_DIR / asset_name
     
+    downloaded = False
     try:
-        if not dest_file.exists():
+        if dest_file.exists():
+            print(f"   found cached {asset_name}")
+            downloaded = True
+        
+        if not downloaded:
             print(f"   Downloading from {url}")
             try:
                 with urllib.request.urlopen(url) as response, open(dest_file, 'wb') as out_file:
                     shutil.copyfileobj(response, out_file)
+                downloaded = True
             except urllib.error.HTTPError as e:
                 if e.code == 404:
                     # Fallback Logic for macOS arm64 -> amd64
@@ -130,12 +136,12 @@ def install_tool(tool_name, version, target_triple):
                             print(f"   Successfully downloaded fallback: {fallback_asset}")
                             asset_name = fallback_asset
                             dest_file = dest_file_fb
+                            downloaded = True
                         except Exception:
-                            # If fallback extension fallback is needed later
                             pass
 
-                    # Extension Fallback: .zip -> .tar.gz
-                    if asset_name.endswith(".zip"):
+                    # Extension Fallback: .zip -> .tar.gz (if not yet downloaded)
+                    if not downloaded and asset_name.endswith(".zip"):
                         asset_name_tar = asset_name.replace(".zip", ".tar.gz")
                         url_tar = f"{base_url}{asset_name_tar}"
                         dest_file_tar = BIN_DIR / asset_name_tar
@@ -145,14 +151,14 @@ def install_tool(tool_name, version, target_triple):
                                 shutil.copyfileobj(response, out_file)
                             asset_name = asset_name_tar
                             dest_file = dest_file_tar
+                            downloaded = True
                         except Exception:
-                            raise e
-                    else:
-                        raise e
-                else:
-                    raise
-        else:
-            print(f"   found cached {asset_name}")
+                            pass
+                
+                if not downloaded:
+                    raise e
+            except Exception as e:
+                raise e
             
     except Exception as e:
         print(f"   Failed to download {tool_name}: {e}")

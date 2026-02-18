@@ -6,7 +6,7 @@
     <title>MYTH (Desktop)</title>
     <authors>Shesher Hasan</authors>
     <projectUrl>https://github.com/shesher010/MYTH</projectUrl>
-    <licenseUrl>{{REPO_URL}}/blob/main/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/shesher010/MYTH/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>High-Performance Offensive Intelligence Engine</description>
     <summary>Industrial-Grade Sovereign Security Agent</summary>

@@ -41,7 +41,7 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     name: Build (${{ matrix.label }})
-    timeout-minutes: 60
+    timeout-minutes: 90
 
 
     steps:
@@ -130,13 +130,24 @@ jobs:
         working-directory: ui
         run: npm ci
 
-      - name: Debug Binaries (Linux)
-        if: matrix.platform == 'ubuntu-22.04'
+      - name: Verify Backend Sidecar
+        shell: bash
         run: |
-          echo "Listing binaries directory:"
-          ls -R ui/src-tauri/binaries
-          echo "Checking permissions:"
-          ls -l ui/src-tauri/binaries/myth-backend-* || true
+          echo "=== Sidecar Verification ==="
+          EXPECTED_NAME="myth-backend-${{ matrix.target }}"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            EXPECTED_NAME="${EXPECTED_NAME}.exe"
+          fi
+          SIDECAR_PATH="ui/src-tauri/binaries/${EXPECTED_NAME}"
+          if [ -f "$SIDECAR_PATH" ]; then
+            echo "✅ Sidecar found: $SIDECAR_PATH"
+            ls -lh "$SIDECAR_PATH"
+          else
+            echo "❌ FATAL: Sidecar missing: $SIDECAR_PATH"
+            echo "=== Contents of binaries directory ==="
+            ls -la ui/src-tauri/binaries/ || echo "Directory does not exist"
+            exit 1
+          fi
 
       - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0

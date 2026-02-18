@@ -3,7 +3,7 @@
 
 DISTNAME=       myth-1.1.1
 CATEGORIES=     security net
-MASTER_SITES=   {{REPO_URL}}/releases/download/v1.1.1/
+MASTER_SITES=   https://github.com/shesher010/MYTH/releases/download/v1.1.1/
 DISTFILES=      myth_1.1.1_amd64.deb
 
 MAINTAINER=     shesher0007@gmail.com

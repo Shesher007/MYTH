@@ -3,13 +3,13 @@ PackageIdentifier: MYTH.Desktop
 PackageVersion: 1.1.1
 PackageLocale: en-US
 Publisher: Shesher Hasan
-PublisherUrl: {{REPO_URL}}
-PublisherSupportUrl: {{REPO_URL}}/issues
+PublisherUrl: https://github.com/shesher010/MYTH
+PublisherSupportUrl: https://github.com/shesher010/MYTH/issues
 Author: Shesher Hasan
 PackageName: MYTH
-PackageUrl: {{REPO_URL}}
-License: {{LICENSE}}
-LicenseUrl: {{REPO_URL}}/blob/main/LICENSE
+PackageUrl: https://github.com/shesher010/MYTH
+License: MIT
+LicenseUrl: https://github.com/shesher010/MYTH/blob/main/LICENSE
 Copyright: Copyright (c) 2026 Shesher Hasan
 ShortDescription: Industrial-Grade Sovereign Security Agent
 Description: |
@@ -21,10 +21,10 @@ Tags:
   - hacking
   - offensive-security
 ReleaseNotes: "Stable Release v1.1.1"
-ReleaseNotesUrl: {{REPO_URL}}/releases/tag/v1.1.1
+ReleaseNotesUrl: https://github.com/shesher010/MYTH/releases/tag/v1.1.1
 Installers:
   - Architecture: x64
-    InstallerUrl: {{REPO_URL}}/releases/download/v1.1.1/MYTH_1.1.1_x64_en-US.msi
+    InstallerUrl: https://github.com/shesher010/MYTH/releases/download/v1.1.1/MYTH_1.1.1_x64_en-US.msi
     InstallerSha256: <SHA256_HASH_HERE>
     InstallerType: msi
     Scope: machine

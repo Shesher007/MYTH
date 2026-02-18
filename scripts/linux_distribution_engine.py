@@ -98,12 +98,12 @@ Comment=High-Performance Offensive Intelligence Engine
 pkgver = {version}
 pkgrel = 1
 pkgdesc = Industrial-Grade Sovereign Security Agent
-url = {{REPO_URL}}
+url = https://github.com/shesher010/MYTH
 builddate = {int(time.time())}
 packager = MYTH
 size = {bin_path.stat().st_size if bin_path.exists() else 0}
 arch = x86_64
-license = {{LICENSE}}
+license = MIT
 depend = gtk3
 depend = webkit2gtk
 """

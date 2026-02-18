@@ -43,12 +43,16 @@ def get_sidecar_dir() -> Optional[str]:
     
     # Production Check: Use is_frozen() for reliable detection
     if is_frozen():
-        # In frozen mode, sidecars are adjacent to the executable
+        # In Tauri 2, if externalBin uses "binaries/name", 
+        # the binaries are often placed in a 'binaries' subfolder next to the exe
+        binaries_subfolder = os.path.join(exe_dir, "binaries")
+        if os.path.isdir(binaries_subfolder):
+            return binaries_subfolder
         if os.path.isdir(exe_dir):
             return exe_dir
-        # Fallback: Check _MEIPASS for bundled assets (Linux/Mac sometimes bundle differently)
+        # Fallback: Check _MEIPASS for bundled assets
         if hasattr(sys, '_MEIPASS'):
-            pass # Usually sidecars are external, but if internalized, check here
+            return sys._MEIPASS
 
 
     # Development Check

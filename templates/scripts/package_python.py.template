@@ -192,13 +192,13 @@ def build_backend():
 
         # --- HTTP & Networking ---
         "httpx", "httpx_sse", "requests",
-        "tldextract", "dnspython", "dns", "dns.resolver",
+        "tldextract", "dns", "dns.resolver",
 
         # --- Async & Resilience ---
         "backoff", "tenacity", "nest_asyncio",
 
         # --- Content Processing ---
-        "markdownify", "beautifulsoup4", "bs4",
+        "markdownify", "bs4",
 
         # --- Config & Serialization ---
         "yaml", "orjson", "jinja2",
@@ -231,7 +231,20 @@ def build_backend():
         "notebook", "ipython", "tkinter", "matplotlib", "PIL._tkinter",
         "triton",  # Linux-only, huge
         "torch.testing", "torch.utils.benchmark", "torch.distributed",  # Dev/Test tools
-        "matplotlib.tests", "numpy.tests", "pandas.tests" # Test suites
+        "matplotlib.tests", "numpy.tests", "pandas.tests",  # Test suites
+        # --- GPU/CUDA libraries (>3GB on Linux, causes 4GB struct.error overflow) ---
+        "nvidia", "nvidia.cuda_runtime", "nvidia.cublas", "nvidia.cudnn",
+        "nvidia.cufft", "nvidia.curand", "nvidia.cusolver", "nvidia.cusparse",
+        "nvidia.nccl", "nvidia.nvjitlink", "nvidia.nvtx",
+        "nvidia.cufile", "nvidia.nvshmem", "nvidia.cusparselt",
+        "torch.cuda", "torch.backends.cuda", "torch.backends.cudnn",
+        "torchaudio", "torchvision",
+        # --- Additional torch bloat not needed at runtime ---
+        "torch._inductor", "torch._dynamo", "torch._export", "torch._functorch",
+        "torch.onnx", "torch.fx", "torch.ao", "torch.quantization",
+        "sympy",  # Only pulled in by torch, not used in MYTH directly
+        # --- Windows crash prevention ---
+        "magic.compat",  # access violation in libmagic ctypes on Windows
     ]
     for ex in exclusions:
         cmd += ["--exclude-module", ex]

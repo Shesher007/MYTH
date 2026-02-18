@@ -157,7 +157,7 @@ async fn spawn_backend_sidecar(app: tauri::AppHandle) {
     let shell = app.shell();
 
     // Try to spawn the sidecar (packaged binary)
-    match shell.sidecar("{{NAME_LOWER}}-backend") {
+    match shell.sidecar("binaries/{{NAME_LOWER}}-backend") {
         Ok(command) => {
             match command.args(["--host", "127.0.0.1", "--port", "{{INFRA_PORT_BACKEND}}"]).spawn() {
                 Ok((_rx, child)) => {

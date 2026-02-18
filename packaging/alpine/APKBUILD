@@ -5,10 +5,10 @@ pkgrel=0
 pkgdesc="High-Performance Offensive Intelligence Engine"
 url="https://github.com/shesher010/MYTH"
 arch="x86_64 aarch64"
-license="{{LICENSE}}"
+license="MIT"
 depends="webkit2gtk libappindicator3"
 makedepends="rust cargo nodejs npm python3"
-source="{{REPO_URL}}/archive/v${pkgver}.tar.gz"
+source="https://github.com/shesher010/MYTH/archive/v${pkgver}.tar.gz"
 
 build() {
 	cd "$srcdir/MYTH/ui"

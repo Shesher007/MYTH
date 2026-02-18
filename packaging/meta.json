@@ -26,13 +26,13 @@
         "email": "shesher0007@gmail.com"
     },
     "repository": {
-        "url": "{{REPO_URL}}",
-        "issues": "{{ISSUES_URL}}",
-        "license_url": "{{LICENSE_URL}}"
+        "url": "https://github.com/shesher010/MYTH",
+        "issues": "https://github.com/shesher010/MYTH/issues",
+        "license_url": "https://github.com/shesher010/MYTH/blob/main/LICENSE"
     },
     "license": {
-        "spdx": "{{LICENSE}}",
-        "custom": "{{LICENSE_CUSTOM}}",
+        "spdx": "MIT",
+        "custom": "custom:proprietary",
         "copyright_year": "2024-2026"
     },
     "artifacts": {

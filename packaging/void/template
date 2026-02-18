@@ -7,10 +7,10 @@ version=1.1.1
 revision=1
 short_desc="High-Performance Offensive Intelligence Engine (Binary)"
 maintainer="Shesher Hasan <shesher0007@gmail.com>"
-license="{{LICENSE_CUSTOM}}"
-homepage="{{REPO_URL}}"
+license="custom:proprietary"
+homepage="https://github.com/shesher010/MYTH"
 # Download the binary directly
-distfiles="{{REPO_URL}}/releases/download/v${version}/myth_${version}_amd64.deb"
+distfiles="https://github.com/shesher010/MYTH/releases/download/v${version}/myth_${version}_amd64.deb"
 checksum="SKIP" # Replace with actual checksum in production
 
 depends="webkit2gtk openssl python3 gtk+3 libappindicator"

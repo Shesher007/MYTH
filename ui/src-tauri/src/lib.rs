@@ -157,7 +157,7 @@ async fn spawn_backend_sidecar(app: tauri::AppHandle) {
     let shell = app.shell();
 
     // Try to spawn the sidecar (packaged binary)
-    match shell.sidecar("myth-backend") {
+    match shell.sidecar("binaries/myth-backend") {
         Ok(command) => {
             match command.args(["--host", "127.0.0.1", "--port", "8890"]).spawn() {
                 Ok((_rx, child)) => {

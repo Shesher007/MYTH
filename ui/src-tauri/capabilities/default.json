@@ -12,7 +12,7 @@
             "identifier": "shell:allow-execute",
             "allow": [
                 {
-                    "name": "myth-backend",
+                    "name": "binaries/myth-backend",
                     "sidecar": true,
                     "args": true
                 }

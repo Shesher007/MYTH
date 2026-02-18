@@ -1,6 +1,6 @@
 name="omega-prime"
 version="1.1.1"
-url="{{REPO_URL}}/archive/v${version}.tar.gz"
+url="https://github.com/shesher010/MYTH/archive/v${version}.tar.gz"
 file_size=""
 file_md5=""
 recipe_type="configure"

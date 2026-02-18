@@ -7,8 +7,8 @@ Release:        1
 Summary:        Industrial-Grade Sovereign Security Agent
 License:        Proprietary
 Group:          Productivity/Security
-URL:            {{REPO_URL}}
-Source0:        {{REPO_URL}}/releases/download/v%{version}/myth_%{version}_amd64.deb
+URL:            https://github.com/shesher010/MYTH
+Source0:        https://github.com/shesher010/MYTH/releases/download/v%{version}/myth_%{version}_amd64.deb
 
 BuildRequires:  cpio
 BuildRequires:  binutils

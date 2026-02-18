@@ -13,7 +13,7 @@ description         Industrial-Grade Sovereign Security Agent
 long_description    High-Performance Offensive Intelligence Engine
 
 homepage            https://github.com/shesher010/MYTH
-master_sites        {{REPO_URL}}/archive/v${version}.tar.gz
+master_sites        https://github.com/shesher010/MYTH/archive/v${version}.tar.gz
 
 depends_build       port:nodejs20 \
                     port:npm
