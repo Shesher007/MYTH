@@ -26,15 +26,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: windows-latest
-            target: x86_64-pc-windows-msvc
-            label: windows-x64
-          - platform: macos-latest
-            target: aarch64-apple-darwin
-            label: macos-arm64
-          - platform: macos-latest
-            target: x86_64-apple-darwin
-            label: macos-x64
+#          - platform: windows-latest
+#            target: x86_64-pc-windows-msvc
+#            label: windows-x64
+#          - platform: macos-latest
+#            target: aarch64-apple-darwin
+#            label: macos-arm64
+#          - platform: macos-latest
+#            target: x86_64-apple-darwin
+#            label: macos-x64
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             label: linux-x64
@@ -124,6 +124,7 @@ jobs:
           python scripts/install_titan_dependencies.py
         env:
           PDTM_HOME: ${{ github.workspace }}/ui/src-tauri/binaries
+          TAURI_TARGET_TRIPLE: ${{ matrix.target }}
 
       # Install frontend dependencies
       - name: Install npm dependencies
@@ -167,20 +168,20 @@ jobs:
         run: |
           python scripts/linux_distribution_engine.py
 
-      - name: Build Snap
-        if: matrix.platform == 'ubuntu-22.04'
-        uses: snapcore/action-build@v1
-        with:
-          path: packaging/snap
-
-      - name: Build Flatpak
-        if: matrix.platform == 'ubuntu-22.04'
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
-        with:
-          bundle: {{NAME_LOWER}}.flatpak
-          manifest-path: packaging/flatpak/org.{{ORG_LOWER}}_{{NAME_LOWER}}.{{NAME_LOWER}}.json
-          repository-name: {{CODENAME}}-repo
-          repository-url: {{HOMEPAGE}}/flatpak
+#      - name: Build Snap
+#        if: matrix.platform == 'ubuntu-22.04'
+#        uses: snapcore/action-build@v1
+#        with:
+#          path: packaging/snap
+#
+#      - name: Build Flatpak
+#        if: matrix.platform == 'ubuntu-22.04'
+#        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+#        with:
+#          bundle: {{NAME_LOWER}}.flatpak
+#          manifest-path: packaging/flatpak/org.{{ORG_LOWER}}_{{NAME_LOWER}}.{{NAME_LOWER}}.json
+#          repository-name: {{CODENAME}}-repo
+#          repository-url: {{HOMEPAGE}}/flatpak
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

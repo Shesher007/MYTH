@@ -328,7 +328,9 @@ def apply_settings():
     logger.info(f"🔧 [CONFIG] Runtime Active: ARCH={CURRENT_ARCHITECTURE.upper()}, NVIDIA={mask(Config.NVIDIA_KEY)}, MISTRAL={mask(Config.MISTRAL_KEY)}")
 
 # Boot strap settings
-apply_settings()
+from myth_utils.paths import is_frozen
+if not is_frozen():
+    apply_settings()
 
 def set_architecture_mode(mode: str) -> bool:
     """Switch architecture modes at runtime with disk persistence."""

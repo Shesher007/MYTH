@@ -57,8 +57,11 @@ from backend import initialize_system_async
 from myth_utils.sanitizer import SovereignSanitizer
 from config_loader import agent_config
 
-from myth_config import load_dotenv
-load_dotenv()
+from myth_utils.paths import is_frozen, get_app_data_path
+
+if not is_frozen():
+    from myth_config import load_dotenv
+    load_dotenv()
 
 # --- LOGGING CONFIG (Industrial Synchronization) ---
 class TerminalFilter(logging.Filter):

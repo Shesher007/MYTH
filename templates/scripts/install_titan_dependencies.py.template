@@ -38,9 +38,19 @@ TOOLS = {
     "mapcidr": "v1.1.16",
     "uncover": "v1.0.7",
     "alterx": "v0.0.2",
-    "chaos": "v0.5.1",
-    "interactsh-client": "v1.1.7",
+    "chaos": "v0.5.2",
+    "interactsh-client": "v1.3.0",
     "urlfinder": "v0.0.3",
+}
+
+# --- Overrides for tools where the GitHub repository or asset name differs from the tool name ---
+REPO_OVERRIDES = {
+    "chaos": "chaos-client",
+    "interactsh-client": "interactsh"
+}
+
+ASSET_NAME_OVERRIDES = {
+    "chaos": "chaos-client"
 }
 
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -104,8 +114,11 @@ def install_tool(tool_name, version, target_triple):
     arch_map = {"x86_64": "amd64", "aarch64": "arm64", "i686": "386"}
     arch = arch_map.get(target_arch, "amd64")
 
-    asset_name = get_asset_name(tool_name, version, system, arch)
-    base_url = f"https://github.com/projectdiscovery/{tool_name}/releases/download/{version}/"
+    repo_name = REPO_OVERRIDES.get(tool_name, tool_name)
+    asset_prefix = ASSET_NAME_OVERRIDES.get(tool_name, tool_name)
+    asset_name = get_asset_name(asset_prefix, version, system, arch)
+    
+    base_url = f"https://github.com/projectdiscovery/{repo_name}/releases/download/{version}/"
     url = f"{base_url}{asset_name}"
     
     dest_file = BIN_DIR / asset_name
@@ -179,7 +192,9 @@ def install_tool(tool_name, version, target_triple):
 
     # Rename to target triple
     ext = ".exe" if system == "windows" else ""
-    raw_bin = BIN_DIR / f"{tool_name}{ext}"
+    # The actual binary in the zip might have a different name (e.g. chaos-client for chaos tool)
+    asset_prefix = ASSET_NAME_OVERRIDES.get(tool_name, tool_name)
+    raw_bin = BIN_DIR / f"{asset_prefix}{ext}"
     target_bin = BIN_DIR / f"{tool_name}-{target_triple}{ext}"
     
     if raw_bin.exists():

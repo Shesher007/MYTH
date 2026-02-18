@@ -32,7 +32,16 @@
     </section>
 
     <main class="container" style="padding-bottom:100px;">
-        <div class="dist-grid-titan">
+        <div
+            style="margin-bottom:40px; padding:30px; border:1px solid var(--accent-warning); border-radius:12px; background:rgba(212,175,55,0.05); text-align:center;">
+            <i data-lucide="alert-triangle"
+                style="color:var(--accent-warning); width:48px; height:48px; margin-bottom:15px;"></i>
+            <h2 style="margin-bottom:10px; color:var(--accent-warning);">Under Maintenance</h2>
+            <p style="color:var(--text-dim); margin:0;">Windows builds are temporarily paused for backend optimization.
+                Please check back soon or use the Linux version via a VM.</p>
+        </div>
+
+        <div class="dist-grid-titan" style="opacity:0.5; pointer-events:none;">
 
             <div class="dist-group">
                 <h3 style="display:flex; align-items:center; gap:12px; margin-bottom:15px; font-size:1.5rem;">

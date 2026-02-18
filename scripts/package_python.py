@@ -243,6 +243,9 @@ def build_backend():
         "torch._inductor", "torch._dynamo", "torch._export", "torch._functorch",
         "torch.onnx", "torch.fx", "torch.ao", "torch.quantization",
         "sympy",  # Only pulled in by torch, not used in MYTH directly
+        # --- Massive ML Bloat (API-based alternatives used) ---
+        "torch", "transformers", "unstructured", "unstructured_client",
+        "sentence_transformers", "onnxruntime", "scikit_learn", "scipy",
         # --- Windows crash prevention ---
         "magic.compat",  # access violation in libmagic ctypes on Windows
     ]

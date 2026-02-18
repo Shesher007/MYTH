@@ -81,59 +81,59 @@ Comment={{DESCRIPTION}}
 
     # 2. Generate Formats
     # Slackware (.txz)
-    make_archive("txz", "w:xz")
+    # make_archive("txz", "w:xz")
     
     # Alpine (.apk) - Simplified binary APK
-    make_archive("apk")
+    # make_archive("apk")
     
     # Void (.xbps) - Simplified binary XBPS
-    make_archive("xbps")
+    # make_archive("xbps")
     
     # Solus (.eopkg)
-    make_archive("eopkg")
+    # make_archive("eopkg")
     
     # Arch Linux (.pkg.tar.zst) - with basic PKGINFO
-    bin_path = bin_dir / pkg_name
-    pkginfo_content = f"""pkgname = {pkg_name}
-pkgver = {version}
-pkgrel = 1
-pkgdesc = {{SHORT_DESCRIPTION}}
-url = {{REPO_URL}}
-builddate = {int(time.time())}
-packager = {{NAME}}
-size = {bin_path.stat().st_size if bin_path.exists() else 0}
-arch = x86_64
-license = {{LICENSE}}
-depend = gtk3
-depend = webkit2gtk
-"""
-    with open(base_app_dir / ".PKGINFO", "w") as f:
-        f.write(pkginfo_content)
-    make_archive("pkg.tar.zst", "w:zst" if "zst" in tarfile.OPEN_METH else "w:gz")
+    # bin_path = bin_dir / pkg_name
+    # pkginfo_content = f"""pkgname = {pkg_name}
+# pkgver = {version}
+# pkgrel = 1
+# pkgdesc = {{SHORT_DESCRIPTION}}
+# url = {{REPO_URL}}
+# builddate = {int(time.time())}
+# packager = {{NAME}}
+# size = {bin_path.stat().st_size if bin_path.exists() else 0}
+# arch = x86_64
+# license = {{LICENSE}}
+# depend = gtk3
+# depend = webkit2gtk
+# """
+#     with open(base_app_dir / ".PKGINFO", "w") as f:
+#         f.write(pkginfo_content)
+#     make_archive("pkg.tar.zst", "w:zst" if "zst" in tarfile.OPEN_METH else "w:gz")
     
     # Lightweight formats
-    make_archive("pet") # Puppy Linux
-    make_archive("sfs") # Squashfs
-    make_archive("ipk") # opkg (Lightweight)
+    # make_archive("pet") # Puppy Linux
+    # make_archive("sfs") # Squashfs
+    # make_archive("ipk") # opkg (Lightweight)
     
     # Universal Fallback
-    universal_tar = project_root / f"{pkg_name}_{version}_universal.tar.gz"
-    with tarfile.open(universal_tar, "w:gz") as tar:
-        tar.add(base_app_dir, arcname=f"{pkg_name}-{version}")
-    print(f"📦 Created: {universal_tar.name}")
+    # universal_tar = project_root / f"{pkg_name}_{version}_universal.tar.gz"
+    # with tarfile.open(universal_tar, "w:gz") as tar:
+    #     tar.add(base_app_dir, arcname=f"{pkg_name}-{version}")
+    # print(f"📦 Created: {universal_tar.name}")
 
     # 3. Bundle ALL Manifests from packaging/ for Release inclusion
-    print("📂 Bundling all package manifests...")
-    packaging_dir = project_root / "packaging"
-    for root, dirs, files in os.walk(packaging_dir):
-        for file in files:
-            src_path = Path(root) / file
-            # Create a descriptive name for the release root
-            rel_path = src_path.relative_to(packaging_dir)
-            dist_name = "_".join(rel_path.parts)
-            dst_path = project_root / dist_name
-            shutil.copy2(src_path, dst_path)
-            print(f"📄 Prepared manifest: {dist_name}")
+    # print("📂 Bundling all package manifests...")
+    # packaging_dir = project_root / "packaging"
+    # for root, dirs, files in os.walk(packaging_dir):
+    #     for file in files:
+    #         src_path = Path(root) / file
+    #         # Create a descriptive name for the release root
+    #         rel_path = src_path.relative_to(packaging_dir)
+    #         dist_name = "_".join(rel_path.parts)
+    #         dst_path = project_root / dist_name
+    #         shutil.copy2(src_path, dst_path)
+    #         print(f"📄 Prepared manifest: {dist_name}")
 
 if __name__ == "__main__":
     import time

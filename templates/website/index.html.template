@@ -218,31 +218,29 @@
                 </div>
 
                 <div class="dist-grid-titan reveal">
-                    <div class="dist-group">
+                    <div class="dist-group" style="opacity: 0.6;">
                         <h3 style="display:flex; align-items:center; gap:12px; font-size:1.5rem;"><i
                                 data-lucide="monitor" style="color:var(--accent-primary)"></i> Windows</h3>
                         <div class="dist-list">
-                            <a href="#" class="dist-item dist-link"><span>Standard Installer</span><span
-                                    class="tag-os">.MSI</span></a>
-                            <a href="#" class="dist-item dist-link"><span>Portable Bundle</span><span
-                                    class="tag-os">.ZIP</span></a>
-                            <div class="dist-item dist-link" style="cursor:pointer;"
-                                onclick="copyCmd('winget install {{NAME}}')">
+                            <div class="dist-item"><span>Standard Installer</span><span
+                                    class="tag-os" style="background: var(--accent-warning); color: #000;">COMING SOON</span></div>
+                            <div class="dist-item"><span>Portable Bundle</span><span
+                                    class="tag-os" style="background: var(--accent-warning); color: #000;">COMING SOON</span></div>
+                            <div class="dist-item">
                                 <span>winget install {{NAME}}</span>
-                                <span class="tag-os">Copy Command</span>
+                                <span class="tag-os">MAINTENANCE</span>
                             </div>
                         </div>
                     </div>
-                    <div class="dist-group">
+                    <div class="dist-group" style="opacity: 0.6;">
                         <h3 style="display:flex; align-items:center; gap:12px; font-size:1.5rem;"><i data-lucide="apple"
                                 style="color:var(--accent-secondary)"></i> macOS</h3>
                         <div class="dist-list">
-                            <a href="#" class="dist-item dist-link"><span>Universal Binary</span><span
-                                    class="tag-os">.DMG</span></a>
-                            <div class="dist-item dist-link" style="cursor:pointer;"
-                                onclick="copyCmd('brew install --cask {{NAME}}')">
+                            <div class="dist-item"><span>Universal Binary</span><span
+                                    class="tag-os" style="background: var(--accent-warning); color: #000;">COMING SOON</span></div>
+                            <div class="dist-item">
                                 <span>brew install {{NAME}}</span>
-                                <span class="tag-os">Copy Command</span>
+                                <span class="tag-os">MAINTENANCE</span>
                             </div>
                         </div>
                     </div>

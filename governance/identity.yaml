@@ -36,6 +36,13 @@ license:
 release:
   channel: "stable"
   copyright_year: "2024-2026"
+  disabled_targets:
+    - "nsis"
+    - "msi"
+    - "dmg"
+    - "app"
+    - "snap"
+    - "flatpak"
 
 branding:
   primary_color: "#1A1A1A"

@@ -30,7 +30,6 @@ dependencies = [
     "sse-starlette",
     "tldextract",
     "tenacity",
-    "sentence-transformers",
     "aiofiles",
     "beartype",
     "loguru",
@@ -98,7 +97,8 @@ rag = [
     "openpyxl",
     "xlsxwriter",
     "lxml",
-    "nltk"
+    "nltk",
+    "sentence-transformers"
 ]
 audio = [
     "google-generativeai"
