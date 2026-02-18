@@ -20,6 +20,7 @@ import re
 import argparse
 import datetime
 import yaml
+import base64
 
 # MISSION CRITICAL: Force UTF-8 encoding for stdout/stderr on Windows to avoid UnicodeEncodeError with emojis
 if sys.platform == 'win32':
@@ -168,6 +169,42 @@ def load_metadata() -> dict:
             # --- Release ---
             rel_sect = identity.get("release", {})
             flat["COPYRIGHT_YEAR"] = rel_sect.get("copyright_year")
+
+    # 1.5. Check for Encrypted Secrets Bundle (CI/CD Injection)
+    # This allows passing the entire secrets.yaml as a Base64 string in MYTH_SECRETS_BUNDLE
+    bundle_b64 = os.environ.get("MYTH_SECRETS_BUNDLE")
+    if bundle_b64:
+        try:
+            # Clean possible whitespace/newlines from variable
+            bundle_b64 = bundle_b64.strip()
+            decoded = base64.b64decode(bundle_b64).decode('utf-8')
+            secrets_data = yaml.safe_load(decoded)
+            
+            if secrets_data:
+                print("🔒 [GOVERNANCE] Decrypted Secret Bundle found in memory. Injecting...")
+                # Flatten the bundle into the flat dictionary
+                # We prefix with SECRET_ to allow targeted injection
+                def _flatten_recursive(data, prefix="SECRET_"):
+                    for k, v in data.items():
+                        full_key = f"{prefix}{k.upper()}"
+                        if isinstance(v, dict):
+                            _flatten_recursive(v, full_key + "_")
+                        elif isinstance(v, list):
+                            # For lists (like keys), we just provide the first one as default if requested,
+                            # but usually we want to preserve the whole structure for the final yaml.
+                            # So we also store the raw values if needed.
+                            flat[full_key] = str(v)
+                        else:
+                            flat[full_key] = str(v)
+                
+                _flatten_recursive(secrets_data)
+                
+                # Special Case: If the bundle is meant to OVERWRITE the final secrets.yaml,
+                # we can flag it to the engine.
+                flat["HAS_SECRETS_BUNDLE"] = "true"
+                flat["RAW_SECRETS_DATA"] = decoded # Store the full yaml string
+        except Exception as e:
+            print(f"❌ [GOVERNANCE] Failed to decode secrets bundle: {e}")
 
     # 2. Load Packaging Meta (Secondary/Specific)
     if os.path.exists(META_PATH):
@@ -477,6 +514,12 @@ def hydrate_manifests(*, check_only: bool = False, validate_only: bool = False) 
             return str(flat.get(key, ""))
 
         hydrated = re.sub(r"\{\{([A-Za-z0-9_]+)\}\}", replace_match, content)
+
+        # SECURITY: If we have a RAW_SECRETS_DATA bundle and the target is secrets.yaml,
+        # we bypass the template hydration and just write the bundle.
+        if flat.get("HAS_SECRETS_BUNDLE") == "true" and rel_output.endswith("secrets.yaml"):
+            hydrated = flat.get("RAW_SECRETS_DATA")
+            print(f"🧬 [PACKAGING] Bypassed template for {rel_output} -> Injecting raw bundle.")
 
         if file_warnings:
             warnings.extend(file_warnings)

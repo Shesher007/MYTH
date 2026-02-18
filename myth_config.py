@@ -395,6 +395,40 @@ class SovereignConfig:
     def get_all(self) -> Dict[str, Any]:
         return self.secrets
 
+    def save(self):
+        """Persists the current secrets dictionary back to the config file."""
+        with self._lock:
+            try:
+                # Use yaml.dump with specific settings for industrial readability
+                with open(self.config_path, "w", encoding="utf-8") as f:
+                    yaml.dump(self.secrets, f, default_flow_style=False, sort_keys=False, allow_unicode=True, indent=2)
+                logger.info(f"✅ [CONFIG] Secrets persisted to {self.config_path}")
+                return True
+            except Exception as e:
+                logger.error(f"❌ [CONFIG] Failed to save secrets: {e}")
+                return False
+
+    def update_secrets(self, updates: Dict[str, Any]):
+        """
+        Deep-merges updates into the active secrets and persists to disk.
+        Supports structured updates for known provider sections.
+        """
+        with self._lock:
+            def _deep_update(base, up):
+                for k, v in up.items():
+                    if isinstance(v, dict) and k in base and isinstance(base[k], dict):
+                        _deep_update(base[k], v)
+                    else:
+                        base[k] = v
+            
+            _deep_update(self.secrets, updates)
+        
+        # After update, trigger persistence and legacy env sync
+        success = self.save()
+        if success:
+            self._sync_to_env()
+        return success
+
 def load_dotenv():
     """Industrial replacement for dotenv.load_dotenv()."""
     SovereignConfig.get_instance()

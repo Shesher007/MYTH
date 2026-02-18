@@ -8,7 +8,7 @@ const getInitialApiBase = () => {
         const backendParam = params.get('backend');
         if (backendParam) return backendParam;
     }
-    return 'http://127.0.0.1:8890';
+    return 'http://127.0.0.1:{{INFRA_PORT_BACKEND}}';
 };
 
 const API_BASE = getInitialApiBase();

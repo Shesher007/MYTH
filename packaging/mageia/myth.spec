@@ -1,7 +1,7 @@
 # MYTH Desktop — Mageia RPM Spec File (Binary Version)
 
 Name:           myth
-Version:        1.1.1
+Version:        1.1.2
 Release:        1
 Summary:        Industrial-Grade Sovereign Security Agent
 License:        Proprietary
@@ -38,5 +38,5 @@ mv %{buildroot}/usr/bin/myth %{buildroot}/usr/bin/MYTH || true
 %{_datadir}/icons/hicolor/512x512/apps/myth.png
 
 %changelog
-* Sat Feb 14 2026 Shesher Hasan <shesher0007@gmail.com> - 1.1.1-1.mga9
+* Sat Feb 14 2026 Shesher Hasan <shesher0007@gmail.com> - 1.1.2-1.mga9
 - Initial Mageia binary release

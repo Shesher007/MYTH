@@ -14,7 +14,7 @@ from pathlib import Path
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 from config_loader import agent_config
 
-def scorch_earth_cleanup(ports=[8888, 8890, 5173] + list(range(8001, 8211))):
+def scorch_earth_cleanup(ports=[8888, {{INFRA_PORT_BACKEND}}, 5173] + list(range(8001, 8211))):
     """Industrial Grade: Deep-scans system for zombie backends and terminates them."""
     print(f"🧹 [CLEANUP] Scouring system for legacy {agent_config.identity.name} infrastructure...")
     current_pid = os.getpid()
@@ -53,7 +53,7 @@ def scorch_earth_cleanup(ports=[8888, 8890, 5173] + list(range(8001, 8211))):
             
             cmd_str = " ".join(pinfo['cmdline']).lower()
             
-            # SURGICAL TARGETING: Only kill what matters for MYTH startup
+            # SURGICAL TARGETING: Only kill what matters for {{NAME}} startup
             is_backend = ("uvicorn" in cmd_str and "api:app" in cmd_str) or \
                         ("python" in cmd_str and "api.py" in cmd_str)
             is_mcp = "python" in cmd_str and "mcp_servers" in cmd_str
@@ -111,7 +111,7 @@ def run_myth_desktop():
         return
 
     # 0. Port Cleanup & Audit Reset
-    print("🧹 [0/3] Cleaning industrial infrastructure (8888, 8890, 5173)...")
+    print("🧹 [0/3] Cleaning industrial infrastructure (8888, {{INFRA_PORT_BACKEND}}, 5173)...")
     scorch_earth_cleanup()
     
     # Industrial Audit Reset (Aggressive Cleanup)
@@ -150,15 +150,15 @@ def run_myth_desktop():
         except Exception as e:
             print(f"   ⚠️ [CLEANUP] Could not reset system log: {e} (Likely in use by zombie process)")
     
-    # Wait for port 8890 to be definitively free (prevents zombie interference)
-    print("   ⏳ Waiting for port 8890 to be released...")
+    # Wait for port {{INFRA_PORT_BACKEND}} to be definitively free (prevents zombie interference)
+    print("   ⏳ Waiting for port {{INFRA_PORT_BACKEND}} to be released...")
     for _ in range(5):
         try:
-            with socket.create_connection(("127.0.0.1", 8890), timeout=1):
+            with socket.create_connection(("127.0.0.1", {{INFRA_PORT_BACKEND}}), timeout=1):
                 time.sleep(1)  # Port still occupied, wait
         except (ConnectionRefusedError, socket.timeout, OSError):
             break  # Port is free
-    print("   ✅ Port 8890 is clear.")
+    print("   ✅ Port {{INFRA_PORT_BACKEND}} is clear.")
     
     # Clear Python bytecode cache to prevent stale module loading
     print("   🗑️ Clearing bytecode cache...")
@@ -174,7 +174,7 @@ def run_myth_desktop():
     api_cmd = [
         str(venv_python), "-m", "uvicorn", "api:app", 
         "--host", "127.0.0.1", 
-        "--port", "8890",
+        "--port", "{{INFRA_PORT_BACKEND}}",
         "--no-access-log",
     ]
 
@@ -207,7 +207,7 @@ def run_myth_desktop():
     
     while retry_count < max_retries:
         try:
-            with urllib.request.urlopen("http://127.0.0.1:8890/health", timeout=40) as response:
+            with urllib.request.urlopen("http://127.0.0.1:{{INFRA_PORT_BACKEND}}/health", timeout=40) as response:
                 if response.getcode() == 200:
                     data = json.loads(response.read().decode())
                     
@@ -249,7 +249,7 @@ def run_myth_desktop():
                         if retry_count > 3:
                             print(f"\n   💣 [RESCUE] Stale backend detected (ID: {boot_id}). Purging ghost...")
                             for conn in psutil.net_connections(kind='inet'):
-                                if conn.laddr.port == 8890 and conn.pid != api_process.pid:
+                                if conn.laddr.port == {{INFRA_PORT_BACKEND}} and conn.pid != api_process.pid:
                                     try:
                                         p = psutil.Process(conn.pid)
                                         print(f"   🗑️  [RESCUE] Terminating ghost PID: {conn.pid}")
@@ -292,7 +292,7 @@ def run_myth_desktop():
             # Server not listening yet
             if isinstance(e.reason, ConnectionRefusedError) or "[WinError 10061]" in str(e.reason):
                 if retry_count % 3 == 0:
-                    print(f"   ⏳ Waiting for backend to bind port 8890... ({retry_count * 2}s)", end="\r", flush=True)
+                    print(f"   ⏳ Waiting for backend to bind port {{INFRA_PORT_BACKEND}}... ({retry_count * 2}s)", end="\r", flush=True)
             else:
                 if retry_count % 5 == 0:
                     print(f"   ⚠️  Connection issue: {e.reason}")
@@ -358,10 +358,10 @@ def run_myth_desktop():
             if api_exit_code is not None:
                 # If backend process exits, we check if it's a reload or a crash.
                 # Uvicorn with --reload often kills the parent and starts a new one, 
-                # but WatchFiles inside the process usually keeps the PID alive or rebinds port 8890.
+                # but WatchFiles inside the process usually keeps the PID alive or rebinds port {{INFRA_PORT_BACKEND}}.
                 
-                # Check if port 8890 is still active or being rebound
-                if _check_port_listening(8890):
+                # Check if port {{INFRA_PORT_BACKEND}} is still active or being rebound
+                if _check_port_listening({{INFRA_PORT_BACKEND}}):
                     # Backend is still alive or reloading internally (PID might have changed)
                     # We just need to wait a moment and then check health
                     time.sleep(2)
@@ -405,7 +405,7 @@ def run_myth_desktop():
             pass
         
         # Final port cleanup to ensure no orphaned listeners
-        kill_process_on_port(8890)
+        kill_process_on_port({{INFRA_PORT_BACKEND}})
         kill_process_on_port(5173)
         print("✅ Services terminated. Session closed.")
 

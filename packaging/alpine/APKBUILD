@@ -1,6 +1,6 @@
 # Maintainer: Shesher Hasan <shesher0007@gmail.com>
 pkgname=myth
-pkgver=1.1.1
+pkgver=1.1.2
 pkgrel=0
 pkgdesc="High-Performance Offensive Intelligence Engine"
 url="https://github.com/shesher010/MYTH"

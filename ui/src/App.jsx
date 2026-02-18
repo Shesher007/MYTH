@@ -5,7 +5,7 @@ import ChatWindow from './components/ChatWindow';
 import CommandPalette from './components/CommandPalette';
 import TopologyModal from './components/TopologyModal';
 import PreviewModal from './components/PreviewModal';
-
+import DocumentationView from './components/DocumentationView';
 import SettingsModal from './components/SettingsModal';
 import NotificationToast from './components/NotificationToast';
 import { useAgent } from './hooks/useAgent';
@@ -75,6 +75,7 @@ function App() {
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
   const [activePreviewFile, setActivePreviewFile] = React.useState(null);
+  const [activeView, setActiveView] = React.useState('chat'); // 'chat' or 'documentation'
 
   // Command Palette Shortcut
   React.useEffect(() => {
@@ -139,7 +140,7 @@ function App() {
         setIsSidebarCollapsed(true);
       }
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isSidebarCollapsed]);
@@ -160,7 +161,7 @@ function App() {
       {/* Global System Readiness Banner */}
       <AnimatePresence>
         {!systemStatus.ready && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -194,7 +195,7 @@ function App() {
           onDeleteFile={deleteGeneratedFile}
           onRenameFile={renameFile}
           onPreviewFile={handlePreviewFile}
-          onRefreshFiles={() => {}} // Now automatic via Telemetry
+          onRefreshFiles={() => { }} // Now automatic via Telemetry
           stats={systemStatus}
           securityAlerts={securityAlerts}
           onClearAlerts={clearAlerts}
@@ -206,7 +207,14 @@ function App() {
           vpnStatus={vpnStatus}
           vpnNodes={vpnNodes}
           toggleVpn={toggleVpn}
-          onOpenSettings={handleOpenSettings}
+          onOpenSettings={(mode) => {
+            if (mode === 'documentation') {
+              setActiveView('documentation');
+              setIsSidebarCollapsed(true);
+            } else {
+              handleOpenSettings();
+            }
+          }}
         />
       </div>
 
@@ -232,12 +240,24 @@ function App() {
               <PanelLeft size={16} className="hover:scale-110 transition-transform" />
             </button>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[10px] font-black text-slate-100 uppercase tracking-[0.3em] whitespace-nowrap">Synapse Console</span>
+              <span className="text-[10px] font-black text-slate-100 uppercase tracking-[0.3em] whitespace-nowrap">
+                {activeView === 'chat' ? 'Synapse Console' : 'Core Documentation'}
+              </span>
               <div className="flex items-center gap-2 telemetry-label-text">
                 <div className="w-1.5 h-1.5 rounded-full bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.6)] animate-pulse"></div>
-                <span className="text-[7px] font-mono text-teal-500/70 uppercase">Telemetry: Active</span>
+                <span className="text-[7px] font-mono text-teal-500/70 uppercase">
+                  {activeView === 'chat' ? 'Telemetry: Active' : 'Knowledge: Ready'}
+                </span>
               </div>
             </div>
+            {activeView === 'documentation' && (
+              <button
+                onClick={() => { playChirp(); setActiveView('chat'); setIsSidebarCollapsed(false); }}
+                className="ml-4 px-3 py-1.5 rounded border border-teal-500/30 bg-teal-500/10 text-teal-400 text-[9px] font-black uppercase tracking-widest hover:bg-teal-500/20 transition-all flex items-center gap-2"
+              >
+                <Plus size={12} className="rotate-45" /> RETURN_TO_CHAT
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-4 hud-module-gap">
@@ -257,8 +277,8 @@ function App() {
             {/* Real-time Performance Indicators */}
             <div className="flex items-center gap-3">
               <FpsIndicator />
-              <NetworkPingIndicator 
-                networkPing={systemStatus.metrics.network_ping} 
+              <NetworkPingIndicator
+                networkPing={systemStatus.metrics.network_ping}
                 networkSpeed={systemStatus.metrics.network_speed}
               />
               <LatencyIndicator latency={systemStatus.metrics.latency} />
@@ -267,37 +287,41 @@ function App() {
             <div className="h-4 w-[1px] bg-white/10 mx-1"></div>
 
             <div className="flex items-center gap-2">
-                {/* Legacy Links Removed */}
+              {/* Legacy Links Removed */}
             </div>
           </div>
 
         </div>
 
         <div className="flex-1 min-h-0">
-          <ChatWindow
-            messages={messages}
-            onSendMessage={sendMessage}
-            isProcessing={isProcessing}
-            currentStatus={currentStatus}
-            activeNode={activeNode}
-            activeModel={activeModel}
-            usedTools={usedTools}
-            logs={logs}
-            thoughts={thoughts}
-            thinkingStartTime={thinkingStartTime}
-            onStopGeneration={stopGeneration}
-            onUploadFile={uploadDocument}
-            uploadFileWithProgress={uploadFileWithProgress}
-            onIndexFolder={indexFolder}
-            browseFolder={browseFolder}
-            getFolderSummary={getFolderSummary}
-            generatedFiles={generatedFiles}
-            architectureMode={architectureMode}
-            onSwitchArchitecture={switchArchitecture}
-            speakingMode={speakingMode}
-            setSpeakingMode={setSpeakingMode}
-            onPreviewFile={handlePreviewFile}
-          />
+          {activeView === 'chat' ? (
+            <ChatWindow
+              messages={messages}
+              onSendMessage={sendMessage}
+              isProcessing={isProcessing}
+              currentStatus={currentStatus}
+              activeNode={activeNode}
+              activeModel={activeModel}
+              usedTools={usedTools}
+              logs={logs}
+              thoughts={thoughts}
+              thinkingStartTime={thinkingStartTime}
+              onStopGeneration={stopGeneration}
+              onUploadFile={uploadDocument}
+              uploadFileWithProgress={uploadFileWithProgress}
+              onIndexFolder={indexFolder}
+              browseFolder={browseFolder}
+              getFolderSummary={getFolderSummary}
+              generatedFiles={generatedFiles}
+              architectureMode={architectureMode}
+              onSwitchArchitecture={switchArchitecture}
+              speakingMode={speakingMode}
+              setSpeakingMode={setSpeakingMode}
+              onPreviewFile={handlePreviewFile}
+            />
+          ) : (
+            <DocumentationView />
+          )}
         </div>
 
 
@@ -327,11 +351,11 @@ function App() {
         onClose={() => setIsPreviewOpen(false)}
         file={activePreviewFile}
       />
-      
+
       {/* Industrial Notification Toast System */}
-      <NotificationToast 
-        notifications={notifications} 
-        onDismiss={dismissNotification} 
+      <NotificationToast
+        notifications={notifications}
+        onDismiss={dismissNotification}
         onClearAll={clearAllNotifications}
       />
     </div>

@@ -88,7 +88,8 @@ def get_app_data_path(sub_path: str = "") -> str:
             if os.path.exists(id_path):
                 with open(id_path, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
-                    return data.get("name", "PROJECT").upper()
+                    identity = data.get("identity", {})
+                    return identity.get("name", "PROJECT").upper()
         except: pass
         return "PROJECT"
 

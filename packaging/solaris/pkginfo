@@ -1,6 +1,6 @@
 PKG=MYTH
 NAME="High-Performance Offensive Intelligence Engine"
-VERSION="1.1.1"
+VERSION="1.1.2"
 ARCH="x86"
 CATEGORY="application"
 VENDOR="Shesher Hasan"

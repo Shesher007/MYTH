@@ -1,6 +1,6 @@
 [project]
 name = "myth"
-version = "1.1.1"
+version = "1.1.2"
 description = "High-Performance Offensive Intelligence Engine"
 authors = [
     { name = "Shesher Hasan", email = "shesher0007@gmail.com" }
@@ -50,6 +50,11 @@ dependencies = [
     "watchdog",
     "jinja2",
     "tomli",
+    "motor",
+    "redis[hiredis]",
+    "sqlalchemy[asyncio]",
+    "docker",
+    "xxhash",
 ]
 
 [project.optional-dependencies]

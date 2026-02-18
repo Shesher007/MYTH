@@ -50,6 +50,11 @@ dependencies = [
     "watchdog",
     "jinja2",
     "tomli",
+    "motor",
+    "redis[hiredis]",
+    "sqlalchemy[asyncio]",
+    "docker",
+    "xxhash",
 ]
 
 [project.optional-dependencies]

@@ -123,6 +123,9 @@ Build (macos-arm64) report.txt
 Build (macos-x64) report.txt
 Build (linux-x64) report.txt
 
+Release (linux-x64) report.txt
+
 .agent/
 
 t.txt
+templates/secrets.yaml.template

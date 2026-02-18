@@ -4,7 +4,7 @@
 # Usage: ./scripts/build_macos_pkg.sh
 
 APP_PATH="ui/src-tauri/target/release/bundle/macos/MYTH.app"
-PKG_OUTPUT="dist/MYTH-1.1.1.pkg"
+PKG_OUTPUT="dist/MYTH-1.1.2.pkg"
 SIGNING_ID="${SIGNING_ID:-Developer ID Installer: MYTH}"
 
 if [ ! -d "$APP_PATH" ]; then
@@ -15,7 +15,7 @@ fi
 mkdir -p dist
 
 echo "📦 Building component package..."
-PKG_ARGS=(--root "$APP_PATH" --identifier "com.shesher010.myth" --version "1.1.1" --install-location "/Applications/MYTH.app")
+PKG_ARGS=(--root "$APP_PATH" --identifier "com.shesher010.myth" --version "1.1.2" --install-location "/Applications/MYTH.app")
 
 if [ -d "packaging/macos/scripts" ]; then
     PKG_ARGS+=(--scripts "packaging/macos/scripts")
@@ -35,8 +35,8 @@ productbuild "${PROD_ARGS[@]}"
 # Optional signing
 if [ -n "$SIGNING_ID" ]; then
     echo "🔏 Signing package with ID: $SIGNING_ID"
-    productsign --sign "$SIGNING_ID" "$PKG_OUTPUT" "dist/MYTH-1.1.1-signed.pkg"
-    mv "dist/MYTH-1.1.1-signed.pkg" "$PKG_OUTPUT"
+    productsign --sign "$SIGNING_ID" "$PKG_OUTPUT" "dist/MYTH-1.1.2-signed.pkg"
+    mv "dist/MYTH-1.1.2-signed.pkg" "$PKG_OUTPUT"
 fi
 
 rm dist/component.pkg

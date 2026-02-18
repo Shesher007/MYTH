@@ -1,0 +1,769 @@
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Book, Shield, Cpu, ChevronRight, Info, Zap, Terminal, ExternalLink, Filter, BarChart3, Fingerprint, ShieldCheck, Activity, Globe, Layout, Layers, Box, ChevronDown } from 'lucide-react';
+
+const API_BASE = 'http://127.0.0.1:8890';
+
+const DocumentationView = () => {
+    const [tools, setTools] = useState([]);
+    const [features, setFeatures] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedTool, setSelectedTool] = useState(null);
+    const [selectedFeature, setSelectedFeature] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [sortBy, setSortBy] = useState('Popularity'); // 'Popularity', 'Alpha', 'Discovery'
+    const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'schema', 'integration'
+    const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [refreshMessage, setRefreshMessage] = useState('');
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [isSortOpen, setIsSortOpen] = useState(false);
+    const searchInputRef = useRef(null);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+                searchInputRef.current?.focus();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [toolsRes, featuresRes] = await Promise.all([
+                    fetch(`${API_BASE}/system/documentation/tools`),
+                    fetch(`${API_BASE}/system/documentation/features`)
+                ]);
+                const toolsData = await toolsRes.json();
+                const featuresData = await featuresRes.json();
+
+                if (toolsData.success) setTools(toolsData.tools);
+                if (featuresData.success) setFeatures(featuresData.features);
+            } catch (error) {
+                console.error("Documentation fetch error:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        setRefreshMessage('Synchronizing Arsenal...');
+        try {
+            const res = await fetch(`${API_BASE}/system/documentation/refresh`);
+            const data = await res.json();
+            if (data.success) {
+                // Re-fetch data to update UI
+                const [toolsRes, featuresRes] = await Promise.all([
+                    fetch(`${API_BASE}/system/documentation/tools`),
+                    fetch(`${API_BASE}/system/documentation/features`)
+                ]);
+                const toolsData = await toolsRes.json();
+                const featuresData = await featuresRes.json();
+                if (toolsData.success) setTools(toolsData.tools);
+                if (featuresData.success) setFeatures(featuresData.features);
+
+                setRefreshMessage(`Sync Complete: ${data.tool_count} Modules Online`);
+                setTimeout(() => setRefreshMessage(''), 3000);
+            } else {
+                setRefreshMessage('Sync Failed: ' + data.error);
+            }
+        } catch (error) {
+            setRefreshMessage('Sync Error: Connection Refused');
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
+    const categories = useMemo(() => {
+        if (!tools || !Array.isArray(tools)) return ['All'];
+        const cats = new Set(tools.map(t => t.category).filter(Boolean));
+        return ['All', ...Array.from(cats)].sort();
+    }, [tools]);
+
+    const filteredTools = useMemo(() => {
+        if (!tools || !Array.isArray(tools)) return [];
+        const query = searchQuery.toLowerCase().trim();
+
+        // 1. Enrich tools with tactical metadata (Popularity & Discovery Index)
+        const popular_keywords = {
+            "nmap": 98, "shodan": 95, "metasploit": 92, "sqlmap": 90,
+            "browser": 88, "file": 85, "rag": 96, "shell": 94,
+            "process": 82, "network": 89, "cve": 87, "whois": 75, "enum": 83
+        };
+
+        // 1. De-duplicate and Enrich tools
+        const seen = new Set();
+        const enrichedTools = tools.filter(t => {
+            if (!t.name || seen.has(t.name)) return false;
+            seen.add(t.name);
+            return true;
+        }).map((tool, index) => {
+            const name_lower = (tool.name || '').toLowerCase();
+            let pop = tool.popularity || 40;
+            if (!tool.popularity) {
+                for (const [kw, weight] of Object.entries(popular_keywords)) {
+                    if (name_lower.includes(kw)) pop = Math.max(pop, weight);
+                }
+            }
+            return { ...tool, popularity: pop, discoveryIndex: index };
+        });
+
+        // 2. Filter base on search and category
+        return enrichedTools.filter(tool => {
+            const name = (tool.name || '').toLowerCase();
+            const desc = (tool.description || '').toLowerCase();
+            const cat = (tool.category || '').toLowerCase();
+
+            const matchesSearch = !query ||
+                name.includes(query) ||
+                desc.includes(query) ||
+                cat.includes(query) ||
+                (tool.module_path && tool.module_path.toLowerCase().includes(query));
+
+            const matchesCategory = selectedCategory === 'All' || tool.category === selectedCategory;
+            return matchesSearch && matchesCategory;
+        }).sort((a, b) => {
+            // Priority 0: Exact search match relevance
+            if (query) {
+                const aName = a.name.toLowerCase();
+                const bName = b.name.toLowerCase();
+
+                // Priority 0.1: Exact match
+                if (aName === query && bName !== query) return -1;
+                if (bName === query && aName !== query) return 1;
+
+                // Priority 0.2: Starts with
+                if (aName.startsWith(query) && !bName.startsWith(query)) return -1;
+                if (bName.startsWith(query) && !aName.startsWith(query)) return 1;
+
+                // Priority 0.3: Name inclusion
+                if (aName.includes(query) && !bName.includes(query)) return -1;
+                if (bName.includes(query) && !aName.includes(query)) return 1;
+            }
+
+            // Priority 1: User Sorting Protocol
+            if (sortBy === 'Popularity') {
+                const diff = (b.popularity || 0) - (a.popularity || 0);
+                if (diff !== 0) return diff;
+                return a.name.localeCompare(b.name);
+            }
+            if (sortBy === 'Alpha') {
+                return a.name.localeCompare(b.name);
+            }
+            if (sortBy === 'Discovery') {
+                return a.discoveryIndex - b.discoveryIndex;
+            }
+
+            return 0;
+        });
+    }, [tools, searchQuery, selectedCategory, sortBy]);
+
+    const formatDescription = (text) => {
+        if (!text) return null;
+
+        // Split by major sections if they exist
+        const sections = text.split(/(\bArgs:|\bReturns:|\bHINT:|\b\*\*.*?\*\*)/g);
+
+        return sections.map((part, i) => {
+            if (part === 'Args:' || part === 'Returns:' || part === 'HINT:') {
+                return <span key={i} className="text-teal-500 font-bold mt-4 block mb-1 uppercase tracking-[0.2em] text-[10px]">{part}</span>;
+            }
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <span key={i} className="text-amber-500 font-black tracking-wider bg-amber-500/10 px-1.5 py-0.5 rounded mx-1 text-[9px] uppercase">{part.replace(/\*\*/g, '')}</span>;
+            }
+            return <span key={i} className="leading-[1.8] text-slate-300/90">{part}</span>;
+        });
+    };
+
+    const renderToolDetail = (tool) => {
+        if (!tool) return null;
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                key={tool.name}
+                className="h-full flex flex-col bg-black/40 backdrop-blur-md border border-white/5 rounded-lg overflow-hidden"
+            >
+                {/* Tool Header */}
+                <div className="p-6 border-b border-white/5 bg-gradient-to-br from-teal-500/5 to-transparent shrink-0">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            {tool.server_type && (
+                                <span className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-[8px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1">
+                                    <Zap size={10} /> MCP
+                                </span>
+                            )}
+                            <span className="px-2 py-0.5 rounded bg-teal-500/10 border border-teal-500/30 text-[10px] font-black text-teal-400 uppercase tracking-widest">
+                                {tool.category}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className="text-[10px] font-mono text-slate-500 uppercase">SYS_TOOL_ID: {tool.name.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-4">{tool.name.replace(/_/g, ' ')}</h2>
+                    <div className="text-[13px] font-medium leading-[1.8] text-slate-400 max-w-3xl selection:bg-teal-500/30">
+                        {formatDescription(tool.description)}
+                    </div>
+                </div>
+
+                {/* Tab Navigation */}
+                <div className="flex items-center bg-black/20 border-b border-white/5 px-6 shrink-0">
+                    {['overview', 'schema', 'integration'].map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all relative ${activeTab === tab ? 'text-teal-400' : 'text-slate-500 hover:text-slate-300'}`}
+                        >
+                            {tab}
+                            {activeTab === tab && (
+                                <motion.div
+                                    layoutId="activeTab"
+                                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.6)]"
+                                />
+                            )}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Tab Content */}
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                    <AnimatePresence mode="wait">
+                        {activeTab === 'overview' && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                className="space-y-8"
+                            >
+                                <section>
+                                    <h3 className="text-[11px] font-black text-teal-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                                        <Globe size={14} /> Mission Capabilities
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 rounded border border-white/5 bg-white/[0.02]">
+                                            <span className="text-[9px] font-black text-slate-500 uppercase block mb-2">Key Use Case</span>
+                                            <p className="text-xs text-slate-300">Automating high-fidelity {tool.category} workflows within the sovereign infrastructure.</p>
+                                        </div>
+                                        <div className="p-4 rounded border border-white/5 bg-white/[0.02]">
+                                            <span className="text-[9px] font-black text-slate-500 uppercase block mb-2">Expert Tip</span>
+                                            <p className="text-xs text-slate-300">Combine with {tool.category === 'recon' ? 'Nmap' : 'Neural'} modules for enhanced data synthesis.</p>
+                                        </div>
+                                    </div>
+                                </section>
+                                <section>
+                                    <h3 className="text-[11px] font-black text-teal-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                                        <Layers size={14} /> Operational Insights
+                                    </h3>
+                                    <p className="text-xs text-slate-400 leading-relaxed italic">
+                                        {tool.module_path ? (
+                                            `This tool is part of the ${tool.module_path} suite, designed for high-concurrency execution environments.`
+                                        ) : (
+                                            `This tool is powered by a ${tool.server_type?.toUpperCase()} MCP server running on port ${tool.port}.`
+                                        )} It supports native serialization and real-time output streaming to the Neural Core.
+                                    </p>
+                                </section>
+                                <div className="p-4 rounded border border-amber-500/10 bg-amber-500/5 text-amber-500/60 text-[10px] font-medium leading-relaxed italic">
+                                    [!] SECURITY PROTOCOL: All module executions are logged by the Sovereign Governance layer. Parameter deviations from target baseline may trigger automated isolation protocols.
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {activeTab === 'schema' && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                            >
+                                <h3 className="text-[11px] font-black text-teal-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                                    <Terminal size={14} /> Technical Schema
+                                </h3>
+                                <div className="bg-black/40 border border-white/5 rounded-lg overflow-hidden">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-white/5">
+                                                <th className="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Parameter</th>
+                                                <th className="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Type</th>
+                                                <th className="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Default</th>
+                                                <th className="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {Object.entries(tool.input_schema.properties || {}).map(([key, prop]) => (
+                                                <tr key={key} className="hover:bg-white/[0.02] transition-colors">
+                                                    <td className="px-4 py-4 font-mono text-xs text-teal-400">
+                                                        {key}
+                                                        {tool.input_schema.required?.includes(key) && (
+                                                            <span className="ml-2 text-red-500/50 text-[8px] font-bold uppercase shrink-0">*</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-4 font-mono text-[10px] text-slate-500">{prop.type}</td>
+                                                    <td className="px-4 py-4 font-mono text-[10px] text-slate-600">{JSON.stringify(prop.default) ?? '-'}</td>
+                                                    <td className="px-4 py-4 text-xs text-slate-400">{prop.title || prop.description || 'No description available.'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {activeTab === 'integration' && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                className="space-y-6"
+                            >
+                                <h3 className="text-[11px] font-black text-teal-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                                    <Zap size={14} /> Execution Blueprint
+                                </h3>
+                                <div className="space-y-4">
+                                    <div className="relative group">
+                                        <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
+                                            <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+                                            <span className="text-[8px] font-black text-teal-500 uppercase tracking-widest">Live Payload</span>
+                                        </div>
+                                        <pre className="bg-black/80 border border-white/10 rounded-lg p-10 text-xs text-teal-500/90 overflow-x-auto font-mono">
+                                            <code>{JSON.stringify({
+                                                tool: tool.name,
+                                                arguments: Object.fromEntries(
+                                                    Object.entries(tool.input_schema.properties || {}).map(([k, v]) => [k, v.default ?? (v.type === 'string' ? "..." : 0)])
+                                                )
+                                            }, null, 4)}</code>
+                                        </pre>
+                                        <button className="absolute top-4 right-4 p-1.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded text-[8px] font-black uppercase tracking-widest transition-all">
+                                            Copy Schema
+                                        </button>
+                                    </div>
+                                    <div className="p-4 rounded border border-white/5 bg-black/20">
+                                        <span className="text-[9px] font-black text-slate-500 uppercase block mb-3">Response Structure</span>
+                                        <div className="font-mono text-[10px] text-slate-600 space-y-1">
+                                            <div>{'{'}</div>
+                                            <div className="pl-4">"status": "success",</div>
+                                            <div className="pl-4">"timestamp": "ISO_8601",</div>
+                                            <div className="pl-4">"node_id": "SYSLOG_UUID",</div>
+                                            <div className="pl-4">"payload": "DYNAMIC_OUTPUT_STREAM"</div>
+                                            <div>{'}'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </motion.div>
+        );
+    };
+
+    const renderFeatureDetail = (feature) => {
+        if (!feature) return null;
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                key={feature.id}
+                className="h-full flex flex-col bg-black/40 backdrop-blur-md border border-white/5 rounded-lg overflow-hidden"
+            >
+                <div className="p-8 border-b border-white/5 bg-gradient-to-br from-teal-500/10 via-transparent to-transparent">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="p-4 rounded bg-teal-500/10 border border-teal-500/30 text-teal-500 shadow-[0_0_20px_rgba(20,184,166,0.1)]">
+                            {feature.id === 'neural_core' ? <Cpu size={32} /> : feature.id === 'rag_matrix' ? <Layers size={32} /> : <ShieldCheck size={32} />}
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none mb-2">{feature.title}</h2>
+                            <p className="text-teal-500/70 text-[10px] font-black uppercase tracking-[0.4em]">{feature.subtitle}</p>
+                        </div>
+                    </div>
+                    <p className="text-slate-400 text-sm leading-relaxed max-w-2xl">{feature.description}</p>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-12">
+                    <section>
+                        <h3 className="text-[11px] font-black text-teal-500 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                            <Activity size={14} /> Strategic Use Cases
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {feature.use_cases.map((useCase, i) => (
+                                <div key={i} className="p-4 rounded border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all group">
+                                    <div className="w-6 h-6 rounded bg-teal-500/10 flex items-center justify-center text-teal-500 text-[10px] font-bold mb-3 group-hover:bg-teal-500/20 transition-colors">{i + 1}</div>
+                                    <p className="text-[11px] text-slate-300 font-medium leading-relaxed">{useCase}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="space-y-6">
+                            <h3 className="text-[11px] font-black text-teal-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                                <Terminal size={14} /> Mission Command Guides
+                            </h3>
+                            <div className="space-y-4">
+                                {(feature.how_to_query || []).map((query, i) => (
+                                    <div key={i} className="p-4 rounded border border-teal-500/10 bg-black/40 group hover:border-teal-500/30 transition-all relative">
+                                        <div className="absolute top-2 right-2 opacity-10 group-hover:opacity-100 transition-opacity">
+                                            <Zap size={12} className="text-teal-500" />
+                                        </div>
+                                        <p className="text-[10px] font-mono text-teal-400 leading-relaxed mb-2">"{query}"</p>
+                                        <button
+                                            onClick={() => navigator.clipboard.writeText(query)}
+                                            className="text-[8px] font-black text-slate-500 uppercase tracking-widest hover:text-teal-500 transition-colors"
+                                        >
+                                            Copy Prompt
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="space-y-6">
+                            <h3 className="text-[11px] font-black text-teal-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                                <BarChart3 size={14} /> Technical Specifications
+                            </h3>
+                            <div className="grid grid-cols-1 gap-2">
+                                {Object.entries(feature.technical_specs || {}).map(([key, val]) => (
+                                    <div key={key} className="flex items-center justify-between p-3 rounded bg-black/20 border border-white/5 group hover:bg-white/5 transition-colors">
+                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{key}</span>
+                                        <span className="text-[10px] font-mono text-slate-300 group-hover:text-white transition-colors">{val}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="p-6 rounded border border-teal-500/20 bg-gradient-to-br from-teal-500/5 to-transparent relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700">
+                            <ShieldCheck size={128} className="text-teal-500" />
+                        </div>
+                        <h3 className="text-[11px] font-black text-teal-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                            <Fingerprint size={14} /> Architectural Protocol Guide
+                        </h3>
+                        <p className="text-xs text-slate-400 leading-relaxed relative z-10 max-w-4xl">{feature.protocol_guide}</p>
+                    </section>
+                </div>
+            </motion.div>
+        );
+    };
+
+    const renderDashboard = () => (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="h-full flex flex-col gap-8 p-4"
+        >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {(features || []).map(feature => (
+                    <motion.div
+                        key={feature.id}
+                        whileHover={{ y: -5, borderColor: 'rgba(20,184,166,0.3)' }}
+                        onClick={() => setSelectedFeature(feature)}
+                        className="p-6 rounded-lg bg-black/40 backdrop-blur-md border border-white/5 cursor-pointer transition-all flex flex-col gap-4 group"
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="p-3 rounded bg-teal-500/5 border border-teal-500/20 text-teal-500 group-hover:bg-teal-500/10 transition-colors">
+                                {feature.id === 'neural_core' ? <Cpu size={24} /> : feature.id === 'rag_matrix' ? <Layers size={24} /> : <ShieldCheck size={24} />}
+                            </div>
+                            <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em]">PROT_V2_ACTIVE</span>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-black text-white uppercase tracking-tighter mb-1">{feature.title}</h3>
+                            <p className="text-[10px] text-slate-500 leading-relaxed uppercase tracking-widest">{feature.description}</p>
+                        </div>
+                        <button className="mt-auto flex items-center gap-2 text-[9px] font-black text-teal-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                            View Protocols <ChevronRight size={12} />
+                        </button>
+                    </motion.div>
+                ))}
+            </div>
+
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-0">
+                <div className="flex flex-col gap-4 min-h-0">
+                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.5em] px-2 flex items-center gap-2">
+                        <Terminal size={12} /> Global Command Glossary
+                    </h3>
+                    <div className="flex-1 rounded-lg border border-white/5 bg-black/40 p-6 overflow-y-auto custom-scrollbar space-y-4">
+                        {[
+                            { cmd: "Research [Target]", desc: "Full-spectrum intelligence gathering and surface mapping." },
+                            { cmd: "Analyze [Logs/Code]", desc: "Semantic auditing and forensic anomaly detection via RAG." },
+                            { cmd: "Audit Security", desc: "Execute non-destructive vulnerability validation protocols." },
+                            { cmd: "Summarize [Context]", desc: "Condense massive data into actionable strategic insights." },
+                            { cmd: "Monitor Network", desc: "Real-time traffic analysis and service health tracking." }
+                        ].map((item, i) => (
+                            <div key={i} className="flex gap-4 p-3 rounded bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-all group">
+                                <div className="font-mono text-[10px] text-teal-400 shrink-0 min-w-[120px]">{item.cmd}</div>
+                                <div className="text-[10px] text-slate-400 leading-relaxed italic">{item.desc}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="flex flex-col gap-4 min-h-0">
+                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.5em] px-2 flex items-center gap-2">
+                        <Box size={12} /> Resource Distribution
+                    </h3>
+                    <div className="flex-1 rounded-lg border border-white/5 bg-black/40 p-6 overflow-y-auto custom-scrollbar space-y-5">
+                        {categories.filter(c => c !== 'All').map(cat => (
+                            <div key={cat} className="space-y-2">
+                                <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
+                                    <span className="text-slate-500">{cat} Modules</span>
+                                    <span className="text-teal-500">{tools.filter(t => t.category === cat).length}</span>
+                                </div>
+                                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${(tools.filter(t => t.category === cat).length / tools.length) * 100}%` }}
+                                        className="h-full bg-gradient-to-r from-teal-500/20 to-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.3)] transition-all duration-1000"
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
+
+    if (isLoading) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <div className="flex flex-col items-center gap-6">
+                    <div className="relative">
+                        <div className="w-16 h-16 border-2 border-teal-500/20 rounded-full"></div>
+                        <div className="absolute top-0 left-0 w-16 h-16 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Activity size={24} className="text-teal-500 animate-pulse" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                        <span className="text-[10px] font-black text-teal-500 uppercase tracking-[0.4em] animate-pulse">Syncing Knowledge Matrix</span>
+                        <span className="text-[8px] font-mono text-teal-950 uppercase tracking-widest opacity-50">Industrial Resource Protocol V1.1.1</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="h-full flex flex-col p-6 gap-6 overflow-hidden">
+            {/* Header Section */}
+            <div className="flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-6">
+                    <div className="p-3 rounded bg-teal-500/10 border border-teal-500/30 text-teal-500 shadow-[0_0_20px_rgba(20,184,166,0.1)] cursor-pointer hover:bg-teal-500/20 transition-all" onClick={() => { setSelectedTool(null); setSelectedFeature(null); }}>
+                        <Layout size={24} />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Mission Documentation</h1>
+                        <p className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em]">Resource Repository // Protocol_{tools.length || '...'}_Active</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    {refreshMessage && (
+                        <motion.span
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="text-[9px] font-black text-teal-500 uppercase tracking-widest bg-teal-500/10 border border-teal-500/20 px-3 py-2 rounded shadow-[0_0_15px_rgba(20,184,166,0.1)]"
+                        >
+                            {refreshMessage}
+                        </motion.span>
+                    )}
+                    <button
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all ${isRefreshing ? 'bg-teal-500/10 border-teal-500/30 text-teal-500' : 'bg-black/60 border-white/10 hover:border-teal-500/50 text-slate-400 hover:text-white'}`}
+                    >
+                        <Activity size={14} className={isRefreshing ? 'animate-spin' : ''} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Sync Arsenal</span>
+                    </button>
+                    <div className="relative group">
+                        <div className={`absolute inset-0 bg-teal-500/5 rounded-lg transition-all duration-500 ${isSearchFocused ? 'opacity-100 scale-105 blur-sm' : 'opacity-0 scale-100'}`}></div>
+                        <div className="relative">
+                            <Search className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${isSearchFocused ? 'text-teal-400' : 'text-slate-500'}`} size={14} />
+                            <input
+                                ref={searchInputRef}
+                                type="text"
+                                placeholder="SEARCH INTELLIGENCE..."
+                                className="bg-black/60 border border-white/10 rounded-lg pr-12 py-3 text-[10px] font-black w-80 focus:outline-none focus:border-teal-500/50 transition-all uppercase tracking-[0.2em] placeholder:text-slate-700"
+                                style={{ paddingLeft: '44px' }}
+                                value={searchQuery}
+                                onFocus={() => setIsSearchFocused(true)}
+                                onBlur={() => setIsSearchFocused(false)}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                <span className={`text-[8px] font-mono transition-opacity duration-300 ${searchQuery ? 'opacity-100' : 'opacity-0'}`}>
+                                    {filteredTools.length} MATCH
+                                </span>
+                                <div className="px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-[7px] font-black text-slate-500">/</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="h-8 w-[1px] bg-white/10 mx-2"></div>
+
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsFilterOpen(!isFilterOpen)}
+                            className={`px-4 py-3 rounded-lg border transition-all flex items-center gap-3 min-w-[140px] group ${isFilterOpen ? 'bg-teal-500/10 border-teal-500/50 text-white' : 'bg-black/60 border-white/10 text-slate-400 hover:border-white/20'}`}
+                        >
+                            <Filter size={14} className={isFilterOpen ? 'text-teal-500' : 'text-slate-500'} />
+                            <span className="text-[10px] font-black uppercase tracking-widest flex-1 text-left">
+                                {selectedCategory === 'All' ? 'Categories' : selectedCategory}
+                            </span>
+                            <ChevronDown size={14} className={`transition-transform duration-300 ${isFilterOpen ? 'rotate-180 text-teal-500' : 'text-slate-600'}`} />
+                        </button>
+
+                        <AnimatePresence>
+                            {isFilterOpen && (
+                                <>
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="fixed inset-0 z-40"
+                                        onClick={() => setIsFilterOpen(false)}
+                                    />
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        className="absolute right-0 top-full mt-2 w-56 bg-[#0a0a0a] border border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden"
+                                    >
+                                        <div className="p-2 border-b border-white/5 bg-white/[0.02]">
+                                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] px-2">Operational Tiers</span>
+                                        </div>
+                                        <div className="p-1 max-h-64 overflow-y-auto custom-scrollbar">
+                                            {categories.map(cat => (
+                                                <button
+                                                    key={cat}
+                                                    onClick={() => { setSelectedCategory(cat); setIsFilterOpen(false); }}
+                                                    className={`w-full text-left px-3 py-2.5 rounded text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${selectedCategory === cat ? 'bg-teal-500/10 text-teal-400' : 'text-slate-500 hover:bg-white/5 hover:text-white'}`}
+                                                >
+                                                    <span>{cat}</span>
+                                                    {selectedCategory === cat && <div className="w-1.5 h-1.5 rounded-full bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.8)]" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                </>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsSortOpen(!isSortOpen)}
+                            className={`px-4 py-3 rounded-lg border transition-all flex items-center gap-3 min-w-[140px] group ${isSortOpen ? 'bg-amber-500/10 border-amber-500/50 text-white' : 'bg-black/60 border-white/10 text-slate-400 hover:border-white/20'}`}
+                        >
+                            <BarChart3 size={14} className={isSortOpen ? 'text-amber-500' : 'text-slate-500'} />
+                            <span className="text-[10px] font-black uppercase tracking-widest flex-1 text-left">
+                                Sort: {sortBy}
+                            </span>
+                            <ChevronDown size={14} className={`transition-transform duration-300 ${isSortOpen ? 'rotate-180 text-amber-500' : 'text-slate-600'}`} />
+                        </button>
+
+                        <AnimatePresence>
+                            {isSortOpen && (
+                                <>
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="fixed inset-0 z-40"
+                                        onClick={() => setIsSortOpen(false)}
+                                    />
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden"
+                                    >
+                                        <div className="p-2 border-b border-white/5 bg-white/[0.02]">
+                                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] px-2">Priority Protocols</span>
+                                        </div>
+                                        <div className="p-1">
+                                            {['Popularity', 'Alpha', 'Discovery'].map(option => (
+                                                <button
+                                                    key={option}
+                                                    onClick={() => { setSortBy(option); setIsSortOpen(false); }}
+                                                    className={`w-full text-left px-3 py-2.5 rounded text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${sortBy === option ? 'bg-amber-500/10 text-amber-400' : 'text-slate-500 hover:bg-white/5 hover:text-white'}`}
+                                                >
+                                                    <span>{option}</span>
+                                                    {sortBy === option && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                </>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 flex gap-6 min-h-0">
+                {/* Left Column: Navigation */}
+                <aside className="w-80 flex flex-col gap-6 shrink-0 min-h-0">
+                    <div className="flex-1 flex flex-col gap-4 min-h-0">
+                        <div className="flex items-center justify-between px-2">
+                            <h3 className="text-[11px] font-black text-slate-600 uppercase tracking-[0.5em]">Module Index</h3>
+                            <span className="text-[8px] font-mono px-2 py-0.5 rounded bg-white/5 text-slate-500">{filteredTools.length} / {tools.length}</span>
+                        </div>
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden pr-3 custom-scrollbar space-y-1">
+                            {filteredTools.map(tool => (
+                                <button
+                                    key={tool.name}
+                                    onClick={() => { setSelectedTool(tool); setSelectedFeature(null); setActiveTab('overview'); }}
+                                    className={`w-full text-left p-3 rounded-lg transition-all flex items-center justify-between group ${selectedTool?.name === tool.name ? 'bg-teal-500/10 border border-teal-500/30' : 'hover:bg-white/[0.03] border border-transparent'}`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${selectedTool?.name === tool.name ? 'text-teal-400' : 'text-slate-500 group-hover:text-slate-300'}`}>
+                                                    {tool.name}
+                                                </span>
+                                                {tool.server_type && <Zap size={8} className="text-amber-500/50" />}
+                                            </div>
+                                            <span className="text-[6px] font-mono text-slate-700 uppercase">{tool.category}</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="p-4 rounded-lg bg-teal-500/5 border border-teal-500/20 flex items-center gap-3">
+                        <Info size={16} className="text-teal-500 shrink-0" />
+                        <p className="text-[9px] text-teal-500/80 font-medium leading-relaxed uppercase">
+                            Operational status: All modules authenticated and ready for neural synchronization.
+                        </p>
+                    </div>
+                </aside>
+
+                {/* Right Column: Dynamic Content */}
+                <main className="flex-1 min-h-0 bg-black/20 rounded-lg border border-white/5 overflow-hidden">
+                    <AnimatePresence mode="wait">
+                        {selectedTool ? (
+                            renderToolDetail(selectedTool)
+                        ) : selectedFeature ? (
+                            renderFeatureDetail(selectedFeature)
+                        ) : (
+                            renderDashboard()
+                        )}
+                    </AnimatePresence>
+                </main>
+            </div>
+        </div>
+    );
+};
+
+export default DocumentationView;

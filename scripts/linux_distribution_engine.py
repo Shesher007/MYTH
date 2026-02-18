@@ -36,12 +36,16 @@ def create_distro_packages():
     search_paths = [
         src_tauri / "target" / "release" / pkg_name,
         src_tauri / "target" / "release" / product_name,
+        src_tauri / "target" / "release" / "myth-desktop",
+        src_tauri / "target" / "release" / "myth_desktop",
     ]
     # Add target-specific paths
     for target_dir in (src_tauri / "target").glob("*"):
         if target_dir.is_dir():
             search_paths.append(target_dir / "release" / pkg_name)
             search_paths.append(target_dir / "release" / product_name)
+            search_paths.append(target_dir / "release" / "myth-desktop")
+            search_paths.append(target_dir / "release" / "myth_desktop")
 
     for path in search_paths:
         if path.exists() and path.is_file():

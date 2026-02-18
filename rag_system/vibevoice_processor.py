@@ -21,15 +21,16 @@ from myth_config import load_dotenv
 load_dotenv()
 _google_voice_client = None
 
-def get_google_voice_client() -> Any:
+def get_google_voice_client(force_refresh: bool = False) -> Any:
     """Get or create a persistent Google GenAI client for TTS."""
     global _google_voice_client
-    if _google_voice_client is None:
+    if _google_voice_client is None or force_refresh:
         try:
             from google import genai
             from myth_config import config
             
-            api_key = config.get_api_key("google_ai_studio")
+            # Use rotate=force_refresh to ensure we pick the next one if invalidating
+            api_key = config.get_api_key("google_ai_studio", rotate=force_refresh)
             if not api_key:
                 logger.error("❌ [TTS] Google AI Studio API key missing. TTS disabled.")
                 return None
@@ -738,43 +739,53 @@ class VibeVoiceProcessor(RunnableSerializable[str, bytes]):
         if not self.enabled or not input or not input.strip():
             return
 
-        client = get_google_voice_client()
-        if not client: return
+        max_retries = 3
+        for attempt in range(max_retries):
+            client = get_google_voice_client(force_refresh=(attempt > 0))
+            if not client: return
 
-        input_cleaned, params = VibeModulator.process_text(input)
-        if not input_cleaned.strip(): return
-        
-        logger.info(f"🎙️ [TTS] Generating audio for model: {self.model_id}")
-        try:
-            # Shifted to NATIVE google-genai ASYNC BIDI API for native-audio model
-            from google.genai import types
-            
-            config = types.LiveConnectConfig(
-                response_modalities=['AUDIO'],
-            )
-            
-            async with client.aio.live.connect(model=self.model_id, config=config) as session:
-                await session.send(input=input_cleaned, end_of_turn=True)
+            try:
+                # Process text for Vibe/Prosody before sending
+                input_cleaned, vibe_params = VibeModulator.process_text(input)
                 
-                async for message in session.receive():
-                    # Debug logging to see structure
-                    # logger.info(f"Received message: {message}")
+                from google.genai import types
+                config_live = types.LiveConnectConfig(response_modalities=['AUDIO'])
+                
+                async with client.aio.live.connect(model=self.model_id, config=config_live) as session:
+                    await session.send(input=input_cleaned, end_of_turn=True)
                     
-                    if message.server_content and message.server_content.model_turn:
-                        for part in message.server_content.model_turn.parts:
-                            if part.inline_data and part.inline_data.mime_type == "audio/wav":  # Original check
-                                yield part.inline_data.data
-                            elif part.inline_data: # Fallback check 
-                                logger.info(f"Received inline data with mime: {part.inline_data.mime_type}")
-                                if "audio" in part.inline_data.mime_type:
-                                     yield part.inline_data.data
-                    
-                    # Exit once turn is complete
-                    if message.server_content and message.server_content.turn_complete:
-                        break
+                    async for message in session.receive():
+                        if message.server_content and message.server_content.model_turn:
+                            for part in message.server_content.model_turn.parts:
+                                if part.inline_data and part.inline_data.mime_type == "audio/wav":
+                                    yield part.inline_data.data
+                                elif part.inline_data:
+                                    if "audio" in part.inline_data.mime_type:
+                                         yield part.inline_data.data
                         
-        except Exception as e:
-            logger.error(f"❌ [TTS] Google Voice Bidi Generation Failed: {e}")
+                        if message.server_content and message.server_content.turn_complete:
+                            break
+                return # Success, exit retry loop
+            except Exception as e:
+                err_str = str(e)
+                # Detection: Check for 1008 (Leaked), 1007 (Expired) or 403 (Unauthorized/Forbidden)
+                if any(x in err_str for x in ["1008", "1007", "leaked", "expired", "403", "unauthorized"]):
+                    from myth_config import config as m_config
+                    # Get the current key used by this client for invalidation
+                    # Note: Client doesn't expose key easily, but we know it's the current one in rotation
+                    current_key = m_config.get_api_key("google_ai_studio", rotate=False)
+                    if current_key:
+                        m_config.invalidate_key("google_ai_studio", current_key)
+                    
+                    logger.warning(f"⚠️ [TTS] API Key Compromised/Failed (Attempt {attempt+1}): {err_str}. Rotating...")
+                    if attempt == max_retries - 1:
+                        logger.error(f"❌ [TTS] All TTS keys exhausted or terminal error: {e}")
+                else:
+                    logger.error(f"❌ [TTS] Google Voice Bidi Generation Failed (Attempt {attempt+1}): {e}")
+                    # For non-auth errors, we still might want to exit if it's a code issue
+                    if attempt == max_retries - 1: break
+                
+                await asyncio.sleep(0.5) # Minimum cooloff
 
     async def ainvoke(self, input: str, config: Optional[Any] = None, **kwargs) -> bytes:
         full_audio = b""

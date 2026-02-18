@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Terminal, Activity, Cpu, Trash2, Folder, Download, RefreshCw, FileText, Code, Settings, AlertCircle, ShieldAlert, ChevronLeft, ChevronRight, Eye, Edit3 } from 'lucide-react';
+import { Shield, Terminal, Activity, Cpu, Trash2, Folder, Download, RefreshCw, FileText, Code, Settings, AlertCircle, ShieldAlert, ChevronLeft, ChevronRight, Eye, Edit3, Book } from 'lucide-react';
 import FileIcon, { getFileIconDetails } from './FileIcon';
 import { useSoundscape } from '../hooks/useSoundscape';
 import VpnController from './VpnController';
@@ -23,37 +23,50 @@ const API_BASE = getInitialApiBase();
 
 const SectionHeader = ({ label, isOpen, onToggle, hasChevron = true, action }) => (
     <div
-        className={`px-4 py-1 cursor-pointer transition-colors hover:bg-white/[0.02] flex items-center justify-between group/header`}
+        className={`px-4 py-3 cursor-pointer transition-all duration-300 border-y border-white/[0.02] bg-white/[0.01] hover:bg-white/[0.03] flex items-center justify-between group/header`}
         onClick={onToggle}
     >
         <div className="flex items-center gap-3">
-            <div className={`w-1 h-3 rounded-full transition-all duration-500 ${isOpen ? 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.6)]' : 'bg-slate-700'}`}></div>
-            <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${isOpen ? 'text-slate-100' : 'text-slate-500 group-hover/header:text-slate-300'}`}>
-                {label}
-            </span>
+            <div className={`w-1 h-4 rounded-sm transition-all duration-500 ${isOpen ? 'bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.8)]' : 'bg-slate-800'}`}></div>
+            <div className="flex flex-col">
+                <span className={`text-[10px] font-black uppercase tracking-[0.25em] transition-colors ${isOpen ? 'text-slate-100' : 'text-slate-500 group-hover/header:text-slate-300'}`}>
+                    {label}
+                </span>
+                <span className="text-[6px] font-mono text-teal-900 uppercase tracking-widest mt-0.5 opacity-50">NODE_PROTOCOL_RX_{label.slice(0, 3).toUpperCase()}</span>
+            </div>
         </div>
         <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
             {action}
             {hasChevron && (
-                <ChevronRight
-                    size={12}
-                    className={`text-slate-600 transition-transform duration-300 ${isOpen ? 'rotate-90 text-teal-500' : ''}`}
-                />
+                <div className={`p-1 rounded bg-black/40 border border-white/5 transition-all ${isOpen ? 'border-teal-500/30' : ''}`}>
+                    <ChevronRight
+                        size={10}
+                        className={`text-slate-600 transition-transform duration-300 ${isOpen ? 'rotate-90 text-teal-400' : ''}`}
+                    />
+                </div>
             )}
         </div>
     </div>
 );
 
 const StatusItem = ({ label, status, icon: Icon, children }) => (
-    <div className="flex items-center justify-between py-1.5 group/item border-b border-white/[0.02] last:border-0 hover:bg-white/[0.03] px-1 transition-all">
-        <div className="flex items-center gap-2.5">
-            {Icon && <Icon size={10} className="text-slate-500 group-hover/item:text-teal-400 transition-colors" />}
-            <span className="text-[9px] font-bold text-slate-500 group-hover/item:text-slate-300 transition-colors uppercase tracking-wider">{label}</span>
+    <div className="flex items-center justify-between py-2 group/item border-b border-white/[0.01] last:border-0 hover:bg-white/[0.02] px-2 transition-all">
+        <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded bg-black/40 border border-white/5 flex items-center justify-center relative shrink-0">
+                {Icon && <Icon size={10} className="text-slate-600 group-hover/item:text-teal-400 transition-colors" />}
+                <div className="absolute top-0 right-0 w-1 h-1 bg-teal-500/20 rounded-full"></div>
+            </div>
+            <div className="flex flex-col">
+                <span className="text-[9px] font-black text-slate-500 group-hover/item:text-slate-300 transition-colors uppercase tracking-wider">{label}</span>
+                <span className="text-[6px] font-mono text-slate-700 uppercase">SYS_LINK_OK</span>
+            </div>
         </div>
         <div className="flex items-center gap-3">
             {children}
-            <span className="text-[9px] font-mono text-slate-500 group-hover/item:text-teal-500 transition-colors">{status}</span>
-            <div className="w-1 h-1 rounded-full bg-teal-500 shadow-[0_0_5px_rgba(20,184,166,0.5)]"></div>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-teal-500/5 border border-teal-500/10">
+                <span className="text-[8px] font-mono text-teal-500 tracking-tighter uppercase font-black">{status}</span>
+                <div className="w-1 h-1 rounded-full bg-teal-500 shadow-[0_0_5px_rgba(20,184,166,0.5)] animate-pulse"></div>
+            </div>
         </div>
     </div>
 );
@@ -64,9 +77,16 @@ const HealthGauge = ({ value, label }) => {
     const offset = circumference - (value / 100) * circumference;
 
     return (
-        <div className="health-gauge-container group/gauge">
-            <div className="gauge-svg-wrapper">
-                <svg className="gauge-svg" width="80" height="80">
+        <div className="health-gauge-container group/gauge relative">
+            <div className="gauge-svg-wrapper relative">
+                <div className="absolute inset-0 border border-teal-500/5 rounded-full rotate-45 scale-110"></div>
+                <div className="absolute inset-0 border border-teal-500/5 rounded-full -rotate-45 scale-95"></div>
+
+                {/* Tactical HUD Crosshairs */}
+                <div className="absolute top-1/2 left-0 w-full h-[1px] bg-teal-500/10 -translate-y-1/2"></div>
+                <div className="absolute top-0 left-1/2 w-[1px] h-full bg-teal-500/10 -translate-x-1/2"></div>
+
+                <svg className="gauge-svg hologram-flicker" width="80" height="80">
                     <circle className="gauge-bg" cx="40" cy="40" r={radius} />
                     <circle
                         className="gauge-fill !stroke-[url(#teal-grad)]"
@@ -75,6 +95,7 @@ const HealthGauge = ({ value, label }) => {
                         r={radius}
                         strokeDasharray={circumference}
                         strokeDashoffset={offset}
+                        style={{ filter: 'drop-shadow(0 0 8px rgba(20,184,166,0.4))' }}
                     />
                     <defs>
                         <linearGradient id="teal-grad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -85,14 +106,17 @@ const HealthGauge = ({ value, label }) => {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-[16px] font-black text-white font-mono leading-none drop-shadow-sm">{value}%</span>
-                    <span className="text-[7px] text-teal-500/80 font-black uppercase tracking-widest mt-1">Status</span>
+                    <span className="text-[7px] text-teal-400 font-black uppercase tracking-[0.2em] mt-1 opacity-80">STATUS</span>
                 </div>
             </div>
-            <div className="flex flex-col items-center">
-                <span className="text-[10px] font-black text-slate-400 group-hover/gauge:text-slate-200 transition-colors uppercase tracking-[0.25em]">{label}</span>
-                <div className="flex gap-1.5 mt-3">
-                    {[...Array(5)].map((_, i) => (
-                        <div key={i} className={`h-1 w-4 rounded-full transition-all duration-500 ${i < (value / 20) ? 'bg-gradient-to-r from-teal-500 to-cyan-500 shadow-[0_0_8px_rgba(20,184,166,0.4)]' : 'bg-white/5'}`}></div>
+            <div className="flex flex-col items-center mt-2">
+                <span className="text-[10px] font-black text-slate-400 group-hover/gauge:text-slate-200 transition-colors uppercase tracking-[0.3em]">{label}</span>
+                <div className="flex gap-1 mt-4">
+                    {[...Array(10)].map((_, i) => (
+                        <div
+                            key={i}
+                            className={`h-0.5 w-2 transition-all duration-500 ${i < (value / 10) ? 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.6)]' : 'bg-white/5'}`}
+                        />
                     ))}
                 </div>
             </div>
@@ -100,17 +124,22 @@ const HealthGauge = ({ value, label }) => {
     );
 };
 
-const ResourceBar = ({ label, value, colorClass = "bg-gradient-to-r from-teal-500 to-cyan-500" }) => (
-    <div className="space-y-2">
-        <div className="flex justify-between text-[9px] font-mono font-black uppercase tracking-wider">
-            <span className="text-slate-500">{label}</span>
-            <span className="text-slate-200">{value}%</span>
+const ResourceBar = ({ label, value, colorClass = "bg-teal-500" }) => (
+    <div className="space-y-2 group/resource">
+        <div className="flex justify-between text-[9px] font-mono font-black uppercase tracking-widest px-1">
+            <div className="flex items-center gap-2">
+                <span className="text-slate-500 group-hover/resource:text-teal-500 transition-colors">{label}</span>
+                <span className="text-[7px] text-slate-800 opacity-0 group-hover/resource:opacity-100 transition-opacity">CHAN_LNK_0{Math.floor(Math.random() * 9)}</span>
+            </div>
+            <span className="text-slate-200 font-black">{value}%</span>
         </div>
-        <div className="h-1.5 bg-black/40 rounded-full overflow-hidden ring-1 ring-white/5 shadow-inner">
+        <div className="h-2 bg-black/60 rounded-sm overflow-hidden border border-white/5 relative p-[1px]">
             <div
-                className={`h-full ${colorClass} transition-all duration-700 ease-out shadow-[0_0_10px_rgba(20,184,166,0.3)]`}
-                style={{ width: `${value}%` }}
+                className={`h-full ${colorClass} transition-all duration-1000 ease-out segmented-track`}
+                style={{ width: `${value}%`, '--progress': `${value}%` }}
             ></div>
+            {/* Notches */}
+            <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(90deg,transparent_90.9%,rgba(255,255,255,0.1)_9.1%)] bg-[length:10%_100%]"></div>
         </div>
     </div>
 );
@@ -243,9 +272,9 @@ const Sidebar = ({
         playTick();
         const isImage = file.name.match(/\.(jpg|jpeg|png|gif|webp|svg|jfif|avif|apng|pjpeg|pjp|ico|bmp|heif)$/i);
         const isAudio = file.name.match(/\.(wav|mp3|ogg|flac|m4a|aac|opus|wma)$/i);
-        
+
         const downloadUrl = `${API_BASE}/system/files/download/${file.name}`;
-        
+
         let previewData = {
             name: file.name,
             type: file.type,
@@ -260,7 +289,7 @@ const Sidebar = ({
             previewData.contentSnippet = data.content_text;
             previewData.mime_type = data.mime_type;
             previewData.is_binary = data.is_binary;
-        } catch (err) { 
+        } catch (err) {
             console.error("Forensic fetch err:", err);
             // Fallback for network issues
             previewData.contentSnippet = "FORENSIC_LINK_OFFLINE";
@@ -275,36 +304,85 @@ const Sidebar = ({
     };
 
     return (
-        <aside className={`sidebar border-r border-white/5 relative bg-[#050508] shadow-2xl selection:bg-teal-500/30 transition-all duration-500 overflow-hidden h-full ${isCollapsed ? 'collapsed w-0' : 'w-[var(--sidebar-width)]'}`}>
+        <aside className={`sidebar relative bg-[#010103] selection:bg-teal-500/30 transition-all duration-500 overflow-hidden h-full ${isCollapsed ? 'collapsed w-0' : 'w-[var(--sidebar-width)]'}`}>
+            {/* Industrial Edge Protocol */}
+            <div className="absolute inset-0 pointer-events-none z-[100]">
+                {/* Right Edge Track */}
+                {!isCollapsed && (
+                    <>
+                        <div className="sidebar-edge-track"></div>
+
+                        {/* Vertical Edge Telemetry */}
+                        <div className="absolute top-1/4 -right-1 side-label-vertical opacity-20">CHASSIS_SIDE_A // PORT_8890</div>
+                        <div className="absolute bottom-1/4 -right-1 side-label-vertical opacity-20">NODE_AUTH_SIG // RATING_S</div>
+
+                        {/* Corner Decorative HUDs */}
+                        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-teal-500/20 opacity-40"></div>
+                        <div className="absolute top-0 right-0 w-2 h-2 bg-teal-500/40"></div>
+                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-teal-500/10 opacity-20"></div>
+                    </>
+                )}
+            </div>
+
+            {/* Scanning Grid Background */}
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none z-0 bg-[linear-gradient(rgba(20,184,166,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(20,184,166,0.1)_1px,transparent_1px)] bg-[length:40px_40px]"></div>
+
             <div className={`w-full h-full flex flex-col min-h-0 transition-opacity duration-300 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}>
                 {/* Header */}
-                <div className="sidebar-header border-b border-white/5 bg-black/60 backdrop-blur-3xl py-3 px-4 relative overflow-hidden flex items-center justify-between shrink-0">
-                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-teal-500/30 to-transparent"></div>
+                <div className="sidebar-header border-b border-white/5 bg-black/60 backdrop-blur-3xl py-4 px-4 relative overflow-hidden flex items-center justify-between shrink-0">
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-teal-500/40 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 w-full h-[1px] bg-white/[0.02]"></div>
 
                     <div className={`flex items-center gap-4 transition-opacity duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>
-                        <div className="relative shrink-0">
-                            <div className="w-12 h-12 rounded bg-gradient-to-br from-slate-800 to-black flex items-center justify-center ring-1 ring-white/10 group-hover:ring-teal-500/50 transition-all relative overflow-hidden" onMouseEnter={playTick}>
-                                <div className="absolute inset-0 bg-teal-500/5 opacity-50"></div>
-                                <Shield size={24} className="text-teal-500 drop-shadow-[0_0_10px_rgba(20,184,166,0.3)]" />
+                        <div className="relative shrink-0 group/logo">
+                            <div className="w-12 h-12 rounded-sm bg-black border border-white/10 flex items-center justify-center relative overflow-hidden cyber-card-hud" onMouseEnter={playTick}>
+                                <div className="absolute inset-0 bg-teal-500/5 hologram-flicker"></div>
+                                <Shield size={24} className="text-teal-500 drop-shadow-[0_0_15px_rgba(20,184,166,0.5)] z-10" />
+                                <div className="corner-tl !border-teal-500/40"></div>
+                                <div className="corner-br !border-teal-500/40"></div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-teal-500/10 to-transparent opacity-0 group-hover/logo:opacity-100 transition-opacity"></div>
                             </div>
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-teal-500 rounded-full border-2 border-[#06060c] shadow-[0_0_10px_rgba(20,184,166,0.5)]"></div>
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-teal-500 rounded-full border-2 border-[#050508] shadow-[0_0_10px_rgba(20,184,166,0.6)] z-20 flex items-center justify-center animate-pulse">
+                                <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                            </div>
                         </div>
                         <div className="overflow-hidden">
-                            <h1 className="text-xl font-black tracking-[0.2em] text-white leading-none uppercase">{statsData.identity.name}</h1>
-                            <p className="text-[9px] text-teal-500 font-black uppercase tracking-[0.3em] mt-1.5 opacity-80 whitespace-nowrap">
-                                {statsData.identity.org.toUpperCase()} V{statsData.identity.version}
-                            </p>
+                            <h1 className="text-xl font-black tracking-[0.25em] text-white leading-none uppercase flex items-center gap-2">
+                                {statsData.identity.name}
+                                <span className="text-[7px] px-1 py-0.5 rounded-sm bg-white/5 border border-white/10 text-slate-500 font-mono">SYS_CORE</span>
+                            </h1>
+                            <div className="flex items-center gap-2 mt-2">
+                                <div className="w-1 h-2 bg-teal-500/30"></div>
+                                <p className="text-[8px] text-teal-500 font-extrabold uppercase tracking-[0.4em] opacity-90 whitespace-nowrap">
+                                    V{statsData.identity.version} // {statsData.identity.org.toUpperCase()}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Mobile/Tablet Collapse Button */}
-                    <button 
+                    {/* Tactical Collapse Switch */}
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={onToggleCollapse}
-                        className="p-2 rounded-md hover:bg-white/5 text-slate-500 hover:text-white transition-colors"
-                        title="Collapse Sidebar"
+                        className="relative flex items-center justify-center w-8 h-8 rounded-sm bg-black border border-white/10 hover:border-teal-500/50 hover:bg-teal-500/5 transition-all group/collapse notched-border"
+                        title="Collapse Neural Matrix"
                     >
-                        <ChevronLeft size={16} />
-                    </button>
+                        <div className="absolute inset-0 bg-teal-500/5 opacity-0 group-hover/collapse:opacity-100 transition-opacity"></div>
+                        <ChevronLeft
+                            size={14}
+                            className={`text-slate-500 group-hover/collapse:text-teal-400 transition-all duration-500 ${isCollapsed ? 'rotate-180' : ''}`}
+                        />
+                        {/* Status Marker */}
+                        <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-teal-500/40 rounded-full border border-teal-500/60 shadow-[0_0_5px_rgba(20,184,166,0.5)]"></div>
+
+                        {/* Industrial Label HUD (Tooltip-ish) */}
+                        <div className="absolute left-[-110px] opacity-0 group-hover/collapse:opacity-100 transition-opacity pointer-events-none hidden xl:block">
+                            <span className="text-[7px] font-black text-teal-500/60 uppercase tracking-[0.2em] whitespace-nowrap bg-black/80 px-2 py-1 border border-teal-500/20 notched-border">
+                                [ NODE_SWITCH_A ]
+                            </span>
+                        </div>
+                    </motion.button>
                 </div>
 
                 <div className="flex-1 sidebar-content custom-scrollbar-minimal overflow-x-hidden overflow-y-auto min-h-0 pb-10">
@@ -328,7 +406,7 @@ const Sidebar = ({
                                             vpnNodes={vpnNodes}
                                             onToggle={toggleVpn}
                                         />
-                                        
+
 
                                     </div>
                                 </motion.div>
@@ -356,8 +434,8 @@ const Sidebar = ({
                                         </div>
                                         <div className="space-y-2 pt-2 border-t border-white/[0.05]">
                                             <ResourceBar label="Neural CPU" value={statsData.metrics.cpu} />
-                                            <ResourceBar label="Buffer RAM" value={statsData.metrics.ram} colorClass="bg-purple-500/40" />
-                                            <ResourceBar label="Storage Disk" value={statsData.metrics.disk || 0} colorClass="bg-amber-500/40" />
+                                            <ResourceBar label="Buffer RAM" value={statsData.metrics.ram} colorClass="bg-purple-500/60" />
+                                            <ResourceBar label="Storage Disk" value={statsData.metrics.disk || 0} colorClass="bg-amber-600/60" />
                                         </div>
 
                                         <div className="pt-2 space-y-1.5 opacity-60">
@@ -396,7 +474,7 @@ const Sidebar = ({
                                 >
                                     <div className="space-y-4">
                                         <div className="space-y-0.5">
-                                            <StatusItem label="Neural Engine" status={statsData.components.agent} icon={Cpu} />
+                                            <StatusItem label="Neural Core" status={statsData.components.agent} icon={Cpu} />
                                             <StatusItem label="Knowledge Base" status={statsData.components.rag} icon={Shield} />
                                             <StatusItem label="I/O Protocol" status={statsData.components.mcp} icon={Terminal}>
                                                 <button
@@ -411,7 +489,7 @@ const Sidebar = ({
 
                                         <div className="bg-white/[0.02] border border-white/5 p-3 rounded-lg space-y-2">
                                             <div className="flex justify-between items-center px-1">
-                                                <span className="text-[7px] font-mono text-slate-500 uppercase tracking-widest">Compliance</span>
+                                                <span className="text-[7px] font-mono text-slate-500 uppercase tracking-widest">COMPLIANCE_SYNC</span>
                                                 <div className={`px-2 py-0.5 rounded-full text-[8px] font-black ${complianceReport?.score > 80 ? 'bg-teal-500/10 text-teal-400' : 'bg-red-500/10 text-red-500'}`}>
                                                     {complianceReport?.score || 0}%
                                                 </div>
@@ -421,7 +499,7 @@ const Sidebar = ({
                                                 <span className="text-slate-300 font-extrabold">{complianceReport?.tier || 'UNKNOWN'}</span>
                                             </div>
                                             <button className="w-full py-1.5 mt-1 bg-white/[0.03] border border-white/5 hover:border-teal-500/30 text-[8px] font-black text-slate-500 hover:text-teal-400 uppercase tracking-[0.2em] transition-all rounded">
-                                                ISO-Report
+                                                GENERATE_ISO_LOG
                                             </button>
                                         </div>
                                     </div>
@@ -479,11 +557,11 @@ const Sidebar = ({
                                             playChirp();
                                             onClearAlerts();
                                         }}
-                                        className="relative z-[100] p-1 px-3 rounded bg-red-500/20 border border-red-500/40 text-red-500 hover:bg-red-500/30 hover:border-red-500 hover:scale-105 active:scale-95 transition-all group-hover/header:opacity-100 opacity-90 flex items-center gap-2 pointer-events-auto"
+                                        className="relative z-[100] px-3 py-1.5 rounded-sm bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 hover:border-red-500/50 transition-all group-hover/header:opacity-100 opacity-80 flex items-center gap-2 notched-border"
                                         title="Purge Intelligence Logs"
                                     >
-                                        <Trash2 size={10} className="drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
-                                        <span className="text-[8px] font-black uppercase tracking-[0.2em]">Purge</span>
+                                        <Trash2 size={10} />
+                                        <span className="text-[8px] font-black uppercase tracking-[0.2em]">PURGE_INTEL</span>
                                     </button>
                                 )
                             }
@@ -516,15 +594,16 @@ const Sidebar = ({
                                         )}
                                         <button
                                             onClick={handleIsolationToggle}
-                                            className={`w-full group relative overflow-hidden flex items-center justify-center gap-2.5 py-2.5 mt-4 rounded border transition-all duration-500 ${isIsolated
-                                                ? 'bg-red-500/20 border-red-500 text-red-500'
-                                                : 'bg-teal-500/5 border-teal-500/20 text-teal-600 hover:border-teal-500/40 hover:bg-teal-500/10'
+                                            className={`w-full group relative overflow-hidden flex items-center justify-center gap-3 py-3 mt-4 rounded-sm border transition-all duration-500 notched-border ${isIsolated
+                                                ? 'bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)]'
+                                                : 'bg-teal-500/5 border-teal-500/20 text-teal-600 hover:border-teal-500/50 hover:bg-teal-500/10'
                                                 }`}
                                         >
                                             <ShieldAlert size={12} className={isIsolated ? 'animate-pulse' : ''} />
-                                            <span className="text-[9px] font-black uppercase tracking-widest">
-                                                {isIsolated ? 'Isolated' : 'Lockdown Node'}
+                                            <span className="text-[9px] font-black uppercase tracking-[0.4em]">
+                                                {isIsolated ? '[ ISOLATED ]' : '[ LOCKDOWN_NODE ]'}
                                             </span>
+                                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         </button>
                                     </div>
                                 </motion.div>
@@ -547,12 +626,12 @@ const Sidebar = ({
                                     className="overflow-hidden px-4 pb-3"
                                 >
                                     <div className="flex items-center justify-between mb-4 px-1">
-                                        <div className="text-[7px] font-mono text-slate-600 uppercase tracking-widest">Asset Storage</div>
+                                        <div className="text-[7px] font-mono text-slate-600 uppercase tracking-widest">ASSET_VAULT</div>
                                         <button
                                             onClick={handleRefresh}
                                             className="px-2 py-0.5 hover:bg-teal-500/10 rounded border border-white/5 hover:border-teal-500/20 transition-all text-slate-600 hover:text-teal-400 text-[8px] font-black tracking-widest uppercase"
                                         >
-                                            Sync
+                                            SYNC_NODE
                                         </button>
                                     </div>
 
@@ -576,8 +655,8 @@ const Sidebar = ({
                                                                     }}
                                                                 />
                                                             ) : (
-                                                                <span 
-                                                                    className="text-[9px] text-slate-400 truncate font-bold uppercase cursor-pointer hover:text-teal-400 transition-colors" 
+                                                                <span
+                                                                    className="text-[9px] text-slate-400 truncate font-bold uppercase cursor-pointer hover:text-teal-400 transition-colors"
                                                                     title={file.name}
                                                                     onClick={() => handlePreview(file)}
                                                                 >
@@ -624,7 +703,7 @@ const Sidebar = ({
                                         ) : (
                                             <div className="py-8 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-lg bg-black/10">
                                                 <Activity size={12} className="text-slate-800 mb-2 opacity-30" />
-                                                <span className="text-[8px] text-slate-800 font-bold uppercase tracking-[0.2em]">Empty</span>
+                                                <span className="text-[8px] text-slate-800 font-bold uppercase tracking-[0.2em]">VAULT_VACANT</span>
                                             </div>
                                         )}
                                     </div>
@@ -662,7 +741,7 @@ const Sidebar = ({
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="text-[8px] text-slate-800 font-black tracking-widest uppercase text-center py-4">Idle</div>
+                                            <div className="text-[8px] text-slate-800 font-black tracking-widest uppercase text-center py-4">FLUX_IDLE</div>
                                         )}
                                     </div>
                                 </motion.div>
@@ -672,29 +751,41 @@ const Sidebar = ({
                 </div>
 
                 {/* Footer */}
-                <div className="sidebar-footer p-4 bg-black/40 border-t border-white/5 space-y-2 shrink-0">
-                    <div className="flex gap-2">
+                <div className="sidebar-footer p-4 bg-black/80 border-t border-white/5 space-y-2 shrink-0 relative">
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-white/[0.02]"></div>
+                    <div className="flex flex-col gap-2">
                         <button
-                            onClick={onOpenSettings}
+                            onClick={() => onOpenSettings('documentation')}
                             onMouseEnter={playTick}
-                            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded border border-white/10 hover:border-teal-500/40 bg-white/[0.01] hover:bg-teal-500/[0.05] text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 hover:text-teal-400 transition-all shadow-sm hover:shadow-[0_0_15px_rgba(20,184,166,0.1)]"
-                            title="Configure API Keys"
+                            className="w-full flex items-center justify-center gap-2 py-3 rounded-sm border border-teal-500/20 bg-teal-500/5 hover:bg-teal-500/10 text-[9px] font-black uppercase tracking-[0.3em] text-teal-500 transition-all notched-border group/btn"
+                            title="System Documentation"
                         >
-                            <Settings size={12} />
-                            Settings
+                            <Book size={12} className="group-hover/btn:scale-110 transition-transform" />
+                            DOCUMENTATION
                         </button>
-                        <button
-                            onClick={() => {
-                                console.log('[SIDEBAR] Neural reset requested');
-                                handleClear();
-                            }}
-                            onMouseEnter={playTick}
-                            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded border border-white/10 hover:border-red-500/40 bg-white/[0.01] hover:bg-red-500/[0.05] text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 hover:text-red-500 transition-all shadow-sm hover:shadow-[0_0_15px_rgba(239,68,68,0.1)]"
-                            title="Reset Neural History"
-                        >
-                            <Trash2 size={12} />
-                            Purge
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={onOpenSettings}
+                                onMouseEnter={playTick}
+                                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-sm border border-white/5 hover:border-teal-500/40 bg-white/[0.01] hover:bg-teal-500/[0.05] text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 hover:text-teal-400 transition-all notched-border group/btn"
+                                title="Configure API Keys"
+                            >
+                                <Settings size={12} className="group-hover/btn:rotate-90 transition-transform" />
+                                SETTINGS
+                            </button>
+                            <button
+                                onClick={() => {
+                                    console.log('[SIDEBAR] Neural reset requested');
+                                    onClearMessages();
+                                }}
+                                onMouseEnter={playTick}
+                                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-sm border border-white/5 hover:border-red-500/40 bg-white/[0.01] hover:bg-red-500/[0.05] text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 hover:text-red-500 transition-all notched-border group/btn"
+                                title="Reset Neural History"
+                            >
+                                <Trash2 size={12} className="group-hover/btn:scale-110 transition-transform" />
+                                PURGE
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

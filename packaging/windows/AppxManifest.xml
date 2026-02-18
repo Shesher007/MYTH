@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- MYTH Desktop — MSIX/APPX Package Manifest -->
-<!-- Build: makeappx pack /d output/ /p MYTH_1.1.1.msix -->
+<!-- Build: makeappx pack /d output/ /p MYTH_1.1.2.msix -->
 
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
@@ -11,7 +11,7 @@
   <Identity
     Name="com.shesher010.myth"
     Publisher="CN=Shesher Hasan"
-    Version="1.1.1.0"
+    Version="1.1.2.0"
     ProcessorArchitecture="x64" />
 
   <Properties>

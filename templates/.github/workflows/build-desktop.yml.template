@@ -208,16 +208,10 @@ jobs:
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.pkg.tar.zst
             packaging/snap/*.snap
             {{NAME_LOWER}}.flatpak
-            *.apk
-            *.xbps
-            *.ipk
-            *.eopkg
-            *.txz
-            *.pet
-            *.sfs
-            *_*
-            PKGBUILD
-            Dockerfile
+            *.deb
+            *.rpm
+            *.AppImage
+            *.pkg.tar.zst
             *.tar.gz
             *.zip
           retention-days: 14
@@ -247,16 +241,6 @@ jobs:
             **/*.pkg.tar.zst
             **/*.snap
             **/*.flatpak
-            **/*.apk
-            **/*.xbps
-            **/*.ipk
-            **/*.eopkg
-            **/*.txz
-            **/*.pet
-            **/*.sfs
-            **/*_*
-            **/PKGBUILD
-            **/Dockerfile
             **/*.tar.gz
             **/*.zip
         env:

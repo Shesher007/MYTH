@@ -3,7 +3,7 @@
 PortSystem          1.0
 
 name                myth
-version             1.1.1
+version             1.1.2
 categories          security net
 platforms           darwin
 license             Proprietary

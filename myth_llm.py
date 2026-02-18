@@ -134,8 +134,6 @@ class ReliableLLM(BaseChatModel):
             # Industrial Grade: Package specific params into model_kwargs to silence LangChain warnings
             model_kwargs = {
                 "safe_prompt": params.get("safe_prompt", False), # Keep safe_prompt active
-                "timeout": 60,
-                "max_retries": 0
             }
             # Remove from params to avoid double-passing
             params.pop("safe_prompt", None)
@@ -148,6 +146,8 @@ class ReliableLLM(BaseChatModel):
                     model=self.model_name,
                     api_key=new_key,
                     model_kwargs=model_kwargs,
+                    timeout=60,
+                    max_retries=0,
                     **params
                 )
             elif self.provider == "nvidia":
@@ -157,6 +157,8 @@ class ReliableLLM(BaseChatModel):
                     model=self.model_name,
                     nvidia_api_key=new_key,
                     model_kwargs=model_kwargs,
+                    timeout=60,
+                    max_retries=0,
                     **params
                 )
             elif self.provider == "google_ai_studio":

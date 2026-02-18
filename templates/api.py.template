@@ -2963,5 +2963,5 @@ if __name__ == "__main__":
     except Exception as e:
         logger.warning(f"⚠️ [INIT] Browser auto-provisioning failed: {e}")
 
-    # In desktop mode, we typically launch the API on a local port like 8000 or 8890
-    uvicorn.run(app, host="127.0.0.1", port=8890)
+    # In desktop mode, we typically launch the API on a local port like 8000 or {{INFRA_PORT_BACKEND}}
+    uvicorn.run(app, host="127.0.0.1", port={{INFRA_PORT_BACKEND}})

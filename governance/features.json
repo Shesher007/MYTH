@@ -1,0 +1,122 @@
+[
+    {
+        "id": "neural_core",
+        "title": "Neural Synapse Core",
+        "subtitle": "Agentic Reasoning & Orchestration",
+        "description": "The mission-critical 'brain' of MYTH. It orchestrates complex multi-step tasks by dynamically selecting, validating, and executing tools from the 672-module arsenal.",
+        "use_cases": [
+            "Autonomous vulnerability research loops",
+            "Advanced data exfiltration automation",
+            "Real-time threat intelligence synthesis",
+            "Cross-module chain-of-thought orchestration"
+        ],
+        "technical_specs": {
+            "Model": "Qwen 3 Next 80B Thinking",
+            "Architecture": "Router-Blueprint-Executor (RBE)",
+            "Context": "256K Active Tokens",
+            "Inertia": "Near-Zero Latency Logic"
+        },
+        "protocol_guide": "The Neural Core operates on a 'Refined Chain-of-Thought' protocol. It doesn't just run tools; it reflects on their output, corrects for errors, and adapts its strategy in real-time.",
+        "how_to_query": [
+            "Analyze the network on 192.168.1.1 and draft a roadmap",
+            "Research latest CVEs and verify against local surface",
+            "Execute a multi-stage exfiltration of all .env files"
+        ]
+    },
+    {
+        "id": "rag_matrix",
+        "title": "RAG Intelligence Matrix",
+        "subtitle": "Knowledge Retrieval & Analysis",
+        "description": "A high-performance retrieval system that ingests target documentation, exploit code, and mission logs to provide the agent with deep contextual awareness.",
+        "use_cases": [
+            "Target surface analysis from documentation",
+            "Automated exploit-code correlation",
+            "Mission-log intelligence synthesis",
+            "Large-scale codebase vulnerability auditing"
+        ],
+        "technical_specs": {
+            "Vector_DB": "Qdrant (Local Matrix)",
+            "Embeddings": "Llama 3.2 NV EmbedQA",
+            "Index": "HNSW (Hierarchical Navigable Small World)",
+            "Storage": "Persistent local storage"
+        },
+        "protocol_guide": "The RAG Matrix follows the 'Secure-Ingest' protocol. Data is chunked semantically and stored in a persistent local vector space for rapid retrieval across sessions.",
+        "how_to_query": [
+            "Search our codebase for all hardcoded secrets",
+            "What are the core architectural patterns in api.py?",
+            "Analyze these Nmap logs and find lateral movement vectors"
+        ]
+    },
+    {
+        "id": "security_governance",
+        "title": "Sovereign Security Governance",
+        "subtitle": "Automated Policy & Identity Control",
+        "description": "The industrial-grade safeguard layer. It manages API key rotation, secret injection, and automated compliance auditing through the 'Sovereign' protocol suite.",
+        "use_cases": [
+            "Secret injection & rotation",
+            "LLM response sanitization",
+            "RBAC & Identity management",
+            "Offensive operation auditing"
+        ],
+        "technical_specs": {
+            "Sanitizer": "Sovereign Regex Engine",
+            "Identity": "Identity.yaml Protocol",
+            "Secrets": "Industrial YAML Shifting",
+            "Logging": "Winston-grade Audit Logs"
+        },
+        "protocol_guide": "The Governance Layer implements 'Zero-Trust' orchestration. Every tool call is intercepted and validated against the internal security policy before the Neural Core can commit the execution.",
+        "how_to_query": [
+            "Show me the audit logs for the last tool execution",
+            "Check if secret hydration is active for AWS keys",
+            "Rotate all session credentials and wipe memory"
+        ]
+    },
+    {
+        "id": "recon_protocols",
+        "title": "Industrial Recon Protocols",
+        "subtitle": "Target Surface Mapping & Intelligence",
+        "description": "A high-performance suite for mapping attack surfaces, identifying services, and enumerating vulnerabilities across massive network ranges.",
+        "use_cases": [
+            "Massive-scale port and service discovery",
+            "Subdomain and DNS infrastructure mapping",
+            "Active/Passive OS fingerprinting",
+            "Banner grabbing and service versioning"
+        ],
+        "technical_specs": {
+            "Core Tools": "Nmap, Masscan, Amass, Subfinder",
+            "Scan Types": "SYN, Connect, UDP, SCTP",
+            "Specialized": "Cloud Discovery, Industrial IoT",
+            "Reporting": "Structured JSON Intelligence"
+        },
+        "protocol_guide": "Recon protocols prioritize 'Stealth-First' execution. Scans are randomized and throttled to avoid triggering IDS/IPS systems while maintaining high-fidelity results.",
+        "how_to_query": [
+            "Perform a stealth scan of the target.com domain",
+            "Map all open ports on 10.0.0.0/24 and identify services",
+            "Find all subdomains for victim.com and check for S3 buckets"
+        ]
+    },
+    {
+        "id": "exploitation_engine",
+        "title": "Advanced Exploitation Engine",
+        "subtitle": "Automated Vulnerability Validation",
+        "description": "The 'Sharp Edge' of MYTH. It automates the validation of vulnerabilities through targeted payload delivery, buffer overflow analysis, and automated exploit generation.",
+        "use_cases": [
+            "Automated Metasploit integration",
+            "Custom shellcode generation and obfuscation",
+            "Binary analysis and entropy calculation",
+            "Credential stuffing and brute-force validation"
+        ],
+        "technical_specs": {
+            "Frameworks": "Metasploit, PwnTools, Custom C2",
+            "Payloads": "Meterpreter, Reverse Shells, Beaconing",
+            "Advanced": "Process Injection, Syscall Factory",
+            "Obfuscation": "Polymorphic Payload Encoding"
+        },
+        "protocol_guide": "Exploitation follows the 'Validate-Then-Execute' protocol. No exploit is launched without a verified vulnerability match to ensure mission stability.",
+        "how_to_query": [
+            "Attempt exploit for CVE-2024-XXXX on the target",
+            "Generate a custom reverse shell for a Linux x64 target",
+            "Brute-force SSH on 192.168.1.10 using rockyou list"
+        ]
+    }
+]
