@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> {} }:
 
 pkgs.stdenv.mkDerivation rec {
-  pname = "omega-prime-desktop";
+  pname = "myth-desktop";
   version = "1.1.1";
 
   src = ./..; # Assumes nix/ is in the project root

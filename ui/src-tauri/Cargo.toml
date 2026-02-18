@@ -7,7 +7,7 @@ license = "Proprietary"
 edition = "2021"
 
 [lib]
-name = "omega_prime_desktop_lib"
+name = "myth_desktop_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

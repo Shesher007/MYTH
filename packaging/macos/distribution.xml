@@ -2,7 +2,7 @@
 <installer-gui-script minSpecVersion="2">
     <title>MYTH (1.1.1)</title>
     <options customize="never" require-scripts="false"/>
-    <organization>com.myth.omega-prime</organization>
+    <organization>com.myth.myth</organization>
     <domains enable_anywhere="true" enable_currentUserHome="true" enable_localSystem="true"/>
     <background file="background.png" alignment="bottomleft" scaling="proportional"/>
     <welcome file="welcome.html"/>

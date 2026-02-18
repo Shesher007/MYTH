@@ -2,7 +2,7 @@
     "$schema": "./packaging.schema.json",
     "project": {
         "name": "MYTH",
-        "codename": "omega-prime",
+        "codename": "myth",
         "description": "High-Performance Offensive Intelligence Engine",
         "short_description": "Industrial-Grade Sovereign Security Agent",
         "keywords": [

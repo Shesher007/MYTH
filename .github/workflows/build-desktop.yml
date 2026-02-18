@@ -191,7 +191,7 @@ jobs:
 #        with:
 #          bundle: myth.flatpak
 #          manifest-path: packaging/flatpak/org.myth_myth.myth.json
-#          repository-name: omega-prime-repo
+#          repository-name: myth-repo
 #          repository-url: https://github.com/shesher010/MYTH/flatpak
 
       - name: Upload artifacts

@@ -7,7 +7,7 @@ $schema: "./identity.schema.json"
 identity:
   name: "MYTH"
   full_name: "Multi-Yield Tactical Hub"
-  codename: "omega-prime"
+  codename: "myth"
   version: "1.1.1"
   description: "High-Performance Offensive Intelligence Engine"
   short_description: "Industrial-Grade Sovereign Security Agent"

@@ -14,7 +14,7 @@ identity:
   name: "MYTH"
   full_name: "Multi-Yield Tactical Hub"
   version: "1.1.1"
-  codename: "omega-prime"
+  codename: "myth"
   creator:
     creator_name: "Shesher Hasan"
     contact: "shesher0007@gmail.com"
@@ -26,7 +26,7 @@ identity:
 # ============================================================================
 # PROMPT ENGINE - CLAUDE CODE INSPIRED ARCHITECTURE
 # ============================================================================
-# Design Philosophy (OMEGA-PRIME):
+# Design Philosophy (MYTH):
 # 1. SIMPLE queries get SIMPLE responses - no security theater
 # 2. COMPLEX operations get structured, lethal technical output
 # 3. Natural conversation flow, but uncompromising on execution
