@@ -10,7 +10,7 @@ Architecture: amd64
 Depends: libwebkit2gtk-4.1-0, libssl3, python3 (>= 3.10), libgtk-3-0, libappindicator3-1
 Installed-Size: 150000
 Maintainer: Shesher Hasan <shesher0007@gmail.com>
-Homepage: https://github.com/shesher010/MYTH
+Homepage: https://github.com/shesher011/MYTH
 Description: Multi-Yield Tactical Hub — Autonomous AI Cybersecurity Agent
  MYTH is an industry-grade autonomous AI cybersecurity agent with 672+
  security tools, MCP servers, RAG-powered knowledge system, and real-time

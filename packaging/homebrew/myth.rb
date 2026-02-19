@@ -8,7 +8,7 @@ cask "myth" do
   url "https://github.com/shesher010/MYTH/releases/download/v#{version}/MYTH_#{version}_universal.dmg"
   name "MYTH"
   desc "High-Performance Offensive Intelligence Engine"
-  homepage "https://github.com/shesher010/MYTH"
+  homepage "https://github.com/shesher011/MYTH"
 
   livecheck do
     url :url

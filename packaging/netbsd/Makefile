@@ -7,7 +7,7 @@ MASTER_SITES=   https://github.com/shesher010/MYTH/releases/download/v1.1.4/
 DISTFILES=      myth_1.1.4_amd64.deb
 
 MAINTAINER=     shesher0007@gmail.com
-HOMEPAGE=       https://github.com/shesher010/MYTH
+HOMEPAGE=       https://github.com/shesher011/MYTH
 COMMENT=        High-Performance Offensive Intelligence Engine (Binary)
 LICENSE=        proprietary
 

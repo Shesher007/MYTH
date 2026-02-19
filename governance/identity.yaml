@@ -16,17 +16,17 @@ organization:
   name: "MYTH"
   display_name: "MYTH"
   org_lower: "MYTH"
-  reverse_domain: "com.shesher010.myth"
-  homepage: "https://github.com/shesher010/MYTH"
+  reverse_domain: "com.shesher011.myth"
+  homepage: "https://github.com/shesher011/MYTH"
 
 author:
   name: "Shesher Hasan"
   email: "shesher0007@gmail.com"
 
 repository:
-  url: "https://github.com/shesher010/MYTH"
-  issues_url: "https://github.com/shesher010/MYTH/issues"
-  license_url: "https://github.com/shesher010/MYTH/blob/main/LICENSE"
+  url: "https://github.com/shesher011/MYTH"
+  issues_url: "https://github.com/shesher011/MYTH/issues"
+  license_url: "https://github.com/shesher011/MYTH/blob/main/LICENSE"
 
 license:
   spdx: "MIT"
@@ -63,7 +63,7 @@ social:
   documentation: "https://docs.myth-tools.com"
 
 security:
-  policy_url: "https://github.com/shesher010/MYTH/security/policy"
+  policy_url: "https://github.com/shesher011/MYTH/security/policy"
   contacts: ["shesher0007@gmail.com"]
   pgp_fingerprint: "0xDEADBEEFCAFEBABE"
 

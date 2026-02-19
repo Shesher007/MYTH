@@ -4,7 +4,7 @@ Release:        1%{?dist}
 Summary:        High-Performance Offensive Intelligence Engine
 
 License:        Proprietary
-URL:            https://github.com/shesher010/MYTH
+URL:            https://github.com/shesher011/MYTH
 Source0:        myth-%{version}.tar.gz
 
 BuildRequires:  rust

@@ -12,7 +12,7 @@ maintainers         shesher0007@gmail.com
 description         Industrial-Grade Sovereign Security Agent
 long_description    High-Performance Offensive Intelligence Engine
 
-homepage            https://github.com/shesher010/MYTH
+homepage            https://github.com/shesher011/MYTH
 master_sites        https://github.com/shesher010/MYTH/archive/v${version}.tar.gz
 
 depends_build       port:nodejs20 \

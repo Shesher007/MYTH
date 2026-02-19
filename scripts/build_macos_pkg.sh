@@ -15,7 +15,7 @@ fi
 mkdir -p dist
 
 echo "📦 Building component package..."
-PKG_ARGS=(--root "$APP_PATH" --identifier "com.shesher010.myth" --version "1.1.4" --install-location "/Applications/MYTH.app")
+PKG_ARGS=(--root "$APP_PATH" --identifier "com.shesher011.myth" --version "1.1.4" --install-location "/Applications/MYTH.app")
 
 if [ -d "packaging/macos/scripts" ]; then
     PKG_ARGS+=(--scripts "packaging/macos/scripts")
