@@ -3,7 +3,7 @@
 # Install: xbps-install myth
 
 pkgname=myth
-version=1.1.4
+version=1.1.5
 revision=1
 short_desc="High-Performance Offensive Intelligence Engine (Binary)"
 maintainer="Shesher Hasan <shesher0007@gmail.com>"

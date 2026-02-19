@@ -1,6 +1,6 @@
 [project]
 name = "myth"
-version = "1.1.4"
+version = "1.1.5"
 description = "High-Performance Offensive Intelligence Engine"
 authors = [
     { name = "Shesher Hasan", email = "shesher0007@gmail.com" }

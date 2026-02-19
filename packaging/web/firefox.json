@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "MYTH",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "description": "High-Performance Offensive Intelligence Engine",
     "author": "Shesher Hasan",
     "homepage_url": "https://github.com/shesher011/MYTH",

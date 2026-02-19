@@ -1,5 +1,5 @@
 # MYTH Desktop — OCI/Container Image (Feature 16/Modern Atomic support)
-# Version: 1.1.4
+# Version: 1.1.5
 # Author:  Shesher Hasan
 # Build: docker build -t myth-desktop .
 # Run (X11): docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix myth-desktop

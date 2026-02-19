@@ -4,7 +4,7 @@
 
 pkgbase = myth-desktop
 	pkgdesc = High-Performance Offensive Intelligence Engine
-	pkgver = 1.1.4
+	pkgver = 1.1.5
 	pkgrel = 1
 	url = https://github.com/shesher010/MYTH
 	arch = x86_64
@@ -18,7 +18,7 @@ pkgbase = myth-desktop
 	depends = python
 	depends = gtk3
 	depends = libappindicator-gtk3
-	source = https://github.com/shesher010/MYTH/archive/v1.1.4.tar.gz
+	source = https://github.com/shesher010/MYTH/archive/v1.1.5.tar.gz
 	sha256sums = SKIP
 
 pkgname = myth-desktop

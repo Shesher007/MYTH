@@ -1,9 +1,9 @@
 # MYTH Desktop — Debian Control File
 # Used by dpkg for .deb package metadata
-# Build: dpkg-deb --build MYTH_1.1.4_amd64
+# Build: dpkg-deb --build MYTH_1.1.5_amd64
 
 Package: myth
-Version: 1.1.4
+Version: 1.1.5
 Section: security
 Priority: optional
 Architecture: amd64

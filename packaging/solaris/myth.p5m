@@ -1,4 +1,4 @@
-set name=pkg.fmri value=myth@1.1.4,5.11-0
+set name=pkg.fmri value=myth@1.1.5,5.11-0
 set name=pkg.description value="High-Performance Offensive Intelligence Engine"
 set name=pkg.summary value="Industrial-Grade Sovereign Security Agent"
 set name=info.classification value="org.opensolaris.category.2008:Applications/System Utilities"

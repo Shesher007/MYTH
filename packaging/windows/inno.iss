@@ -2,7 +2,7 @@
 ; Build: iscc inno.iss
 
 #define MyAppName "MYTH"
-#define MyAppVersion "1.1.4"
+#define MyAppVersion "1.1.5"
 #define MyAppPublisher "Shesher Hasan"
 #define MyAppURL "https://github.com/shesher011/MYTH"
 #define MyAppExeName "MYTH.exe"

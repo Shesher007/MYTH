@@ -36,13 +36,13 @@
         "copyright_year": "2024-2026"
     },
     "artifacts": {
-        "deb": "myth_1.1.4_amd64.deb",
-        "rpm": "myth-1.1.4-1.x86_64.rpm",
-        "msi": "MYTH_1.1.4_x64_en-US.msi",
-        "nsis": "MYTH_1.1.4_x64-setup.exe",
-        "dmg": "MYTH_1.1.4_universal.dmg",
-        "appimage": "MYTH_1.1.4_amd64.AppImage",
-        "tarball": "v1.1.4.tar.gz"
+        "deb": "myth_1.1.5_amd64.deb",
+        "rpm": "myth-1.1.5-1.x86_64.rpm",
+        "msi": "MYTH_1.1.5_x64_en-US.msi",
+        "nsis": "MYTH_1.1.5_x64-setup.exe",
+        "dmg": "MYTH_1.1.5_universal.dmg",
+        "appimage": "MYTH_1.1.5_amd64.AppImage",
+        "tarball": "v1.1.5.tar.gz"
     },
     "architectures": [
         "x86_64",

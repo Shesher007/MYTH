@@ -113,8 +113,10 @@ jobs:
           UV_LINK_MODE: "copy"
           # Critical: Ensure python packager knows the target triple for correct binary naming
           TAURI_TARGET_TRIPLE: ${{ matrix.target }}
+          MYTH_SECRETS_BUNDLE: ${{ secrets.MYTH_SECRETS_BUNDLE }}
         run: |
           uv sync --all-extras
+          uv run governance/hydrate.py
           uv run scripts/package_python.py
 
       # Download TITAN Go binaries (nuclei, subfinder, etc.)

@@ -4,7 +4,7 @@ HOMEPAGE="https://github.com/shesher011/MYTH"
 COPYRIGHT="2024-2025 Shesher Hasan"
 LICENSE="MIT"
 REVISION="1"
-SOURCE_URI="https://github.com/shesher010/MYTH/archive/v1.1.4.tar.gz"
+SOURCE_URI="https://github.com/shesher010/MYTH/archive/v1.1.5.tar.gz"
 CHECKSUM_SHA256="00000000000000000000000000000000000000000000000"
 
 ARCHITECTURES="x86_64"

@@ -132,3 +132,4 @@ deploy MYTH-Website report.txt
 t.txt
 templates/secrets.yaml.template
 new_device_start.md
+MYTH_SECRETS_BUNDLE.b64

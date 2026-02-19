@@ -1,10 +1,10 @@
 # MYTH Desktop — NetBSD pkgsrc Makefile (Binary)
 # Install: pkgin install myth
 
-DISTNAME=       myth-1.1.4
+DISTNAME=       myth-1.1.5
 CATEGORIES=     security net
-MASTER_SITES=   https://github.com/shesher010/MYTH/releases/download/v1.1.4/
-DISTFILES=      myth_1.1.4_amd64.deb
+MASTER_SITES=   https://github.com/shesher010/MYTH/releases/download/v1.1.5/
+DISTFILES=      myth_1.1.5_amd64.deb
 
 MAINTAINER=     shesher0007@gmail.com
 HOMEPAGE=       https://github.com/shesher011/MYTH
@@ -16,7 +16,7 @@ DEPENDS+=       python3>=3.10:../../lang/python310
 NO_BUILD=       yes
 
 do-install:
-	${INSTALL_PROGRAM} ${DISTDIR}/myth_1.1.4_amd64.deb \
+	${INSTALL_PROGRAM} ${DISTDIR}/myth_1.1.5_amd64.deb \
 		${DESTDIR}${PREFIX}/bin/myth
 
 .include "../../mk/bsd.pkg.mk"
