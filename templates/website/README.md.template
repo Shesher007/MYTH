@@ -1,48 +1,64 @@
-# {{NAME}} - Official Website
+# {{NAME}}
 
-The official landing page for **{{NAME}}**, the autonomous sovereign agent. 
+**{{DESCRIPTION}}**
 
-## ⚡ Tech Stack
+[![Release](https://img.shields.io/github/v/release/{{REPO_NAME}}?style=flat-square&color={{BRANDING_PRIMARY}})]({{RELEASE_URL}})
+[![License](https://img.shields.io/badge/license-{{LICENSE}}-blue?style=flat-square)]({{LICENSE_URL}})
+[![Discord](https://img.shields.io/discord/1234567890?label=discord&style=flat-square&color=5865F2)]({{SOCIAL_DISCORD}})
 
-- **Framework**: [React](https://react.dev/) + [Vite](https://vitejs.dev/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Motion**: [Framer Motion](https://www.framer.com/motion/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **SEO**: [React Helmet Async](https://github.com/staylor/react-helmet-async)
+{{SHORT_DESCRIPTION}}
 
-## 🛠️ Development
+## 📥 Installation
 
-### Prerequisites
-- Node.js 18+
-- npm 9+
+### Windows
+Download the latest installer:
+- [**Installer (.msi)**]({{RELEASE_URL}}/{{ARTIFACT_MSI}})
+- [**Portable (.exe)**]({{RELEASE_URL}}/{{ARTIFACT_NSIS}})
 
-### Setup
+### Linux
+We support major Linux distributions.
+
+**Debian / Ubuntu / Kali**
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
+wget {{RELEASE_URL}}/{{ARTIFACT_DEB}}
+sudo dpkg -i {{ARTIFACT_DEB}}
 ```
 
-### Build
+**Fedora / RHEL / CentOS**
 ```bash
-# Type-check and build for production
-npm run build
+wget {{RELEASE_URL}}/{{ARTIFACT_RPM}}
+sudo rpm -i {{ARTIFACT_RPM}}
 ```
 
-## 📂 Project Structure
+**Universal AppImage**
+```bash
+wget {{RELEASE_URL}}/{{ARTIFACT_APPIMAGE}}
+chmod +x {{ARTIFACT_APPIMAGE}}
+./{{ARTIFACT_APPIMAGE}}
+```
 
+### macOS
+Download the universal disk image:
+- [**Universal (.dmg)**]({{RELEASE_URL}}/{{ARTIFACT_DMG}})
+
+Open the `.dmg` file and drag **{{NAME}}** to your Applications folder.
+
+---
+
+## ⚡ Quick Start
+
+After installation, run **{{NAME}}** from your application menu or terminal:
+
+```bash
+{{PROJECT_LOWER}}
 ```
-src/
-├── components/   # UI building blocks (Navbar, Hero, etc.)
-├── lib/          # Utilities (cn, helpers)
-├── assets/       # Static media
-├── App.tsx       # Main layout and composition
-└── index.css     # Global styles & Tailwind configuration
-```
+
+## 📚 Documentation
+
+For full documentation, tutorials, and API reference, visit:
+[**{{SOCIAL_DOCS}}**]({{SOCIAL_DOCS}})
 
 ## 🛡️ License
 
-Proprietary. All rights reserved. {{ORG_NAME}} GLOBAL.
+Protected under **{{LICENSE}}**. {{GOV_LICENSE_LABEL}}.
+Copyright © {{COPYRIGHT_YEAR}} {{ORG_NAME}}.
