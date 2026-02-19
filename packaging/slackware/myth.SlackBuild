@@ -4,13 +4,13 @@
 # Industrial-grade AI Offensive Security Workbench
 
 PRGNAM=myth
-VERSION=${VERSION:-1.1.5}
+VERSION=${VERSION:-1.1.6}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 PKGTYPE=${PKGTYPE:-tgz}
 
 MAINTAINER="Shesher Hasan <shesher0007@gmail.com>"
-HOMEPAGE="https://github.com/shesher011/MYTH"
+HOMEPAGE="https://github.com/hasan0004/MYTH"
 
 CWD=$(pwd)
 TMP=${TMP:-/tmp/SBo}

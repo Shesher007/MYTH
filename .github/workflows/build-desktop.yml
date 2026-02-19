@@ -194,7 +194,7 @@ jobs:
 #          bundle: myth.flatpak
 #          manifest-path: packaging/flatpak/org.myth_myth.myth.json
 #          repository-name: myth-repo
-#          repository-url: https://github.com/shesher011/MYTH/flatpak
+#          repository-url: https://github.com/hasan0004/MYTH/flatpak
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

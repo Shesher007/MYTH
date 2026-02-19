@@ -1,6 +1,6 @@
 # Maintainer: Shesher Hasan <shesher0007@gmail.com>
 pkgname=myth-bin
-pkgver=1.1.5
+pkgver=1.1.6
 pkgrel=1
 pkgdesc="Industrial-Grade Sovereign Security Agent"
 arch=('x86_64')

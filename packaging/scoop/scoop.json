@@ -1,11 +1,11 @@
 {
-    "version": "1.1.5",
+    "version": "1.1.6",
     "description": "High-Performance Offensive Intelligence Engine",
-    "homepage": "https://github.com/shesher011/MYTH",
+    "homepage": "https://github.com/hasan0004/MYTH",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/shesher010/MYTH/releases/download/v1.1.5/MYTH_1.1.5_x64_en-US.msi",
+            "url": "https://github.com/shesher010/MYTH/releases/download/v1.1.6/MYTH_1.1.6_x64_en-US.msi",
             "hash": "sha256:YOUR_SHA256_HASH_HERE"
         }
     },

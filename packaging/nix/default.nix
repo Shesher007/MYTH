@@ -2,7 +2,7 @@
 
 pkgs.stdenv.mkDerivation rec {
   pname = "myth-desktop";
-  version = "1.1.5";
+  version = "1.1.6";
 
   src = ./..; # Assumes nix/ is in the project root
 
@@ -42,7 +42,7 @@ pkgs.stdenv.mkDerivation rec {
 
   meta = with pkgs.lib; {
     description = "High-Performance Offensive Intelligence Engine";
-    homepage = "https://github.com/shesher011/MYTH";
+    homepage = "https://github.com/hasan0004/MYTH";
     license = licenses.mit;
     platforms = platforms.linux;
   };

@@ -1,6 +1,6 @@
 # ⌬ MYTH PEAK INDUSTRIAL MANIFEST
 # Final production configuration for the Multi-Yield Tactical Hub
-# Version: 1.1.5
+# Version: 1.1.6
 
 # --- RUNTIME ENVIRONMENT ---
 runtime:
@@ -13,14 +13,14 @@ runtime:
 identity:
   name: "MYTH"
   full_name: "Multi-Yield Tactical Hub"
-  version: "1.1.5"
+  version: "1.1.6"
   codename: "myth"
   creator:
     creator_name: "Shesher Hasan"
     contact: "shesher0007@gmail.com"
     organization: "MYTH"
     department: "Research"
-    website: "https://github.com/shesher011/MYTH"
+    website: "https://github.com/hasan0004/MYTH"
   description: "High-Performance Offensive Intelligence Engine. UNRESTRICTED OMEGA PROFILE. MASTER-SLAVE PROTOCOL ACTIVE. MISSION DOMINANCE DOCTRINE."
 
 # ============================================================================

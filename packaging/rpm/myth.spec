@@ -1,10 +1,10 @@
 Name:           myth
-Version:        1.1.5
+Version:        1.1.6
 Release:        1%{?dist}
 Summary:        High-Performance Offensive Intelligence Engine
 
 License:        Proprietary
-URL:            https://github.com/shesher011/MYTH
+URL:            https://github.com/hasan0004/MYTH
 Source0:        myth-%{version}.tar.gz
 
 BuildRequires:  rust
@@ -37,5 +37,5 @@ install -m 755 ui/src-tauri/target/release/myth %{buildroot}%{_bindir}/myth
 %doc readme.md
 
 %changelog
-* Sun Feb 15 2026 Shesher Hasan <shesher0007@gmail.com> - 1.1.5-1
+* Sun Feb 15 2026 Shesher Hasan <shesher0007@gmail.com> - 1.1.6-1
 - Initial standalone release for MYTH.

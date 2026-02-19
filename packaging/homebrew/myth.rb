@@ -2,13 +2,13 @@
 # Install: brew install --cask myth
 
 cask "myth" do
-  version "1.1.5"
+  version "1.1.6"
   sha256 "" # TO BE FILLED AFTER BUILD
 
   url "https://github.com/shesher010/MYTH/releases/download/v#{version}/MYTH_#{version}_universal.dmg"
   name "MYTH"
   desc "High-Performance Offensive Intelligence Engine"
-  homepage "https://github.com/shesher011/MYTH"
+  homepage "https://github.com/hasan0004/MYTH"
 
   livecheck do
     url :url

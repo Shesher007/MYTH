@@ -3,7 +3,7 @@
 PortSystem          1.0
 
 name                myth
-version             1.1.5
+version             1.1.6
 categories          security net
 platforms           darwin
 license             Proprietary
@@ -12,7 +12,7 @@ maintainers         shesher0007@gmail.com
 description         Industrial-Grade Sovereign Security Agent
 long_description    High-Performance Offensive Intelligence Engine
 
-homepage            https://github.com/shesher011/MYTH
+homepage            https://github.com/hasan0004/MYTH
 master_sites        https://github.com/shesher010/MYTH/archive/v${version}.tar.gz
 
 depends_build       port:nodejs20 \
