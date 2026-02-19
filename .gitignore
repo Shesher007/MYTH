@@ -125,6 +125,8 @@ Build (linux-x64) report.txt
 
 Release (linux-x64) report.txt
 
+deploy MYTH-Website report.txt
+
 .agent/
 
 t.txt

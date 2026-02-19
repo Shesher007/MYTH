@@ -1,5 +1,5 @@
 Name:           myth
-Version:        1.1.3
+Version:        1.1.4
 Release:        1%{?dist}
 Summary:        High-Performance Offensive Intelligence Engine
 
@@ -37,5 +37,5 @@ install -m 755 ui/src-tauri/target/release/myth %{buildroot}%{_bindir}/myth
 %doc readme.md
 
 %changelog
-* Sun Feb 15 2026 Shesher Hasan <shesher0007@gmail.com> - 1.1.3-1
+* Sun Feb 15 2026 Shesher Hasan <shesher0007@gmail.com> - 1.1.4-1
 - Initial standalone release for MYTH.

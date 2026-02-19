@@ -15,7 +15,7 @@
             This version installs the pre-compiled binary.
         </Description>
         <Archive sha1sum="SKIP" type="binary">
-            https://github.com/shesher010/MYTH/releases/download/v1.1.3/myth_1.1.3_amd64.deb
+            https://github.com/shesher010/MYTH/releases/download/v1.1.4/myth_1.1.4_amd64.deb
         </Archive>
     </Source>
     <Package>

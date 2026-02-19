@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.singleton.1.4.0.schema.json
 PackageIdentifier: MYTH.Desktop
-PackageVersion: 1.1.3
+PackageVersion: 1.1.4
 PackageLocale: en-US
 Publisher: Shesher Hasan
 PublisherUrl: https://github.com/shesher010/MYTH
@@ -20,11 +20,11 @@ Tags:
   - ai
   - hacking
   - offensive-security
-ReleaseNotes: "Stable Release v1.1.3"
-ReleaseNotesUrl: https://github.com/shesher010/MYTH/releases/tag/v1.1.3
+ReleaseNotes: "Stable Release v1.1.4"
+ReleaseNotesUrl: https://github.com/shesher010/MYTH/releases/tag/v1.1.4
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/shesher010/MYTH/releases/download/v1.1.3/MYTH_1.1.3_x64_en-US.msi
+    InstallerUrl: https://github.com/shesher010/MYTH/releases/download/v1.1.4/MYTH_1.1.4_x64_en-US.msi
     InstallerSha256: <SHA256_HASH_HERE>
     InstallerType: msi
     Scope: machine

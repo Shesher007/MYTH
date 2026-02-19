@@ -2,7 +2,7 @@
 # Install: sudo zypper install myth
 
 Name:           myth
-Version:        1.1.3
+Version:        1.1.4
 Release:        1
 Summary:        Industrial-Grade Sovereign Security Agent
 License:        Proprietary
@@ -40,5 +40,5 @@ mv %{buildroot}/usr/bin/myth %{buildroot}/usr/bin/MYTH || true
 %{_datadir}/icons/hicolor/512x512/apps/myth.png
 
 %changelog
-* Sat Feb 14 2026 Shesher Hasan <shesher0007@gmail.com> - 1.1.3-1
-- Binary-only release 1.1.3
+* Sat Feb 14 2026 Shesher Hasan <shesher0007@gmail.com> - 1.1.4-1
+- Binary-only release 1.1.4

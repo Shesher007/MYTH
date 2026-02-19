@@ -199,21 +199,14 @@ jobs:
         with:
           name: {{NAME_LOWER}}-desktop-${{ matrix.label }}
           path: |
-            ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.exe
-            ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.msi
-            ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.dmg
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.AppImage
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.deb
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.rpm
             ui/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.pkg.tar.zst
-            packaging/snap/*.snap
-            {{NAME_LOWER}}.flatpak
             *.deb
             *.rpm
             *.AppImage
             *.pkg.tar.zst
-            *.tar.gz
-            *.zip
           retention-days: 14
 
   # Create GitHub Release with all artifacts
@@ -231,17 +224,11 @@ jobs:
         with:
           draft: false
           generate_release_notes: true
+          overwrite_files: true
           files: |
-            **/*.exe
-            **/*.msi
-            **/*.dmg
             **/*.AppImage
             **/*.deb
             **/*.rpm
             **/*.pkg.tar.zst
-            **/*.snap
-            **/*.flatpak
-            **/*.tar.gz
-            **/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.CUSTOM_DEPLOY_TOKEN }}

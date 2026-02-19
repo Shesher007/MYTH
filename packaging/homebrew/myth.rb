@@ -2,7 +2,7 @@
 # Install: brew install --cask myth
 
 cask "myth" do
-  version "1.1.3"
+  version "1.1.4"
   sha256 "" # TO BE FILLED AFTER BUILD
 
   url "https://github.com/shesher010/MYTH/releases/download/v#{version}/MYTH_#{version}_universal.dmg"

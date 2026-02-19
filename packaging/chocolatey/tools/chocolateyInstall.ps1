@@ -1,5 +1,5 @@
 $packageName = 'myth'
-$url64 = 'https://github.com/shesher010/MYTH/releases/download/v1.1.3/MYTH_1.1.3_x64-setup.exe'
+$url64 = 'https://github.com/shesher010/MYTH/releases/download/v1.1.4/MYTH_1.1.4_x64-setup.exe'
 $silentArgs = '/S'
 
 Install-ChocolateyPackage -PackageName $packageName `
