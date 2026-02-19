@@ -8,12 +8,24 @@
 
 {{SHORT_DESCRIPTION}}
 
+## 🚀 Features
+
+- **Autonomous Agent**: Operates independently to execute complex security tasks.
+- **Titan Terminal**: Interactive command-line interface for direct control.
+- **Live Telemetry**: Real-time dashboard for monitoring system status and operations.
+- **Multi-Platform**: Native binaries for Windows, Linux, and macOS.
+- **Secure**: Industrial-grade encryption and operational security built-in.
+
+---
+
 ## 📥 Installation
 
 ### Windows
-Download the latest installer:
+Download the latest installer or portable executable:
 - [**Installer (.msi)**]({{RELEASE_URL}}/{{ARTIFACT_MSI}})
 - [**Portable (.exe)**]({{RELEASE_URL}}/{{ARTIFACT_NSIS}})
+
+> **Note**: Windows SmartScreen might flag the installer as unrecognized. Click "More info" > "Run anyway" to proceed.
 
 ### Linux
 We support major Linux distributions.
@@ -51,6 +63,27 @@ After installation, run **{{NAME}}** from your application menu or terminal:
 
 ```bash
 {{PROJECT_LOWER}}
+```
+
+To access the Titan Terminal, press `Ctrl+T` (or `Cmd+T` on macOS) within the application.
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+**Permission Denied (Linux/macOS)**
+Ensure the binary is executable:
+```bash
+chmod +x /path/to/{{PROJECT_LOWER}}
+```
+
+**Port Conflict**
+The application uses port `{{INFRA_PORT_BACKEND}}` by default. Ensure this port is free or configure a different port in `settings.json`.
+
+**Missing Dependencies**
+On some minimal Linux installs, you might need:
+```bash
+sudo apt install libwebkit2gtk-4.0-37 libappindicator3-1
 ```
 
 ## 📚 Documentation
