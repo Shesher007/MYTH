@@ -43,6 +43,8 @@ jobs:
           command: |
             curl -LsSf https://astral.sh/uv/install.sh | sh
             echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
+      - node/install:
+          node-version: "{{NODE_VERSION}}"
       - run:
           name: Sync Dependencies
           command: uv sync --all-extras

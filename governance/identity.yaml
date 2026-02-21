@@ -9,7 +9,7 @@ identity:
   full_name: "Multi-Yield Tactical Hub"
   codename: "myth"
   version: "1.1.6"
-  tool_count: 672
+  tool_count: 677
   description: "High-Performance Offensive Intelligence Engine"
   short_description: "Industrial-Grade Sovereign Security Agent"
 
@@ -17,17 +17,17 @@ organization:
   name: "MYTH"
   display_name: "MYTH"
   org_lower: "MYTH"
-  reverse_domain: "com.hasan0004.myth"
-  homepage: "https://github.com/hasan0004/MYTH"
+  reverse_domain: "com.shesher007.myth"
+  homepage: "https://github.com/Shesher007/MYTH"
 
 author:
   name: "Shesher Hasan"
   email: "shesher0007@gmail.com"
 
 repository:
-  url: "https://github.com/hasan0004/MYTH"
-  issues_url: "https://github.com/hasan0004/MYTH/issues"
-  license_url: "https://github.com/hasan0004/MYTH/blob/main/LICENSE"
+  url: "https://github.com/Shesher007/MYTH"
+  issues_url: "https://github.com/Shesher007/MYTH/issues"
+  license_url: "https://github.com/Shesher007/MYTH/blob/main/LICENSE"
 
 license:
   spdx: "MIT"
@@ -64,7 +64,7 @@ social:
   documentation: "https://docs.myth-tools.com"
 
 security:
-  policy_url: "https://github.com/hasan0004/MYTH/security/policy"
+  policy_url: "https://github.com/Shesher007/MYTH/security/policy"
   contacts: ["shesher0007@gmail.com"]
   pgp_fingerprint: "0xDEADBEEFCAFEBABE"
 

@@ -82,6 +82,8 @@ release/
 *.hpkg
 *.p5p
 *.wpi
+!packaging/**/*.wpi
+!packaging/**/*.wis
 
 ### --- System & IDE ---
 .DS_Store

@@ -1,0 +1,15 @@
+NAME=MYTH Desktop
+VERSION=1.1.6
+DESC=High-Performance Offensive Intelligence Engine
+VENDOR=Shesher Hasan
+TARGET_DIR=C:\MYTH
+
+FILE=bin\myth.exe
+FILE=bin\myth-backend.exe
+FILE=resources\icon.ico
+
+ICON=resources\icon.ico
+README=README.txt
+LICENSE=LICENSE.txt
+
+POST_INSTALL=execute bin\myth.exe --init
