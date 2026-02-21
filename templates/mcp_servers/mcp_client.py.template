@@ -25,7 +25,6 @@ from myth_config import config, load_dotenv
 
 load_dotenv()
 logger = logging.getLogger("{{NAME_LOWER}}_fortress")
-logger = logging.getLogger("{{NAME_LOWER}}_fortress")
 
 
 def is_frozen() -> bool:
@@ -482,7 +481,9 @@ class TitanSessionPool:
         async with self.lock:
             if not self._sessions:
                 return
-            print(f"  [STOP] [POOL] Closing {len(self._sessions)} persistent sessions...")
+            print(
+                f"  [STOP] [POOL] Closing {len(self._sessions)} persistent sessions..."
+            )
             for port in list(self._contexts.keys()):
                 await self.purge_session(port)
 

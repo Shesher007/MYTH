@@ -25,7 +25,6 @@ from myth_config import config, load_dotenv
 
 load_dotenv()
 logger = logging.getLogger("myth_fortress")
-logger = logging.getLogger("myth_fortress")
 
 
 def is_frozen() -> bool:

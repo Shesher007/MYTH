@@ -1,34 +1,13 @@
-# MYTH Industrial-Grade Git Attributes
-# Enforcement of consistent line endings across all tactical modules.
+# Normalize line endings
+* text=auto
 
-# Set default behavior to handle all files as text and normalize to LF in the repo.
-* text=auto eol=lf
-
-# Explicitly mark binary files to prevent corruption
-*.png binary
-*.jpg binary
-*.jpeg binary
-*.gif binary
-*.ico binary
-*.svg text
-*.exe binary
-*.dll binary
-*.so binary
-*.dylib binary
-
-# Ensure shell scripts always use LF (Required for Linux/macOS execution)
-*.sh text eol=lf
-*.bash text eol=lf
-
-# Windows specific files can stay as is or handle auto
-*.bat text eol=crlf
+# Explicitly set EOL for PowerShell scripts (common on Windows)
 *.ps1 text eol=crlf
+*.psm1 text eol=crlf
 
-# Web assets
-*.html text eol=lf
-*.css text eol=lf
-*.js text eol=lf
-*.jsx text eol=lf
-*.ts text eol=lf
-*.tsx text eol=lf
-*.json text eol=lf
+# Ensure shell scripts use LF
+*.sh text eol=lf
+*.template text eol=lf
+
+# Python files
+*.py text eol=lf

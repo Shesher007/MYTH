@@ -59,7 +59,9 @@ TESTS_DIR = os.path.join(PROJECT_ROOT, "tests")
 # ---------------------------------------------------------------------------
 def _write_junit_success(stage_name: str):
     """Write a minimal success JUnit XML to satisfy CI systems and overwrite stale fails."""
-    filename = os.path.join(PROJECT_ROOT, "tests", f"{stage_name.replace('-', '_')}_results.xml")
+    filename = os.path.join(
+        PROJECT_ROOT, "tests", f"{stage_name.replace('-', '_')}_results.xml"
+    )
     os.makedirs(os.path.dirname(os.path.abspath(filename)), exist_ok=True)
     xml = f"""<?xml version="1.0" encoding="utf-8"?>
 <testsuites>
@@ -289,7 +291,7 @@ def stage_lint_rust(*, dry_run=False, verbose=False, **_):
     if result is not None and result.returncode == 0:
         print(f"  {C.GREEN}[PASS] Rust linting passed{C.RESET}")
         return True
-    
+
     print(f"  {C.YELLOW}[WARN] Rust linting found issues{C.RESET}")
     return True  # Advisory
 
