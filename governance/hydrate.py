@@ -600,7 +600,9 @@ def hydrate_manifests(
         # This keeps templates as valid, statically-analysable Python/JS.
         current_codename = flat.get("CODENAME", "myth").lower()
         if current_codename != "myth":
-            hydrated = re.sub(r"\bmyth_config\b", f"{current_codename}_config", hydrated)
+            hydrated = re.sub(
+                r"\bmyth_config\b", f"{current_codename}_config", hydrated
+            )
             hydrated = re.sub(r"\bmyth_utils\b", f"{current_codename}_utils", hydrated)
             # Handle remaining [MYTH] or myth_ strings in JS/Rust that might have been hit
             # as whole words but aren't explicitly templated.
@@ -623,9 +625,12 @@ def hydrate_manifests(
             is_isolated = False
             isolated_str = flat.get("ISOLATED_PATHS", "")
             if isolated_str:
-                isolated_list = [p.strip() for p in isolated_str.split(",") if p.strip()]
+                isolated_list = [
+                    p.strip() for p in isolated_str.split(",") if p.strip()
+                ]
                 is_isolated = any(
-                    rel_output.startswith(p) or rel_output.startswith(p.replace("/", os.sep))
+                    rel_output.startswith(p)
+                    or rel_output.startswith(p.replace("/", os.sep))
                     for p in isolated_list
                 )
 

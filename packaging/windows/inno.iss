@@ -4,7 +4,7 @@
 #define MyAppName "MYTH"
 #define MyAppVersion "1.1.6"
 #define MyAppPublisher "Shesher Hasan"
-#define MyAppURL "https://github.com/hasan0004/MYTH"
+#define MyAppURL "https://github.com/Shesher007/MYTH"
 #define MyAppExeName "MYTH.exe"
 
 [Setup]

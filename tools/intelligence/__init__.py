@@ -125,7 +125,6 @@ from .search import (
 )
 from .search import threat_intelligence_search as threat_intelligence_search
 from .search import wikipedia_search as wikipedia_search
-from .social import crtsh_subdomain_finder as crtsh_subdomain_finder
 from .social import (
     deception_awareness_analyzer as deception_awareness_analyzer,
 )
@@ -139,7 +138,6 @@ from .social import employee_profile_generator as employee_profile_generator
 from .social import git_repo_scanner_passive as git_repo_scanner_passive
 from .social import image_metadata_extractor as image_metadata_extractor
 from .social import metadata_user_hunter as metadata_user_hunter
-from .social import osint_investigation_search as osint_investigation_search
 from .social import password_breach_check as password_breach_check
 from .social import phone_number_lookup as phone_number_lookup
 from .social import (

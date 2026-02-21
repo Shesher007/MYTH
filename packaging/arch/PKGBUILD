@@ -4,10 +4,10 @@ pkgver=1.1.6
 pkgrel=1
 pkgdesc="Industrial-Grade Sovereign Security Agent"
 arch=('x86_64')
-url="https://github.com/shesher010/MYTH"
+url="https://github.com/Shesher007/MYTH"
 license=('MIT')
 depends=('webkit2gtk' 'gtk3' 'libappindicator-gtk3' 'openssl')
-source=("https://github.com/shesher010/MYTH/releases/download/v${pkgver}/myth_${pkgver}_amd64.deb")
+source=("https://github.com/Shesher007/MYTH/releases/download/v${pkgver}/myth_${pkgver}_amd64.deb")
 sha256sums=('SKIP')
 
 package() {

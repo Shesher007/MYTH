@@ -141,7 +141,7 @@ jobs:
         shell: bash
         run: |
           echo "=== Sidecar Verification ==="
-          EXPECTED_NAME="{{NAME_LOWER}}-backend-${{ matrix.target }}"
+          EXPECTED_NAME="{{CODENAME}}-backend-${{ matrix.target }}"
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXPECTED_NAME="${EXPECTED_NAME}.exe"
           fi

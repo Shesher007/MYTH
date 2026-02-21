@@ -42,7 +42,7 @@ pkgs.stdenv.mkDerivation rec {
 
   meta = with pkgs.lib; {
     description = "High-Performance Offensive Intelligence Engine";
-    homepage = "https://github.com/hasan0004/MYTH";
+    homepage = "https://github.com/Shesher007/MYTH";
     license = licenses.mit;
     platforms = platforms.linux;
   };

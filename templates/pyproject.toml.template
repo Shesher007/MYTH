@@ -5,7 +5,7 @@ description = "{{DESCRIPTION}}"
 authors = [
     { name = "{{AUTHOR}}", email = "{{EMAIL}}" }
 ]
-license = { text = "Proprietary" }
+license = { text = "{{LICENSE_SPDX}}" }
 readme = "readme.md"
 requires-python = ">=3.10"
 dependencies = [

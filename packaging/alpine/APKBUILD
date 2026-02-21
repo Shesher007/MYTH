@@ -3,12 +3,12 @@ pkgname=myth
 pkgver=1.1.6
 pkgrel=0
 pkgdesc="High-Performance Offensive Intelligence Engine"
-url="https://github.com/hasan0004/MYTH"
+url="https://github.com/Shesher007/MYTH"
 arch="x86_64 aarch64"
 license="MIT"
 depends="webkit2gtk libappindicator3"
 makedepends="rust cargo nodejs npm python3"
-source="https://github.com/shesher010/MYTH/archive/v${pkgver}.tar.gz"
+source="https://github.com/Shesher007/MYTH/archive/v${pkgver}.tar.gz"
 
 build() {
 	cd "$srcdir/MYTH/ui"

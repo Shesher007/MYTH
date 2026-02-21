@@ -5,10 +5,10 @@ cask "myth" do
   version "1.1.6"
   sha256 "" # TO BE FILLED AFTER BUILD
 
-  url "https://github.com/shesher010/MYTH/releases/download/v#{version}/MYTH_#{version}_universal.dmg"
+  url "https://github.com/Shesher007/MYTH/releases/download/v#{version}/MYTH_#{version}_universal.dmg"
   name "MYTH"
   desc "High-Performance Offensive Intelligence Engine"
-  homepage "https://github.com/hasan0004/MYTH"
+  homepage "https://github.com/Shesher007/MYTH"
 
   livecheck do
     url :url

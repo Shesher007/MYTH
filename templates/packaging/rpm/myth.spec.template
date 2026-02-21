@@ -3,7 +3,7 @@ Version:        {{VERSION}}
 Release:        1%{?dist}
 Summary:        {{DESCRIPTION}}
 
-License:        Proprietary
+License:        {{LICENSE_SPDX}}
 URL:            {{HOMEPAGE}}
 Source0:        {{NAME_LOWER}}-%{version}.tar.gz
 
@@ -18,7 +18,7 @@ Requires:       webkit2gtk3
 Requires:       libappindicator3
 
 %description
-A powerful desktop application for professional security researchers and automation engineers.
+{{DESCRIPTION}} — {{SHORT_DESCRIPTION}}
 
 %prep
 %setup -q

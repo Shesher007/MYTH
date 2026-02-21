@@ -1,10 +1,10 @@
 SUMMARY="Industrial-Grade Sovereign Security Agent"
 DESCRIPTION="High-Performance Offensive Intelligence Engine"
-HOMEPAGE="https://github.com/hasan0004/MYTH"
+HOMEPAGE="https://github.com/Shesher007/MYTH"
 COPYRIGHT="2024-2025 Shesher Hasan"
 LICENSE="MIT"
 REVISION="1"
-SOURCE_URI="https://github.com/shesher010/MYTH/archive/v1.1.6.tar.gz"
+SOURCE_URI="https://github.com/Shesher007/MYTH/archive/v1.1.6.tar.gz"
 CHECKSUM_SHA256="00000000000000000000000000000000000000000000000"
 
 ARCHITECTURES="x86_64"

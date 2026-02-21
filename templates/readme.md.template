@@ -4,12 +4,12 @@
 
 ![Security Tool](https://img.shields.io/badge/Security-Toolkit-blue)
 ![Python](https://img.shields.io/badge/Python-3.8+-green)
-![Modular](https://img.shields.io/badge/Modular-670%2B%20Tools-orange)
+![Modular](https://img.shields.io/badge/Modular-{{TOOL_COUNT}}%2B%20Tools-orange)
 ![License](https://img.shields.io/badge/License-{{LICENSE_SPDX}}-purple)
 
 ## ✨ Overview
 
-{{NAME}} is an all-in-one security assessment framework designed to streamline reconnaissance, vulnerability assessment, exploitation, and post-exploitation activities. With over 670 specialized tools organized into intuitive categories, {{NAME}} provides security professionals with a unified platform for comprehensive security testing.
+{{NAME}} is an all-in-one security assessment framework designed to streamline reconnaissance, vulnerability assessment, exploitation, and post-exploitation activities. With over {{TOOL_COUNT}} specialized tools organized into intuitive categories, {{NAME}} provides security professionals with a unified platform for comprehensive security testing.
 
 ## 🌟 Features
 

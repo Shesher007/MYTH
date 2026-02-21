@@ -3,7 +3,7 @@
 <PISI>
     <Source>
         <Name>myth</Name>
-        <Homepage>https://github.com/hasan0004/MYTH</Homepage>
+        <Homepage>https://github.com/Shesher007/MYTH</Homepage>
         <Packager>
             <Name>Shesher Hasan</Name>
             <Email>shesher0007@gmail.com</Email>
@@ -15,7 +15,7 @@
             This version installs the pre-compiled binary.
         </Description>
         <Archive sha1sum="SKIP" type="binary">
-            https://github.com/shesher010/MYTH/releases/download/v1.1.6/myth_1.1.6_amd64.deb
+            https://github.com/Shesher007/MYTH/releases/download/v1.1.6/myth_1.1.6_amd64.deb
         </Archive>
     </Source>
     <Package>

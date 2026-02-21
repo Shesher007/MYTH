@@ -7,7 +7,9 @@ from .crypto_master import rsa_solver_generator as rsa_solver_generator
 from .crypto_master import universal_base_decoder as universal_base_decoder
 from .crypto_master import vigenere_breaker as vigenere_breaker
 from .entropy_analyzer import file_entropy_mapper as file_entropy_mapper
-from .entropy_analyzer import statistical_byte_distributor as statistical_byte_distributor
+from .entropy_analyzer import (
+    statistical_byte_distributor as statistical_byte_distributor,
+)
 from .esoteric_ciphers import baconian_cipher_solver as baconian_cipher_solver
 from .esoteric_ciphers import base91_decoder as base91_decoder
 from .esoteric_ciphers import brainfuck_interpreter as brainfuck_interpreter
@@ -19,7 +21,9 @@ from .forensics import universal_flag_hunter as universal_flag_hunter
 from .network_forensics import advanced_string_classifier as advanced_string_classifier
 from .network_forensics import pcap_sensitive_extractor as pcap_sensitive_extractor
 from .pwn_advanced import ctf_shellcode_factory as ctf_shellcode_factory
-from .pwn_advanced import format_string_exploit_generator as format_string_exploit_generator
+from .pwn_advanced import (
+    format_string_exploit_generator as format_string_exploit_generator,
+)
 from .pwn_advanced import libc_offset_database_lookup as libc_offset_database_lookup
 from .pwn_advanced import rop_gadget_mapper_lite as rop_gadget_mapper_lite
 from .pwn_advanced import syscall_interaction_analyzer as syscall_interaction_analyzer

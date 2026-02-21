@@ -4,8 +4,8 @@
 EAPI=8
 
 DESCRIPTION="High-Performance Offensive Intelligence Engine"
-HOMEPAGE="https://github.com/hasan0004/MYTH"
-SRC_URI="https://github.com/shesher010/MYTH/releases/download/v${PV}/myth-${PV}.tar.gz"
+HOMEPAGE="https://github.com/Shesher007/MYTH"
+SRC_URI="https://github.com/Shesher007/MYTH/releases/download/v${PV}/myth-${PV}.tar.gz"
 
 LICENSE="Proprietary"
 SLOT="0"

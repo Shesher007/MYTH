@@ -55,7 +55,7 @@
       "../../ui/src-tauri/binaries/driver_installers/**/*"
     ],
     "externalBin": [
-      "binaries/{{NAME_LOWER}}-backend",
+      "binaries/{{CODENAME}}-backend",
       "binaries/nuclei",
       "binaries/subfinder",
       "binaries/naabu",

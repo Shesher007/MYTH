@@ -3,11 +3,11 @@
 
 DISTNAME=       myth-1.1.6
 CATEGORIES=     security net
-MASTER_SITES=   https://github.com/shesher010/MYTH/releases/download/v1.1.6/
+MASTER_SITES=   https://github.com/Shesher007/MYTH/releases/download/v1.1.6/
 DISTFILES=      myth_1.1.6_amd64.deb
 
 MAINTAINER=     shesher0007@gmail.com
-HOMEPAGE=       https://github.com/hasan0004/MYTH
+HOMEPAGE=       https://github.com/Shesher007/MYTH
 COMMENT=        High-Performance Offensive Intelligence Engine (Binary)
 LICENSE=        proprietary
 

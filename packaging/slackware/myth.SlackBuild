@@ -10,7 +10,7 @@ TAG=${TAG:-_SBo}
 PKGTYPE=${PKGTYPE:-tgz}
 
 MAINTAINER="Shesher Hasan <shesher0007@gmail.com>"
-HOMEPAGE="https://github.com/hasan0004/MYTH"
+HOMEPAGE="https://github.com/Shesher007/MYTH"
 
 CWD=$(pwd)
 TMP=${TMP:-/tmp/SBo}

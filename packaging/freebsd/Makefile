@@ -4,12 +4,12 @@
 PORTNAME=       myth
 PORTVERSION=    1.1.6
 CATEGORIES=     security net
-MASTER_SITES=   https://github.com/shesher010/MYTH/releases/download/v${PORTVERSION}/
+MASTER_SITES=   https://github.com/Shesher007/MYTH/releases/download/v${PORTVERSION}/
 DISTFILES=      myth_${PORTVERSION}_amd64.deb
 
 MAINTAINER=     shesher0007@gmail.com
 COMMENT=        High-Performance Offensive Intelligence Engine (Binary)
-WWW=            https://github.com/shesher010/MYTH
+WWW=            https://github.com/Shesher007/MYTH
 
 LICENSE=        Proprietary
 LICENSE_NAME=   Proprietary

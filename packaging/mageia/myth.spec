@@ -6,8 +6,8 @@ Release:        1
 Summary:        Industrial-Grade Sovereign Security Agent
 License:        Proprietary
 Group:          Networking/Other
-URL:            https://github.com/shesher010/MYTH
-Source0:        https://github.com/shesher010/MYTH/releases/download/v%{version}/myth_%{version}_amd64.deb
+URL:            https://github.com/Shesher007/MYTH
+Source0:        https://github.com/Shesher007/MYTH/releases/download/v%{version}/myth_%{version}_amd64.deb
 
 BuildRequires:  binutils
 BuildRequires:  tar

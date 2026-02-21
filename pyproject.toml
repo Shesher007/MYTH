@@ -5,7 +5,7 @@ description = "High-Performance Offensive Intelligence Engine"
 authors = [
     { name = "Shesher Hasan", email = "shesher0007@gmail.com" }
 ]
-license = { text = "Proprietary" }
+license = { text = "MIT" }
 readme = "readme.md"
 requires-python = ">=3.10"
 dependencies = [

@@ -174,7 +174,6 @@ from .passive import passive_intel_deep_scanner as passive_intel_deep_scanner
 from .passive import (
     quantum_stable_passive_scanner as quantum_stable_passive_scanner,
 )
-from .passive import reverse_dns_lookup as reverse_dns_lookup
 from .passive import shodan_search as shodan_search
 from .passive import subdomain_enumeration as subdomain_enumeration
 from .passive import wayback_machine_lookup as wayback_machine_lookup
@@ -186,7 +185,6 @@ from .passive_intel import semantic_drift_analyzer as semantic_drift_analyzer
 from .passive_intel import (
     systemic_intel_persistence_engine as systemic_intel_persistence_engine,
 )
-from .pd_all_subdomains import get_all_subdomains as get_all_subdomains
 from .pd_all_subdomains import quick_subdomain_check as quick_subdomain_check
 from .spectral_fingerprint import (
     advanced_spectral_stack_analyser as advanced_spectral_stack_analyser,

@@ -72,3 +72,5 @@ from .utils import hash_generator as hash_generator
 from .utils import quantum_data_compressor as quantum_data_compressor
 from .utils import resonance_schema_validator as resonance_schema_validator
 from .utils import universal_data_transformer as universal_data_transformer
+
+shell_list_directory = shell_list_directory

@@ -9,7 +9,7 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="com.hasan0004.myth"
+    Name="com.shesher007.myth"
     Publisher="CN=Shesher Hasan"
     Version="1.1.6.0"
     ProcessorArchitecture="x64" />

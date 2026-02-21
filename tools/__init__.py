@@ -25,9 +25,9 @@ from .cloud import (  # noqa: E402
     gcp_service_account_scanner,
 )
 from .ctf import (  # noqa: E402
-    elf_security_checker,
-    cyclic_pattern_generator,
     binary_symbol_mapper,
+    cyclic_pattern_generator,
+    elf_security_checker,
 )
 from .evasion import evasion_arsenal_health_check  # noqa: E402
 from .exploitation import (  # noqa: E402

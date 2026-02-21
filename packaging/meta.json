@@ -18,17 +18,17 @@
         "name": "MYTH",
         "display_name": "MYTH Tools",
         "org_lower": "myth",
-        "reverse_domain": "com.hasan0004.myth",
-        "homepage": "https://github.com/hasan0004/MYTH"
+        "reverse_domain": "com.shesher007.myth",
+        "homepage": "https://github.com/Shesher007/MYTH"
     },
     "maintainer": {
         "name": "Shesher Hasan",
         "email": "shesher0007@gmail.com"
     },
     "repository": {
-        "url": "https://github.com/shesher010/MYTH",
-        "issues": "https://github.com/shesher010/MYTH/issues",
-        "license_url": "https://github.com/shesher010/MYTH/blob/main/LICENSE"
+        "url": "https://github.com/Shesher007/MYTH",
+        "issues": "https://github.com/Shesher007/MYTH/issues",
+        "license_url": "https://github.com/Shesher007/MYTH/blob/main/LICENSE"
     },
     "license": {
         "spdx": "MIT",

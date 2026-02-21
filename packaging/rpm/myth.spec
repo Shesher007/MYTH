@@ -3,8 +3,8 @@ Version:        1.1.6
 Release:        1%{?dist}
 Summary:        High-Performance Offensive Intelligence Engine
 
-License:        Proprietary
-URL:            https://github.com/hasan0004/MYTH
+License:        MIT
+URL:            https://github.com/Shesher007/MYTH
 Source0:        myth-%{version}.tar.gz
 
 BuildRequires:  rust
@@ -18,7 +18,7 @@ Requires:       webkit2gtk3
 Requires:       libappindicator3
 
 %description
-A powerful desktop application for professional security researchers and automation engineers.
+High-Performance Offensive Intelligence Engine — Industrial-Grade Sovereign Security Agent
 
 %prep
 %setup -q

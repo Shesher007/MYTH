@@ -12,7 +12,7 @@ Installed-Size: 150000
 Maintainer: {{AUTHOR}} <{{EMAIL}}>
 Homepage: {{HOMEPAGE}}
 Description: {{FULL_NAME}} — Autonomous AI Cybersecurity Agent
- {{NAME}} is an industry-grade autonomous AI cybersecurity agent with 672+
+ {{NAME}} is an industry-grade autonomous AI cybersecurity agent with {{TOOL_COUNT}}+
  security tools, MCP servers, RAG-powered knowledge system, and real-time
  vulnerability scanning. Built with Tauri v2 for ultra-fast native
  desktop performance.
