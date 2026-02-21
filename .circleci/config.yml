@@ -67,6 +67,11 @@ jobs:
       - run:
           name: Run Tests
           command: uv run python scripts/ci_orchestrator.py test --verbose
+      - store_test_results:
+          path: tests/
+      - store_artifacts:
+          path: tests/test_errors.txt
+          destination: test-reports
 
   build-linux:
     executor: linux-executor

@@ -133,5 +133,7 @@ if __name__ == "__main__":
         traceback.print_exc()
     finally:
         error_file = os.path.join(ROOT, "tests", "test_errors.txt")
+        junit_file = os.path.join(ROOT, "tests", "results.xml")
         tracker.export_errors(error_file)
+        tracker.to_junit_xml(junit_file)
         sys.exit(0 if tracker.all_passed else 1)

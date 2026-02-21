@@ -273,6 +273,44 @@ class ResultTracker:
         )
         print(f"  {C.info(status_msg)}")
 
+    def to_junit_xml(self, filename: str):
+        """Export results in JUnit XML format for CI systems."""
+        import xml.etree.ElementTree as ET
+
+        testsuites = ET.Element("testsuites")
+        for m in self.modules:
+            testsuite = ET.SubElement(
+                testsuites,
+                "testsuite",
+                name=m.module_name,
+                tests=str(m.total),
+                failures=str(m.failed),
+                skipped=str(m.skipped),
+                time=f"{m.elapsed:.3f}",
+            )
+            for r in m.results:
+                testcase = ET.SubElement(
+                    testsuite,
+                    "testcase",
+                    name=r.name,
+                    classname=m.module_name,
+                    time=f"{r.elapsed_ms / 1000.0:.3f}",
+                )
+                if r.status == Status.FAIL:
+                    failure = ET.SubElement(
+                        testcase, "failure", message=r.name, type="AssertionError"
+                    )
+                    failure.text = (
+                        r.error or "Test failed without specific error message"
+                    )
+                elif r.status == Status.SKIP:
+                    ET.SubElement(testcase, "skipped")
+
+        tree = ET.ElementTree(testsuites)
+        os.makedirs(os.path.dirname(os.path.abspath(filename)), exist_ok=True)
+        tree.write(filename, encoding="utf-8", xml_declaration=True)
+        print(f"  {C.info(f'JUnit XML exported: {filename}')}")
+
 
 # ─── Test Helpers ──────────────────────────────────────────────────────────────
 def safe_import(module_path: str) -> tuple:
