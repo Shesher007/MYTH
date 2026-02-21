@@ -4,12 +4,12 @@
 
 ![Security Tool](https://img.shields.io/badge/Security-Toolkit-blue)
 ![Python](https://img.shields.io/badge/Python-3.8+-green)
-![Modular](https://img.shields.io/badge/Modular-150%2B%20Tools-orange)
+![Modular](https://img.shields.io/badge/Modular-670%2B%20Tools-orange)
 ![License](https://img.shields.io/badge/License-MIT-purple)
 
 ## ✨ Overview
 
-MYTH is an all-in-one security assessment framework designed to streamline reconnaissance, vulnerability assessment, exploitation, and post-exploitation activities. With over 150 specialized tools organized into intuitive categories, MYTH provides security professionals with a unified platform for comprehensive security testing.
+MYTH is an all-in-one security assessment framework designed to streamline reconnaissance, vulnerability assessment, exploitation, and post-exploitation activities. With over 670 specialized tools organized into intuitive categories, MYTH provides security professionals with a unified platform for comprehensive security testing.
 
 ## 🌟 Features
 

@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-VERSION="${MYTH_VERSION:-1.1.1}"
+VERSION="${MYTH_VERSION:-1.1.6}"
 ARCH="amd64"
 REPO_DIR="./repo"
 POOL_DIR="${REPO_DIR}/pool/main/m/myth"
@@ -21,8 +21,8 @@ echo "📦 Setting up MYTH APT repository..."
 mkdir -p "${POOL_DIR}" "${DIST_DIR}"
 
 # Copy .deb package
-if [ -f "MYTH_${VERSION}_${ARCH}.deb" ]; then
-    cp "MYTH_${VERSION}_${ARCH}.deb" "${POOL_DIR}/"
+if [ -f "MYTH_{${VERSION}}_${ARCH}.deb" ]; then
+    cp "MYTH_{${VERSION}}_${ARCH}.deb" "${POOL_DIR}/"
 else
     echo "⚠️  .deb package not found. Build it first with: cd ui && npx tauri build"
     exit 1

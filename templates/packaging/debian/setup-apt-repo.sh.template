@@ -1,0 +1,52 @@
+#!/bin/bash
+# {{NAME}} Desktop — Debian/Ubuntu APT Repository Setup
+# This script creates the repository structure for hosting {{NAME}} via apt.
+#
+# Usage for end users:
+#   curl -fsSL https://repo.{{NAME_LOWER}}-tools.github.io/gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/{{CODENAME}}.gpg
+#   echo "deb [signed-by=/usr/share/keyrings/{{CODENAME}}.gpg] https://repo.{{NAME_LOWER}}-tools.github.io/apt stable main" | sudo tee /etc/apt/sources.list.d/{{CODENAME}}.list
+#   sudo apt update && sudo apt install {{CODENAME}} && {{NAME}}
+
+set -euo pipefail
+
+VERSION="${{{NAME_UPPER}}_VERSION:-{{VERSION}}}"
+ARCH="amd64"
+REPO_DIR="./repo"
+POOL_DIR="${REPO_DIR}/pool/main/m/{{CODENAME}}"
+DIST_DIR="${REPO_DIR}/dists/stable/main/binary-${ARCH}"
+
+echo "📦 Setting up {{NAME}} APT repository..."
+
+# Create directory structure
+mkdir -p "${POOL_DIR}" "${DIST_DIR}"
+
+# Copy .deb package
+if [ -f "{{NAME}}_{${VERSION}}_${ARCH}.deb" ]; then
+    cp "{{NAME}}_{${VERSION}}_${ARCH}.deb" "${POOL_DIR}/"
+else
+    echo "⚠️  .deb package not found. Build it first with: cd ui && npx tauri build"
+    exit 1
+fi
+
+# Generate Packages index
+cd "${REPO_DIR}"
+dpkg-scanpackages pool/ /dev/null | gzip -9c > "${DIST_DIR}/Packages.gz"
+dpkg-scanpackages pool/ /dev/null > "${DIST_DIR}/Packages"
+
+# Generate Release file
+cat > "dists/stable/Release" << EOF
+Origin: {{NAME}} Tools
+Label: {{NAME}}
+Suite: stable
+Codename: stable
+Architectures: amd64 arm64
+Components: main
+Description: {{NAME}} Desktop Application Repository
+EOF
+
+# Sign with GPG (requires key)
+# gpg --default-key "support@{{CODENAME}}-tools.github.io" -abs -o dists/stable/Release.gpg dists/stable/Release
+# gpg --default-key "support@{{CODENAME}}-tools.github.io" --clearsign -o dists/stable/InRelease dists/stable/Release
+
+echo "✅ APT repository created in ${REPO_DIR}/"
+echo "   Upload to: https://repo.{{NAME_LOWER}}-tools.github.io/apt/"

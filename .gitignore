@@ -133,3 +133,11 @@ t.txt
 templates/secrets.yaml.template
 new_device_start.md
 MYTH_SECRETS_BUNDLE.b64
+
+license_worker.js
+license_worker.js.template
+
+all_file_error_ckecker.txt
+all_js_ts_files_errors.txt
+all_py_files_errors.txt
+all_rs_files_errors.txt

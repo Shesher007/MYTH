@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Terminal, Shield, Folder, Trash2, Cpu, Zap } from 'lucide-react';
+import { Search, Terminal, Zap } from 'lucide-react';
 
 const CommandPalette = ({ isOpen, onClose, actions }) => {
     const [query, setQuery] = useState('');

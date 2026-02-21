@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Bot, User, Sparkles, Brain, Loader2, Plus, FileUp, FolderUp, Folder, Image as ImageIcon, X, ChevronDown, ChevronRight, Terminal, Shield, Eye, Trash2, Mic, Music, Volume2, VolumeX, Copy, Check } from 'lucide-react';
+import { Send, Loader2, FileUp, ChevronDown, ChevronRight, Terminal, Eye, Volume2, VolumeX, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import NeuralCore from './NeuralCore';
 import FilePreview from './FilePreview';
 import FileIcon from './FileIcon';
-import PreviewModal from './PreviewModal';
 
 const CopyButton = ({ content }) => {
     const [copied, setCopied] = useState(false);
@@ -41,20 +40,20 @@ const CyberDecorator = ({ children, telemetry }) => {
                 <div className="flex-1"></div>
                 <div className="cyber-telemetry-text opacity-30">CORE_INTEL</div>
             </div>
-            
+
             <div className="cyber-corner top-0 left-0 border-t border-l"></div>
             <div className="cyber-corner top-0 right-0 border-t border-r"></div>
             <div className="cyber-corner bottom-0 left-0 border-b border-l"></div>
             <div className="cyber-corner bottom-0 right-0 border-b border-r"></div>
-            
+
             <div className="cyber-scanline"></div>
-            
+
             {children}
         </div>
     );
 };
 
-const MarkdownCode = ({ node, inline, className, children, ...props }) => {
+const MarkdownCode = ({ node: _node, inline, className, children, ...props }) => {
     const match = /language-(\w+)/.exec(className || '');
     const content = String(children).replace(/\n$/, '');
 
@@ -92,7 +91,7 @@ const MessageItem = React.memo(({ msg, idx, isLast, isProcessing, handlePreviewC
                         </span>
                         <div className={`w-1 h-1 rounded-full ${msg.role === 'user' ? 'bg-teal-500' : 'bg-blue-500'} animate-pulse`}></div>
                     </div>
-                    
+
                     <div className={`flex items-center gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                         <span className="text-[8px] font-mono text-slate-600 uppercase tracking-widest opacity-50">
                             ID: {idx}_{msg.timestamp?.slice(-6) || 'RX'}
@@ -126,7 +125,7 @@ const MessageItem = React.memo(({ msg, idx, isLast, isProcessing, handlePreviewC
                     )}
                     <div className="markdown-content prose prose-invert prose-sm max-w-none">
                         {msg.role === 'assistant' ? (
-                            <ReactMarkdown 
+                            <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={{
                                     code: MarkdownCode
@@ -172,37 +171,37 @@ const MessageItem = React.memo(({ msg, idx, isLast, isProcessing, handlePreviewC
         </motion.div>
     );
 }, (prev, next) => {
-    return prev.msg.content === next.msg.content && 
-           prev.isLast === next.isLast && 
-           prev.isProcessing === next.isProcessing &&
-           prev.msg.is_finalized === next.msg.is_finalized;
+    return prev.msg.content === next.msg.content &&
+        prev.isLast === next.isLast &&
+        prev.isProcessing === next.isProcessing &&
+        prev.msg.is_finalized === next.msg.is_finalized;
 });
 
 const ToolResult = ({ name, content, onPreviewFile }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [isLoadingPreview, setIsLoadingPreview] = React.useState(false);
-    
+
     // Parse content for intelligent summaries
     let summary = name;
     let badge = "System Execute";
     let isSuccess = true;
-    
+
     const isForensicMatch = typeof content === 'string' && content.includes('[PREVIEWABLE_IN_UI: READY]');
-    
+
     const handleForensicPreview = async () => {
         if (!isForensicMatch) return;
-        
+
         // Extract URL from content (heuristic)
         const urlMatch = content.match(/FORENSIC_REPORT:\s*(https?:\/\/[^\s\n]+)/);
         if (!urlMatch) return;
-        
+
         const url = urlMatch[1];
         setIsLoadingPreview(true);
-        
+
         try {
             const response = await fetch(`${API_BASE}/system/internet/preview?url=${encodeURIComponent(url)}`);
             const data = await response.json();
-            
+
             onPreviewFile({
                 name: data.name,
                 type: 'internet_asset',
@@ -224,24 +223,24 @@ const ToolResult = ({ name, content, onPreviewFile }) => {
 
     try {
         const data = typeof content === 'string' ? JSON.parse(content) : content;
-        
+
         // 1. File Creation / Editing Tools
         if (data.file_path || (data.tool_name && data.tool_name.includes('file'))) {
-             const fname = data.file_path ? data.file_path.split(/[/\\]/).pop() : "File";
-             summary = `${name}: ${fname}`;
-             badge = "File System";
+            const fname = data.file_path ? data.file_path.split(/[/\\]/).pop() : "File";
+            summary = `${name}: ${fname}`;
+            badge = "File System";
         }
         // 2. Generic "status" check
         if (data.status) {
             isSuccess = data.status !== 'error' && data.status !== 'failed';
             summary = `${name} [${data.status.toUpperCase()}]`;
-            
+
             // Catch specific file tools logic
             if (data.name) { // often return includes 'name' of file
-                 summary = `${name}: ${data.name}`;
+                summary = `${name}: ${data.name}`;
             }
         }
-    } catch (e) {
+    } catch {
         // Not JSON, stick to default
     }
 
@@ -293,7 +292,7 @@ const ToolResult = ({ name, content, onPreviewFile }) => {
                                     </pre>
                                     {isForensicMatch && (
                                         <div className="absolute bottom-4 right-4 z-20">
-                                            <button 
+                                            <button
                                                 onClick={handleForensicPreview}
                                                 disabled={isLoadingPreview}
                                                 className="px-4 py-2 bg-teal-500/10 border border-teal-500/30 rounded text-teal-400 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-teal-500/20 transition-all flex items-center gap-2"
@@ -313,23 +312,23 @@ const ToolResult = ({ name, content, onPreviewFile }) => {
     );
 };
 
-const ChatWindow = ({ 
-    messages, 
-    isProcessing, 
-    currentStatus, 
-    activeNode, 
-    activeModel, 
-    usedTools, 
-    onSendMessage, 
-    onStopGeneration, 
-    thoughts, 
-    thinkingStartTime, 
-    onUploadFile, 
-    uploadFileWithProgress, 
-    onIndexFolder, 
-    browseFolder, 
-    getFolderSummary, 
-    architectureMode,    
+const ChatWindow = ({
+    messages,
+    isProcessing,
+    currentStatus,
+    activeNode,
+    activeModel,
+    usedTools,
+    onSendMessage,
+    onStopGeneration,
+    thoughts,
+    thinkingStartTime,
+    onUploadFile: _onUploadFile,
+    uploadFileWithProgress,
+    onIndexFolder: _onIndexFolder,
+    browseFolder,
+    getFolderSummary,
+    architectureMode,
     onSwitchArchitecture,
     speakingMode,
     setSpeakingMode,
@@ -346,13 +345,13 @@ const ChatWindow = ({
     const inputRef = useRef(null);
     const audioInputRef = useRef(null);
     const [isDragOver, setIsDragOver] = useState(false);
-    
+
     // Recording state
     const [isRecording, setIsRecording] = useState(false);
     const [mediaRecorder, setMediaRecorder] = useState(null);
     const [recordingDuration, setRecordingDuration] = useState(0);
     const timerRef = useRef(null);
-    
+
     // Derive isMultiLLM from architectureMode prop
     const isMultiLLM = architectureMode === 'multi';
 
@@ -407,7 +406,7 @@ const ChatWindow = ({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         // Block send if any file is still uploading
         const isUploading = stagedFiles.some(f => f.status === 'uploading' || f.status === 'parsing');
         if (isUploading) {
@@ -431,7 +430,7 @@ const ChatWindow = ({
 
     const processFile = async (file) => {
         if (!file) return;
-        
+
         const isImage = file.type.startsWith('image/') || file.name.match(/\.(jpg|jpeg|png|gif|webp|svg|jfif|avif|apng|pjpeg|pjp|ico|bmp|heif)$/i);
         const isAudio = file.type.startsWith('audio/') || file.name.match(/\.(wav|mp3|ogg|flac|m4a|aac|opus|wma)$/i);
         // Create object URL for images AND audio for preview playback
@@ -440,7 +439,7 @@ const ChatWindow = ({
 
         let contentSnippet = null;
         // Sniff text/code content
-        if (!isImage && (file.size < 1024 * 512)) { 
+        if (!isImage && (file.size < 1024 * 512)) {
             try {
                 const text = await file.slice(0, 5000).text();
                 contentSnippet = text;
@@ -476,11 +475,11 @@ const ChatWindow = ({
             if (result.success) {
                 setStagedFiles(current => current.map(f => {
                     if (f.id === fileId) {
-                        return { 
-                            ...f, 
-                            status: 'success', 
-                            analysis: result.analysis, 
-                            progress: 100 
+                        return {
+                            ...f,
+                            status: 'success',
+                            analysis: result.analysis,
+                            progress: 100
                         };
                     }
                     return f;
@@ -488,9 +487,9 @@ const ChatWindow = ({
             } else {
                 setStagedFiles(current => current.map(f => {
                     if (f.id === fileId) {
-                        return { 
-                            ...f, 
-                            status: 'error', 
+                        return {
+                            ...f,
+                            status: 'error',
                             error: result.error || "Upload failed",
                             progress: 0
                         };
@@ -499,9 +498,9 @@ const ChatWindow = ({
                 }));
             }
 
-        } catch (err) {
-                // 4. Update Error State
-                setStagedFiles(current => current.map(f => {
+        } catch {
+            // 4. Update Error State
+            setStagedFiles(current => current.map(f => {
                 if (f.id === fileId) {
                     return { ...f, status: 'error', error: err.message || "Upload failed" };
                 }
@@ -522,7 +521,7 @@ const ChatWindow = ({
     const handlePaste = (e) => {
         const items = e.clipboardData.items;
         let hasFile = false;
-        
+
         for (let i = 0; i < items.length; i++) {
             if (items[i].kind === 'file') {
                 const file = items[i].getAsFile();
@@ -530,7 +529,7 @@ const ChatWindow = ({
                 hasFile = true;
             }
         }
-        
+
         if (hasFile) e.preventDefault();
     };
 
@@ -574,11 +573,11 @@ const ChatWindow = ({
                 const audioBlob = new Blob(chunks, { type: recorder.mimeType });
                 const arrayBuffer = await audioBlob.arrayBuffer();
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 }); // Optimize for Mistral (16kHz is standard)
-                
+
                 try {
                     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                     const samples = audioBuffer.getChannelData(0); // Mono capture
-                    
+
                     // Industrial WAV Encoder (Library-less)
                     const encodeWAV = (samples, sampleRate) => {
                         const buffer = new ArrayBuffer(44 + samples.length * 2);
@@ -601,7 +600,7 @@ const ChatWindow = ({
                         view.setUint16(34, 16, true); // Bits per sample
                         writeString(view, 36, 'data');
                         view.setUint32(40, samples.length * 2, true);
-                        
+
                         let offset = 44;
                         for (let i = 0; i < samples.length; i++, offset += 2) {
                             let s = Math.max(-1, Math.min(1, samples[i]));
@@ -613,9 +612,9 @@ const ChatWindow = ({
                     const wavBuffer = encodeWAV(samples, audioBuffer.sampleRate);
                     const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
                     const file = new File([wavBlob], `voice_intel_${Date.now()}.wav`, { type: 'audio/wav' });
-                    
+
                     processFile(file);
-                } catch (e) {
+                } catch {
                     console.error("⚠️ [AUDIO] Transcoding failure:", e);
                     // Critical Fallback: Send original blob but warning is likely to follow from backend
                     const file = new File([audioBlob], `voice_intel_${Date.now()}.wav`, { type: 'audio/wav' });
@@ -630,12 +629,12 @@ const ChatWindow = ({
             setMediaRecorder(recorder);
             setIsRecording(true);
             setRecordingDuration(0);
-            
+
             timerRef.current = setInterval(() => {
                 setRecordingDuration(prev => prev + 1);
             }, 1000);
 
-        } catch (err) {
+        } catch {
             console.error('Recording initialization failure:', err);
             alert('Could not access microphone for industrial voice capture.');
         }
@@ -660,7 +659,7 @@ const ChatWindow = ({
         const path = await browseFolder();
         if (path) {
             const folderId = Math.random().toString(36).substring(7);
-            
+
             // 1. Stage immediately with 'parsing' state (Indexing)
             setStagedFiles(prev => [...prev, {
                 type: 'folder',
@@ -675,10 +674,10 @@ const ChatWindow = ({
             try {
                 // Artificial delay to allow UI to show 'PARSING...' state
                 await new Promise(resolve => setTimeout(resolve, 800));
-                
+
                 // 2. Fetch summary (acts as our processing step)
                 const summary = await getFolderSummary(path);
-                
+
                 // Handle null summary (API failure)
                 if (!summary) {
                     setStagedFiles(current => current.map(f => {
@@ -689,20 +688,20 @@ const ChatWindow = ({
                     }));
                     return;
                 }
-                
+
                 setStagedFiles(current => current.map(f => {
                     if (f.id === folderId) {
-                        return { 
-                            ...f, 
-                            status: 'success', 
+                        return {
+                            ...f,
+                            status: 'success',
                             summary: summary,
                             size: summary?.size_human || 'DIR',
-                            progress: 100 
+                            progress: 100
                         };
                     }
                     return f;
                 }));
-            } catch (err) {
+            } catch {
                 setStagedFiles(current => current.map(f => {
                     if (f.id === folderId) {
                         return { ...f, status: 'error', error: "Indexing failed" };
@@ -714,7 +713,7 @@ const ChatWindow = ({
     };
 
     return (
-        <div 
+        <div
             className="chat-container h-full flex flex-col relative"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -750,7 +749,7 @@ const ChatWindow = ({
                                     return <ToolResult key={`tool-${idx}`} name={msg.name} content={msg.content} onPreviewFile={onPreviewFile} />;
                                 }
                                 return (
-                                    <MessageItem 
+                                    <MessageItem
                                         key={`msg-${idx}`}
                                         msg={msg}
                                         idx={idx}
@@ -874,195 +873,195 @@ const ChatWindow = ({
                         </div>
                     </div>
 
-                        {/* RAG Menu */}
-                        <AnimatePresence>
-                            {showUploadMenu && (
-                                <motion.div
-                                    ref={menuRef}
-                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    className="rag-action-menu"
-                                >
-                                    <div className="rag-menu-header">RAG Core Ingestion</div>
-                                    <button onClick={() => fileInputRef.current?.click()} className="rag-menu-item">
-                                        <FileUp size={14} className="text-cyan-400" />
-                                        <span>Upload Document</span>
-                                    </button>
-                                    <button onClick={() => imageInputRef.current?.click()} className="rag-menu-item">
-                                        <ImageIcon size={14} className="text-purple-400" />
-                                        <span>Analyze Image</span>
-                                    </button>
-                                    <button onClick={() => audioInputRef.current?.click()} className="rag-menu-item">
-                                        <Music size={14} className="text-pink-400" />
-                                        <span>Analyze Voice Log</span>
-                                    </button>
-                                    <button onClick={handleFolderIndex} className="rag-menu-item">
-                                        <FolderUp size={14} className="text-amber-400" />
-                                        <span>Index Local Folder</span>
-                                    </button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                    {/* RAG Menu */}
+                    <AnimatePresence>
+                        {showUploadMenu && (
+                            <motion.div
+                                ref={menuRef}
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="rag-action-menu"
+                            >
+                                <div className="rag-menu-header">RAG Core Ingestion</div>
+                                <button onClick={() => fileInputRef.current?.click()} className="rag-menu-item">
+                                    <FileUp size={14} className="text-cyan-400" />
+                                    <span>Upload Document</span>
+                                </button>
+                                <button onClick={() => imageInputRef.current?.click()} className="rag-menu-item">
+                                    <ImageIcon size={14} className="text-purple-400" />
+                                    <span>Analyze Image</span>
+                                </button>
+                                <button onClick={() => audioInputRef.current?.click()} className="rag-menu-item">
+                                    <Music size={14} className="text-pink-400" />
+                                    <span>Analyze Voice Log</span>
+                                </button>
+                                <button onClick={handleFolderIndex} className="rag-menu-item">
+                                    <FolderUp size={14} className="text-amber-400" />
+                                    <span>Index Local Folder</span>
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                        <form onSubmit={handleSubmit} className="input-terminal flex-col items-stretch">
-                            {stagedFiles.length > 0 && (
-                                <div className="staged-attachments-bar flex flex-wrap gap-2 p-2">
-                                    {stagedFiles.map((item) => (
-                                        <div key={item.id} className="relative group animate-in fade-in zoom-in duration-300">
-                                            <FilePreview
-                                                file={item}
-                                                onClick={() => handlePreviewClick(item)}
-                                                onRemove={() => removeStagedFile(item.id)}
-                                                className="w-48 h-12" // Horizontal card dimensions
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                    <form onSubmit={handleSubmit} className="input-terminal flex-col items-stretch">
+                        {stagedFiles.length > 0 && (
+                            <div className="staged-attachments-bar flex flex-wrap gap-2 p-2">
+                                {stagedFiles.map((item) => (
+                                    <div key={item.id} className="relative group animate-in fade-in zoom-in duration-300">
+                                        <FilePreview
+                                            file={item}
+                                            onClick={() => handlePreviewClick(item)}
+                                            onRemove={() => removeStagedFile(item.id)}
+                                            className="w-48 h-12" // Horizontal card dimensions
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
-                            <div className="flex items-center gap-3 w-full">
-                                <input
-                                    type="file"
-                                    id="chat-file-upload-input"
-                                    name="chat-file-upload"
-                                    ref={fileInputRef}
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                    accept=".pdf,.txt,.docx,.md,.csv,.py,.js,.json"
-                                    multiple
-                                />
-                                <input
-                                    type="file"
-                                    id="chat-image-upload-input"
-                                    name="chat-image-upload"
-                                    ref={imageInputRef}
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                    accept="image/*"
-                                    multiple
-                                />
-                                <input
-                                    type="file"
-                                    id="chat-audio-upload-input"
-                                    name="chat-audio-upload"
-                                    ref={audioInputRef}
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                    accept="audio/*"
-                                    multiple
-                                />
+                        <div className="flex items-center gap-3 w-full">
+                            <input
+                                type="file"
+                                id="chat-file-upload-input"
+                                name="chat-file-upload"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept=".pdf,.txt,.docx,.md,.csv,.py,.js,.json"
+                                multiple
+                            />
+                            <input
+                                type="file"
+                                id="chat-image-upload-input"
+                                name="chat-image-upload"
+                                ref={imageInputRef}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept="image/*"
+                                multiple
+                            />
+                            <input
+                                type="file"
+                                id="chat-audio-upload-input"
+                                name="chat-audio-upload"
+                                ref={audioInputRef}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept="audio/*"
+                                multiple
+                            />
 
+                            <button
+                                type="button"
+                                onClick={() => setShowUploadMenu(!showUploadMenu)}
+                                disabled={isProcessing}
+                                className={`flex items-center justify-center upload-btn ${showUploadMenu ? 'active' : ''}`}
+                                title="RAG Actions"
+                            >
+                                {showUploadMenu ? <X size={18} /> : <Plus size={18} />}
+                            </button>
+
+                            <input
+                                ref={inputRef}
+                                id="chat-message-input"
+                                name="chat-message"
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="Execute Command_Link..."
+                                autoComplete="off"
+                                onPaste={handlePaste}
+                            />
+
+                            {/* Realtime Voice Hub - Enhanced */}
+                            <div className="flex items-center gap-1 px-1">
                                 <button
                                     type="button"
-                                    onClick={() => setShowUploadMenu(!showUploadMenu)}
+                                    onClick={isRecording ? stopRecording : startRecording}
                                     disabled={isProcessing}
-                                    className={`flex items-center justify-center upload-btn ${showUploadMenu ? 'active' : ''}`}
-                                    title="RAG Actions"
+                                    className={`
+                                            flex items-center justify-center p-2 rounded-lg transition-all duration-300 border relative group/voice
+                                            ${isRecording
+                                            ? 'bg-red-500/20 border-red-500/50 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                                            : 'bg-teal-500/5 border-teal-500/20 text-teal-400/80 hover:bg-teal-500/10 hover:border-teal-500/50 hover:text-teal-400 hover:shadow-[0_0_10px_rgba(20,184,166,0.2)]'}
+                                        `}
+                                    title={isRecording ? "Terminate Voice Stream" : "Initialize Voice Capture"}
                                 >
-                                    {showUploadMenu ? <X size={18} /> : <Plus size={18} />}
+                                    <Mic size={18} className={`relative z-10 ${isRecording ? 'animate-pulse' : ''}`} />
+                                    {isRecording && (
+                                        <div className="absolute inset-0 bg-red-500/10 rounded-lg animate-ping"></div>
+                                    )}
                                 </button>
 
-                                <input
-                                    ref={inputRef}
-                                    id="chat-message-input"
-                                    name="chat-message"
-                                    type="text"
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    placeholder="Execute Command_Link..."
-                                    autoComplete="off"
-                                    onPaste={handlePaste}
-                                />
-
-                                {/* Realtime Voice Hub - Enhanced */}
-                                <div className="flex items-center gap-1 px-1">
+                                <AnimatePresence>
+                                    {isRecording && (
+                                        <motion.div
+                                            initial={{ opacity: 0, width: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, width: 'auto', scale: 1 }}
+                                            exit={{ opacity: 0, width: 0, scale: 0.9 }}
+                                            className="overflow-hidden flex items-center ml-2"
+                                        >
+                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-black/80 border border-red-500/30 rounded-md backdrop-blur-md shadow-lg">
+                                                <div className="flex gap-0.5 items-center h-3">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <motion.div
+                                                            key={i}
+                                                            className="w-0.5 bg-red-500 rounded-full"
+                                                            animate={{ height: [4, 12, 4] }}
+                                                            transition={{
+                                                                repeat: Infinity,
+                                                                duration: 0.8,
+                                                                delay: i * 0.1,
+                                                                ease: "easeInOut"
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <span className="text-[10px] font-mono font-black text-red-400 whitespace-nowrap tracking-wider">
+                                                    REC {formatDuration(recordingDuration)}
+                                                </span>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                            {isProcessing ? (
+                                <div className="flex items-center gap-1.5 ml-2 py-1 px-2 border-l border-white/10">
                                     <button
                                         type="button"
-                                        onClick={isRecording ? stopRecording : startRecording}
-                                        disabled={isProcessing}
-                                        className={`
-                                            flex items-center justify-center p-2 rounded-lg transition-all duration-300 border relative group/voice
-                                            ${isRecording 
-                                                ? 'bg-red-500/20 border-red-500/50 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]' 
-                                                : 'bg-teal-500/5 border-teal-500/20 text-teal-400/80 hover:bg-teal-500/10 hover:border-teal-500/50 hover:text-teal-400 hover:shadow-[0_0_10px_rgba(20,184,166,0.2)]'}
-                                        `}
-                                        title={isRecording ? "Terminate Voice Stream" : "Initialize Voice Capture"}
+                                        onClick={() => onStopGeneration()}
+                                        className="flex items-center justify-center stop-btn group/stop relative"
+                                        title="Stop Generation"
                                     >
-                                        <Mic size={18} className={`relative z-10 ${isRecording ? 'animate-pulse' : ''}`} />
-                                        {isRecording && (
-                                            <div className="absolute inset-0 bg-red-500/10 rounded-lg animate-ping"></div>
-                                        )}
+                                        <X size={18} className="relative z-10" />
+                                        <div className="absolute inset-0 bg-red-500/20 opacity-0 group-hover/stop:opacity-100 transition-opacity blur-md"></div>
                                     </button>
-                                    
-                                    <AnimatePresence>
-                                        {isRecording && (
-                                            <motion.div 
-                                                initial={{ opacity: 0, width: 0, scale: 0.9 }}
-                                                animate={{ opacity: 1, width: 'auto', scale: 1 }}
-                                                exit={{ opacity: 0, width: 0, scale: 0.9 }}
-                                                className="overflow-hidden flex items-center ml-2"
-                                            >
-                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-black/80 border border-red-500/30 rounded-md backdrop-blur-md shadow-lg">
-                                                    <div className="flex gap-0.5 items-center h-3">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <motion.div 
-                                                                key={i} 
-                                                                className="w-0.5 bg-red-500 rounded-full"
-                                                                animate={{ height: [4, 12, 4] }}
-                                                                transition={{ 
-                                                                    repeat: Infinity, 
-                                                                    duration: 0.8, 
-                                                                    delay: i * 0.1,
-                                                                    ease: "easeInOut" 
-                                                                }}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                    <span className="text-[10px] font-mono font-black text-red-400 whitespace-nowrap tracking-wider">
-                                                        REC {formatDuration(recordingDuration)}
-                                                    </span>
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
                                 </div>
-                                {isProcessing ? (
-                                    <div className="flex items-center gap-1.5 ml-2 py-1 px-2 border-l border-white/10">
-                                        <button
-                                            type="button"
-                                            onClick={() => onStopGeneration()}
-                                            className="flex items-center justify-center stop-btn group/stop relative"
-                                            title="Stop Generation"
-                                        >
-                                            <X size={18} className="relative z-10" />
-                                            <div className="absolute inset-0 bg-red-500/20 opacity-0 group-hover/stop:opacity-100 transition-opacity blur-md"></div>
-                                        </button>
-                                    </div>
 
 
-                                ) : (
-                                    <div className="flex items-center gap-1.5 ml-2 py-1 px-2 border-l border-white/10">
-                                        <button
-                                            type="submit"
-                                            disabled={(!input.trim() && stagedFiles.length === 0) || stagedFiles.some(f => f.status === 'uploading' || f.status === 'parsing')}
-                                            className="flex items-center justify-center send-btn group/send relative text-teal-400 hover:text-teal-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                            title="Execute Command"
-                                        >
-                                            <Send size={18} className="relative z-10" />
-                                        </button>
-                                    </div>
-                                )}
-                                
+                            ) : (
+                                <div className="flex items-center gap-1.5 ml-2 py-1 px-2 border-l border-white/10">
+                                    <button
+                                        type="submit"
+                                        disabled={(!input.trim() && stagedFiles.length === 0) || stagedFiles.some(f => f.status === 'uploading' || f.status === 'parsing')}
+                                        className="flex items-center justify-center send-btn group/send relative text-teal-400 hover:text-teal-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        title="Execute Command"
+                                    >
+                                        <Send size={18} className="relative z-10" />
+                                    </button>
+                                </div>
+                            )}
 
-                            </div>
 
-                            {/* HUD Corner Brackets */}
-                            <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 hud-accent-border opacity-40 -translate-x-1 -translate-y-1 transition-colors duration-500"></div>
-                            <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 hud-accent-border opacity-20 translate-x-1 -translate-y-1 transition-colors duration-500"></div>
-                            <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 hud-accent-border opacity-20 -translate-x-1 translate-y-1 transition-colors duration-500"></div>
-                            <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 hud-accent-border opacity-40 translate-x-1 translate-y-1 transition-colors duration-500"></div>
-                        </form>
+                        </div>
+
+                        {/* HUD Corner Brackets */}
+                        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 hud-accent-border opacity-40 -translate-x-1 -translate-y-1 transition-colors duration-500"></div>
+                        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 hud-accent-border opacity-20 translate-x-1 -translate-y-1 transition-colors duration-500"></div>
+                        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 hud-accent-border opacity-20 -translate-x-1 translate-y-1 transition-colors duration-500"></div>
+                        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 hud-accent-border opacity-40 translate-x-1 translate-y-1 transition-colors duration-500"></div>
+                    </form>
                     <div className="flex items-center justify-between mt-2 px-2">
                         <div className="text-[9px] text-slate-600 uppercase tracking-[0.2em] font-black italic">
                             Node: <span className="hud-accent opacity-50 transition-colors duration-500">auth_relay_secure</span>

@@ -1,11 +1,8 @@
-import json
-import asyncio
-import os
 import platform
-import psutil
-from datetime import datetime
-from myth_config import load_dotenv
+
 from langchain_core.tools import tool
+
+from myth_config import load_dotenv
 from tools.utilities.report import format_industrial_result
 
 load_dotenv()
@@ -13,6 +10,7 @@ load_dotenv()
 # ==============================================================================
 # 👺 Stealthy Process Tampering Red Team Tools
 # ==============================================================================
+
 
 @tool
 async def herpaderping_builder() -> str:
@@ -23,7 +21,7 @@ async def herpaderping_builder() -> str:
     try:
         is_windows = platform.system() == "Windows"
         if not is_windows:
-             return format_industrial_result("herpaderping_builder", "Incompatible")
+            return format_industrial_result("herpaderping_builder", "Incompatible")
 
         # Generative C++ Logic for Process Herpaderping
         cpp_code = """
@@ -58,10 +56,11 @@ int main() {
             confidence=1.0,
             impact="HIGH",
             raw_data={"cpp_source": cpp_code},
-            summary="Process Herpaderping C++ implementation generated."
+            summary="Process Herpaderping C++ implementation generated.",
         )
     except Exception as e:
         return format_industrial_result("herpaderping_builder", "Error", error=str(e))
+
 
 @tool
 async def process_ghosting_builder() -> str:
@@ -72,7 +71,7 @@ async def process_ghosting_builder() -> str:
     try:
         is_windows = platform.system() == "Windows"
         if not is_windows:
-             return format_industrial_result("process_ghosting_builder", "Incompatible")
+            return format_industrial_result("process_ghosting_builder", "Incompatible")
 
         # Generative C++ Logic for Process Ghosting
         cpp_code = """
@@ -101,7 +100,9 @@ int main() {
             confidence=1.0,
             impact="CRITICAL",
             raw_data={"cpp_source": cpp_code},
-            summary="Process Ghosting C++ implementation generated. Payload executes from memory with no disk backing."
+            summary="Process Ghosting C++ implementation generated. Payload executes from memory with no disk backing.",
         )
     except Exception as e:
-        return format_industrial_result("process_ghosting_builder", "Error", error=str(e))
+        return format_industrial_result(
+            "process_ghosting_builder", "Error", error=str(e)
+        )

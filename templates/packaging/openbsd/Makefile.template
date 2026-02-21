@@ -3,7 +3,7 @@
 
 COMMENT =       {{FULL_NAME}} — AI Cybersecurity Agent (Binary)
 
-V =             1.1.1
+V =             {{VERSION}}
 DISTNAME =      {{NAME_LOWER}}-${V}
 
 CATEGORIES =    security net
@@ -16,7 +16,7 @@ MAINTAINER =    admin@{{NAME_LOWER}}-tools.com
 PERMIT_PACKAGE =        Yes
 
 MASTER_SITES =  https://github.com/Start-{{NAME}}/{{NAME}}/releases/download/v${V}/
-DISTFILES =     MYTH_openbsd_x64
+DISTFILES =     {{NAME}}_openbsd_x64
 
 RUN_DEPENDS =   lang/python/3 \
                 www/webkit2gtk4
@@ -24,7 +24,7 @@ RUN_DEPENDS =   lang/python/3 \
 NO_BUILD =      Yes
 
 do-install:
-	${INSTALL_PROGRAM} ${DISTDIR}/MYTH_openbsd_x64 \
+	${INSTALL_PROGRAM} ${DISTDIR}/{{NAME}}_openbsd_x64 \
 		${PREFIX}/bin/{{NAME}}
 
 .include <bsd.port.mk>

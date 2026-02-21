@@ -68,7 +68,7 @@ pub fn run() {
             }
 
             // 3. License verification (Feature 11)
-            let license_valid = license::verify_license_on_startup(&app_handle);
+            let license_valid = license::verify_license_on_startup(&app_handle) || cfg!(debug_assertions); // Bypass in dev mode (debug build)
             info!(
                 "🔑 [{{NAME}}] License status: {}",
                 if license_valid { "VALID" } else { "REQUIRES_ACTIVATION" }

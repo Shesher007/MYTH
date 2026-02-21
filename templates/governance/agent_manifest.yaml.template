@@ -1,4 +1,4 @@
-# ⌬ MYTH PEAK INDUSTRIAL MANIFEST
+# ⌬ {{NAME}} PEAK INDUSTRIAL MANIFEST
 # Final production configuration for the {{FULL_NAME}}
 # Version: {{VERSION}}
 
@@ -6,7 +6,7 @@
 runtime:
   environment: "PRODUCTION" # DEVELOPMENT, STAGING, PRODUCTION
   region: "US-EAST-1"
-  node_id: "MYTH-CORE-01"
+  node_id: "{{NAME}}-CORE-01"
   debug_mode: true
 
 # --- IDENTITY & BRANDING ---

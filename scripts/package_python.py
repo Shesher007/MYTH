@@ -4,12 +4,12 @@ Bundles the FastAPI backend into a standalone binary for Tauri sidecar distribut
 Uses PyInstaller to create a platform-specific executable.
 """
 
+import argparse
 import os
-import sys
 import platform
 import subprocess
+import sys
 import warnings
-import argparse
 
 # Suppress annoying SyntaxWarnings from third-party libs (like ropper) during build
 warnings.simplefilter("ignore", category=SyntaxWarning)
@@ -17,17 +17,19 @@ warnings.simplefilter("ignore", category=SyntaxWarning)
 # MISSION CRITICAL: Force UTF-8 encoding for stdout/stderr on Windows
 # BEFORE any print() calls that contain emoji characters.
 # Windows default cp1252 cannot encode emoji → UnicodeEncodeError.
-if sys.platform == 'win32':
+if sys.platform == "win32":
     try:
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
     except AttributeError:
         import io
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DIST_DIR = os.path.join(PROJECT_ROOT, "ui", "src-tauri", "binaries")
+
 
 def get_target_triple():
     """Determine the Rust-style target triple for the current platform."""
@@ -41,9 +43,12 @@ def get_target_triple():
     system = platform.system().lower()
 
     arch_map = {
-        "x86_64": "x86_64", "amd64": "x86_64",
-        "aarch64": "aarch64", "arm64": "aarch64",
-        "i686": "i686", "x86": "i686",
+        "x86_64": "x86_64",
+        "amd64": "x86_64",
+        "aarch64": "aarch64",
+        "arm64": "aarch64",
+        "i686": "i686",
+        "x86": "i686",
     }
     arch = arch_map.get(machine, machine)
 
@@ -69,22 +74,30 @@ def build_backend(skip_if_exists=False):
     output_path = os.path.join(DIST_DIR, output_name)
 
     if skip_if_exists and os.path.exists(output_path):
-        print(f"⏭️  [PACKAGER] Output exists and --skip-if-exists set. Skipping: {output_name}")
+        print(
+            f"⏭️  [PACKAGER] Output exists and --skip-if-exists set. Skipping: {output_name}"
+        )
         return
 
     os.makedirs(DIST_DIR, exist_ok=True)
- 
+
     print(f"Packaging MYTH backend for: {target_triple}")
     print(f"Output: {output_path}")
 
     # PyInstaller invocation
     cmd = [
-        sys.executable, "-m", "PyInstaller",
+        sys.executable,
+        "-m",
+        "PyInstaller",
         "--onefile",
-        "--name", f"myth-backend-{target_triple}",
-        "--distpath", DIST_DIR,
-        "--workpath", os.path.join(PROJECT_ROOT, "build", "pyinstaller"),
-        "--specpath", os.path.join(PROJECT_ROOT, "build"),
+        "--name",
+        f"myth-backend-{target_triple}",
+        "--distpath",
+        DIST_DIR,
+        "--workpath",
+        os.path.join(PROJECT_ROOT, "build", "pyinstaller"),
+        "--specpath",
+        os.path.join(PROJECT_ROOT, "build"),
     ]
 
     # Include recursive toolsets and mission-critical data
@@ -95,14 +108,14 @@ def build_backend(skip_if_exists=False):
         "myth_utils",
         "honeypot",
     ]
-    
+
     mandatory_assets = [
         "governance/agent_manifest.yaml",
-        "governance/identity.yaml",           # SSOT Identity
+        "governance/identity.yaml",  # SSOT Identity
         "resources/nvidia_nim_models.txt",
         "resources/mistral_models.txt",
-        "governance/secrets.template.yaml",    # Template only — real secrets loaded from AppData
-        "pyproject.toml",           # Required for some tool metadata
+        "governance/secrets.template.yaml",  # Template only — real secrets loaded from AppData
+        "pyproject.toml",  # Required for some tool metadata
     ]
 
     for folder in target_folders:
@@ -119,7 +132,7 @@ def build_backend(skip_if_exists=False):
     for asset in mandatory_assets:
         asset_path = os.path.join(PROJECT_ROOT, asset)
         if os.path.exists(asset_path):
-            # We want them at the root of the executable in bundled mode, 
+            # We want them at the root of the executable in bundled mode,
             # except if we want to keep the subdirectory structure.
             # PyInstaller --add-data "src;dest"
             if "resources/" in asset:
@@ -140,18 +153,28 @@ def build_backend(skip_if_exists=False):
     # ════════════════════════════════════════════════════════════════
     hidden_imports = [
         # --- Web Framework & Server ---
-        "uvicorn", "uvicorn.logging", "uvicorn.loops", "uvicorn.loops.auto",
-        "uvicorn.protocols", "uvicorn.protocols.http", "uvicorn.protocols.http.auto",
-        "uvicorn.protocols.websockets", "uvicorn.protocols.websockets.auto",
-        "uvicorn.lifespan", "uvicorn.lifespan.on",
-        "fastapi", "pydantic", "starlette",
+        "uvicorn",
+        "uvicorn.logging",
+        "uvicorn.loops",
+        "uvicorn.loops.auto",
+        "uvicorn.protocols",
+        "uvicorn.protocols.http",
+        "uvicorn.protocols.http.auto",
+        "uvicorn.protocols.websockets",
+        "uvicorn.protocols.websockets.auto",
+        "uvicorn.lifespan",
+        "uvicorn.lifespan.on",
+        "fastapi",
+        "pydantic",
+        "starlette",
         "sse_starlette",
-
         # --- MCP Infrastructure ---
-        "mcp", "fastmcp", "langchain_mcp_adapters",
-        "mcp.client.sse", "mcp.client.stdio",
+        "mcp",
+        "fastmcp",
+        "langchain_mcp_adapters",
+        "mcp.client.sse",
+        "mcp.client.stdio",
         "mcp_servers.mcp_common",
-
         # --- MCP Server Modules (for in-process frozen-mode loading) ---
         "mcp_servers.local_servers.system_tools",
         "mcp_servers.local_servers.browser_tools",
@@ -178,51 +201,69 @@ def build_backend(skip_if_exists=False):
         "mcp_servers.remote_servers.exploitdb_server",
         "mcp_servers.remote_servers.gh_advisory_server",
         "mcp_servers.remote_servers.cisa_kev_server",
-
         # --- LangChain / AI Providers ---
-        "langchain_openai", "langchain_community",
-        "langchain_nvidia_ai_endpoints", "langchain_mistralai", "langchain_google_genai",
+        "langchain_openai",
+        "langchain_community",
+        "langchain_nvidia_ai_endpoints",
+        "langchain_mistralai",
+        "langchain_google_genai",
         "langchain_text_splitters",
-
         # --- Vector Store / RAG ---
-        "sentence_transformers", "qdrant_client", "numpy",
-
+        "sentence_transformers",
+        "qdrant_client",
+        "numpy",
         # --- Browser Automation ---
-        "playwright", "playwright.async_api", "playwright_stealth", "playwright.__main__",
-
+        "playwright",
+        "playwright.async_api",
+        "playwright_stealth",
+        "playwright.__main__",
         # --- Reverse Engineering ---
-        "pefile", "lief", "capstone", "ropper",
-
+        "pefile",
+        "lief",
+        "capstone",
+        "ropper",
         # --- Network Analysis ---
-        "scapy", "scapy.all",
-
+        "scapy",
+        "scapy.all",
         # --- HTTP & Networking ---
-        "httpx", "httpx_sse", "requests",
-        "tldextract", "dns", "dns.resolver",
-
+        "httpx",
+        "httpx_sse",
+        "requests",
+        "tldextract",
+        "dns",
+        "dns.resolver",
         # --- Async & Resilience ---
-        "backoff", "tenacity", "nest_asyncio",
-
+        "backoff",
+        "tenacity",
+        "nest_asyncio",
         # --- Content Processing ---
-        "markdownify", "bs4",
-
+        "markdownify",
+        "bs4",
         # --- Config & Serialization ---
-        "yaml", "orjson", "jinja2",
-
+        "yaml",
+        "orjson",
+        "jinja2",
         # --- Logging ---
-        "loguru", "rich", "colorama", "coloredlogs",
-
+        "loguru",
+        "rich",
+        "colorama",
+        "coloredlogs",
         # --- System ---
-        "psutil", "aiofiles",
-
-        # --- Myth Internal ---
-        "myth_utils", "myth_utils.paths", "myth_utils.sanitizer",
-        "myth_config", "config_loader", "dialog_worker",
+        "psutil",
+        "aiofiles",
+        # --- MYTH Internal ---
+        "myth_utils",
+        "myth_utils.paths",
+        "myth_utils.sanitizer",
+        "myth_config",
+        "config_loader",
+        "dialog_worker",
     ]
 
     # Optimized hidden imports for robust bundling
     try:
         from PyInstaller.utils.hooks import collect_submodules
+
         # Dynamically discover all submodules for complex libraries
         hidden_imports += collect_submodules("langchain_core")
         hidden_imports += collect_submodules("pydantic")
@@ -235,16 +276,19 @@ def build_backend(skip_if_exists=False):
     if PROJECT_ROOT not in sys.path:
         sys.path.insert(0, PROJECT_ROOT)
 
-    print(f"🔍 [VALIDATOR] Checking {len(hidden_imports)} hidden imports for presence...")
+    print(
+        f"🔍 [VALIDATOR] Checking {len(hidden_imports)} hidden imports for presence..."
+    )
     missing_critical = []
     # Strict Enforcement: 100% of dependencies mentioned in requirements-desktop.txt
     # and the TOML extras MUST be present for the build to proceed.
     # Exception: 'nvidia' can be missing on non-GPU build runners.
     optional_imports = ["nvidia"]
-    
+
     for imp in hidden_imports:
         # Skip validation for submodules where parent is validated or complex globs
-        if "." in imp or "*" in imp: continue 
+        if "." in imp or "*" in imp:
+            continue
         try:
             __import__(imp)
         except ImportError:
@@ -252,10 +296,12 @@ def build_backend(skip_if_exists=False):
                 print(f"💡 [VALIDATOR] Optional import missing (skipping): {imp}")
             else:
                 missing_critical.append(imp)
-    
+
     if missing_critical:
         print(f"❌ [VALIDATOR] CRITICAL DEPENDENCIES MISSING: {missing_critical}")
-        print("💡 The current environment is incomplete. Run 'uv sync' or activate the correct .venv.")
+        print(
+            "💡 The current environment is incomplete. Run 'uv sync' or activate the correct .venv."
+        )
         sys.exit(1)
 
     for imp in hidden_imports:
@@ -263,33 +309,77 @@ def build_backend(skip_if_exists=False):
 
     # Reduce bloat by excluding non-runtime dependencies
     exclusions = [
-        "notebook", "ipython", "tkinter", "matplotlib", "PIL._tkinter",
+        "notebook",
+        "ipython",
+        "tkinter",
+        "matplotlib",
+        "PIL._tkinter",
         "triton",  # Linux-only, huge
-        "torch.testing", "torch.utils.benchmark", "torch.distributed",  # Dev/Test tools
-        "matplotlib.tests", "numpy.tests", "pandas.tests",  # Test suites
+        "torch.testing",
+        "torch.utils.benchmark",
+        "torch.distributed",  # Dev/Test tools
+        "matplotlib.tests",
+        "numpy.tests",
+        "pandas.tests",  # Test suites
         # --- GPU/CUDA libraries (>3GB on Linux, causes 4GB struct.error overflow) ---
-        "nvidia", "nvidia.cuda_runtime", "nvidia.cublas", "nvidia.cudnn",
-        "nvidia.cufft", "nvidia.curand", "nvidia.cusolver", "nvidia.cusparse",
-        "nvidia.nccl", "nvidia.nvjitlink", "nvidia.nvtx",
-        "nvidia.cufile", "nvidia.nvshmem", "nvidia.cusparselt",
-        "torch.cuda", "torch.backends.cuda", "torch.backends.cudnn",
-        "torchaudio", "torchvision",
+        "nvidia",
+        "nvidia.cuda_runtime",
+        "nvidia.cublas",
+        "nvidia.cudnn",
+        "nvidia.cufft",
+        "nvidia.curand",
+        "nvidia.cusolver",
+        "nvidia.cusparse",
+        "nvidia.nccl",
+        "nvidia.nvjitlink",
+        "nvidia.nvtx",
+        "nvidia.cufile",
+        "nvidia.nvshmem",
+        "nvidia.cusparselt",
+        "torch.cuda",
+        "torch.backends.cuda",
+        "torch.backends.cudnn",
+        "torchaudio",
+        "torchvision",
         # --- Additional torch bloat not needed at runtime ---
-        "torch._inductor", "torch._dynamo", "torch._export", "torch._functorch",
-        "torch.onnx", "torch.fx", "torch.ao", "torch.quantization",
+        "torch._inductor",
+        "torch._dynamo",
+        "torch._export",
+        "torch._functorch",
+        "torch.onnx",
+        "torch.fx",
+        "torch.ao",
+        "torch.quantization",
+        "torch.distributions",
+        "torch.nn.modules.export",
         "sympy",  # Only pulled in by torch, not used in MYTH directly
         # --- Massive ML Bloat (API-based alternatives used) ---
-        "torch", "transformers", "unstructured", "unstructured_client",
-        "sentence_transformers", "onnxruntime", "scikit_learn", "scipy",
+        "torch",
+        "transformers",
+        "unstructured",
+        "unstructured_client",
+        "sentence_transformers",
+        "onnxruntime",
+        "scikit_learn",
+        "scipy",
+        "pandas",
+        "pandas.plotting",
+        "pandas.tseries",
+        "llvmlite",
+        "numba",  # Large
         # --- Windows crash prevention ---
         "magic.compat",  # access violation in libmagic ctypes on Windows
         # --- Platform Specific Exclusions (Noise Reduction) ---
-        "pywin32", "pypiwin32", "win32com", "win32api", "comtypes" if system != "windows" else None,
+        "pywin32",
+        "pypiwin32",
+        "win32com",
+        "win32api",
+        "comtypes" if system != "windows" else None,
     ]
     for ex in [e for e in exclusions if e]:
         cmd += ["--exclude-module", ex]
-    
-    hidden_imports += ["watchdog"] # Required for FIM
+
+    hidden_imports += ["watchdog"]  # Required for FIM
     cmd += [
         "--noupx",
         "--strip",
@@ -302,14 +392,16 @@ def build_backend(skip_if_exists=False):
     # Entry point
     cmd.append(os.path.join(PROJECT_ROOT, "api.py"))
 
-    print(f"Running: {' '.join(cmd[:5])}... ({len(cmd)} args, {len(hidden_imports)} hidden imports)")
+    print(
+        f"Running: {' '.join(cmd[:5])}... ({len(cmd)} args, {len(hidden_imports)} hidden imports)"
+    )
 
     result = subprocess.run(cmd, cwd=PROJECT_ROOT)
 
     if result.returncode == 0:
         if os.path.exists(output_path):
             # Ensure executable permissions on POSIX systems
-            if os.name == 'posix':
+            if os.name == "posix":
                 try:
                     os.chmod(output_path, 0o755)
                     print(f"✅ Set executable permissions (0755) on {output_name}")
@@ -321,15 +413,22 @@ def build_backend(skip_if_exists=False):
         else:
             print(f"Build completed but output not found at: {output_path}")
     else:
-        print(f"❌ Backend packaging failed (exit code: {result.returncode})")
+        print(f"❌ Backend packaging failed (exit code: {result.code})")
         sys.exit(1)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Package MYTH backend for Tauri sidecar.")
-    parser.add_argument("--skip-if-exists", action="store_true", help="Skip build if output already exists.")
+    parser = argparse.ArgumentParser(
+        description="Package MYTH backend for Tauri sidecar."
+    )
+    parser.add_argument(
+        "--skip-if-exists",
+        action="store_true",
+        help="Skip build if output already exists.",
+    )
     args = parser.parse_args()
     build_backend(skip_if_exists=args.skip_if_exists)
+
 
 if __name__ == "__main__":
     main()

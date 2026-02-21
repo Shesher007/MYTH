@@ -1,11 +1,8 @@
-import json
-import asyncio
-import os
-import random
 from typing import Any
-from datetime import datetime
-from myth_config import load_dotenv
+
 from langchain_core.tools import tool
+
+from myth_config import load_dotenv
 from tools.utilities.report import format_industrial_result
 
 load_dotenv()
@@ -14,8 +11,11 @@ load_dotenv()
 # 👻 In-Memory Stealth & reflective Mastery Red Team Tools
 # ==============================================================================
 
+
 @tool
-async def reflective_stub_generator(entry_point: str = "ReflectiveLoader", **kwargs) -> str:
+async def reflective_stub_generator(
+    entry_point: str = "ReflectiveLoader", **kwargs
+) -> str:
     """
     Generates actual NASM Assembly code for a generic Reflective Loader stub.
     """
@@ -57,10 +57,13 @@ global {entry_point}
             confidence=1.0,
             impact="HIGH",
             raw_data={"language": "NASM", "code": asm_code},
-            summary=f"Generated x64 NASM Assembly for Reflective Loader ('{entry_point}')."
+            summary=f"Generated x64 NASM Assembly for Reflective Loader ('{entry_point}').",
         )
     except Exception as e:
-        return format_industrial_result("reflective_stub_generator", "Error", error=str(e))
+        return format_industrial_result(
+            "reflective_stub_generator", "Error", error=str(e)
+        )
+
 
 @tool
 async def ekko_sleep_generator(sleep_ms: Any = 10000, **kwargs) -> str:
@@ -73,7 +76,11 @@ async def ekko_sleep_generator(sleep_ms: Any = 10000, **kwargs) -> str:
         try:
             sleep_ms = int(sleep_ms)
         except (ValueError, TypeError):
-             return format_industrial_result("ekko_sleep_generator", "Validation Error", error="sleep_ms must be an integer.")
+            return format_industrial_result(
+                "ekko_sleep_generator",
+                "Validation Error",
+                error="sleep_ms must be an integer.",
+            )
 
         cpp_code = f"""
 #include <windows.h>
@@ -117,7 +124,7 @@ int main() {{
             confidence=1.0,
             impact="CRITICAL",
             raw_data={"language": "C++", "code": cpp_code},
-            summary=f"Generated C++ implementation of Ekko Sleep Obfuscation for {sleep_ms}ms."
+            summary=f"Generated C++ implementation of Ekko Sleep Obfuscation for {sleep_ms}ms.",
         )
     except Exception as e:
         return format_industrial_result("ekko_sleep_generator", "Error", error=str(e))

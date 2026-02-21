@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronRight, Brain, Terminal, Activity } from 'lucide-react';
+import { ChevronDown, ChevronRight, Brain, Terminal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -130,10 +130,10 @@ const NeuralCore = ({ thoughts, isProcessing, startTime, currentStatus, activeNo
                                     </div>
                                     <div className="flex gap-0.5">
                                         {[...Array(4)].map((_, i) => (
-                                            <div 
-                                                key={i} 
+                                            <div
+                                                key={i}
                                                 className="w-1 h-2 bg-teal-500/30"
-                                                style={{ 
+                                                style={{
                                                     animation: `rx-tx-pulse 0.6s infinite ${i * 0.1}s`,
                                                     clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 80%)'
                                                 }}
@@ -152,12 +152,12 @@ const NeuralCore = ({ thoughts, isProcessing, startTime, currentStatus, activeNo
 
                 <div className="flex items-center gap-6 pr-2">
                     <div className="flex flex-col items-end">
-                         <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <span className="text-[8px] font-mono text-slate-600 uppercase tracking-widest font-bold">Uplink_Lock</span>
                             <span className="text-[9px] font-mono text-teal-500/80 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20 font-black">
                                 {elapsed}s_SYNC
                             </span>
-                         </div>
+                        </div>
                         {isProcessing && (
                             <div className="flex items-center gap-2 mt-1">
                                 <span className="text-[7px] font-mono text-slate-600 uppercase tracking-widest animate-pulse">Streaming_Nodal_Telemetry</span>
@@ -200,7 +200,7 @@ const NeuralCore = ({ thoughts, isProcessing, startTime, currentStatus, activeNo
                                                         <p className="flex-1">{children}</p>
                                                     </div>
                                                 ),
-                                                code: ({ node, inline, className, children, ...props }) => (
+                                                code: ({ node: _node, inline: _inline, className: _className, children, ...props }) => (
                                                     <code className="bg-white/5 text-teal-300 px-1.5 py-0.5 rounded text-[11px] font-bold border border-white/10" {...props}>
                                                         {children}
                                                     </code>

@@ -1,36 +1,42 @@
 #!/usr/bin/env python3
-import subprocess
-import sys
-import os
-import time
-import socket
-import atexit
 import asyncio
+import importlib
 import json
 import logging
-import threading
-import importlib
+import os
 import shutil
+import socket
+import subprocess
+import sys
+import threading
+import time
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Union
+from typing import Any, Dict, List, Optional, Union
+
+from langchain_core.callbacks import (
+    AsyncCallbackManagerForToolRun,
+    CallbackManagerForToolRun,
+)
 from langchain_core.tools import BaseTool
-from langchain_core.callbacks import CallbackManagerForToolRun, AsyncCallbackManagerForToolRun
-from pydantic import Field, BaseModel, ConfigDict
-from myth_config import load_dotenv
+from pydantic import BaseModel, ConfigDict, Field
+
 from config_loader import agent_config
-from myth_config import config
+from myth_config import config, load_dotenv
 
 load_dotenv()
+logger = logging.getLogger("myth_fortress")
+logger = logging.getLogger("myth_fortress")
 
 
 def is_frozen() -> bool:
     """Detect if running inside a PyInstaller-frozen binary."""
-    return getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+    return getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
 
 
 def _get_node_runtime_path() -> Optional[str]:
     """Resolve the path to the bundled Node.js runtime if it exists."""
     from myth_utils.paths import get_sidecar_dir
+
     sidecar_dir = get_sidecar_dir()
     if sidecar_dir:
         node_dir = os.path.join(sidecar_dir, "nodejs")
@@ -38,7 +44,7 @@ def _get_node_runtime_path() -> Optional[str]:
             node_exe = os.path.join(node_dir, "node.exe")
         else:
             node_exe = os.path.join(node_dir, "bin", "node")
-        
+
         if os.path.exists(node_exe):
             return node_dir
     return None
@@ -53,7 +59,7 @@ def _get_npx_cmd() -> str:
             npx_path = os.path.join(node_dir, "npx.cmd")
         else:
             npx_path = os.path.join(node_dir, "bin", "npx")
-        
+
         if os.path.exists(npx_path):
             return npx_path
 
@@ -102,34 +108,164 @@ _SERVER_MODULE_MAP = {
 # Server configurations
 SSE_CONFIGS = {
     # --- Local Suite (Ports 8001-8009) ---
-    "security": {"path": "custom_servers/security_tools.py", "port": 8001, "name": "Security Tools", "category": "exploitation"},
-    "system": {"path": "local_servers/system_tools.py", "port": 8002, "name": "System Tools", "category": "utilities"},
-    "external": {"path": "remote_servers/external_apis.py", "port": 8003, "name": "External APIs", "category": "intelligence"},
-    "filesystem": {"path": "local_servers/filesystem_tools.py", "port": 8004, "name": "Filesystem", "category": "utilities"},
-    "db": {"path": "local_servers/db_tools.py", "port": 8005, "name": "Database", "category": "utilities"},
-    "docker": {"path": "local_servers/docker_tools.py", "port": 8006, "name": "Docker", "category": "cloud"},
-    "browser": {"path": "local_servers/browser_tools.py", "port": 8007, "name": "Browser", "category": "web"},
-    "fetch": {"path": "local_servers/fetch_server.py", "port": 8008, "name": "Fetch", "category": "web"},
-    "curl": {"path": "local_servers/curl_server.py", "port": 8009, "name": "Curl", "category": "web"},
+    "security": {
+        "path": "custom_servers/security_tools.py",
+        "port": 8001,
+        "name": "Security Tools",
+        "category": "exploitation",
+    },
+    "system": {
+        "path": "local_servers/system_tools.py",
+        "port": 8002,
+        "name": "System Tools",
+        "category": "utilities",
+    },
+    "external": {
+        "path": "remote_servers/external_apis.py",
+        "port": 8003,
+        "name": "External APIs",
+        "category": "intelligence",
+    },
+    "filesystem": {
+        "path": "local_servers/filesystem_tools.py",
+        "port": 8004,
+        "name": "Filesystem",
+        "category": "utilities",
+    },
+    "db": {
+        "path": "local_servers/db_tools.py",
+        "port": 8005,
+        "name": "Database",
+        "category": "utilities",
+    },
+    "docker": {
+        "path": "local_servers/docker_tools.py",
+        "port": 8006,
+        "name": "Docker",
+        "category": "cloud",
+    },
+    "browser": {
+        "path": "local_servers/browser_tools.py",
+        "port": 8007,
+        "name": "Browser",
+        "category": "web",
+    },
+    "fetch": {
+        "path": "local_servers/fetch_server.py",
+        "port": 8008,
+        "name": "Fetch",
+        "category": "web",
+    },
+    "curl": {
+        "path": "local_servers/curl_server.py",
+        "port": 8009,
+        "name": "Curl",
+        "category": "web",
+    },
     # --- Remote Recon & OSINT (Ports 8101-8110) ---
-    "shodan": {"path": "remote_servers/shodan_server.py", "port": 8101, "name": "Shodan", "category": "recon"},
-    "censys": {"path": "remote_servers/censys_server.py", "port": 8102, "name": "Censys", "category": "recon"},
-    "securitytrails": {"path": "remote_servers/securitytrails_server.py", "port": 8103, "name": "SecurityTrails", "category": "recon"},
-    "virustotal": {"path": "remote_servers/virustotal_server.py", "port": 8104, "name": "VirusTotal", "category": "intelligence"},
-    "hunter": {"path": "remote_servers/hunter_server.py", "port": 8105, "name": "Hunter.io", "category": "intelligence"},
-    "hibp": {"path": "remote_servers/hibp_server.py", "port": 8106, "name": "HaveIBeenPwned", "category": "intelligence"},
-    "nvd": {"path": "remote_servers/nvd_server.py", "port": 8107, "name": "NVD", "category": "intelligence"},
-    "exploitdb": {"path": "remote_servers/exploitdb_server.py", "port": 8108, "name": "Exploit-DB", "category": "exploitation"},
-    "github_advisory": {"path": "remote_servers/gh_advisory_server.py", "port": 8109, "name": "GitHub Advisory", "category": "intelligence"},
-    "cisa_kev": {"path": "remote_servers/cisa_kev_server.py", "port": 8110, "name": "CISA KEV", "category": "intelligence"},
+    "shodan": {
+        "path": "remote_servers/shodan_server.py",
+        "port": 8101,
+        "name": "Shodan",
+        "category": "recon",
+    },
+    "censys": {
+        "path": "remote_servers/censys_server.py",
+        "port": 8102,
+        "name": "Censys",
+        "category": "recon",
+    },
+    "securitytrails": {
+        "path": "remote_servers/securitytrails_server.py",
+        "port": 8103,
+        "name": "SecurityTrails",
+        "category": "recon",
+    },
+    "virustotal": {
+        "path": "remote_servers/virustotal_server.py",
+        "port": 8104,
+        "name": "VirusTotal",
+        "category": "intelligence",
+    },
+    "hunter": {
+        "path": "remote_servers/hunter_server.py",
+        "port": 8105,
+        "name": "Hunter.io",
+        "category": "intelligence",
+    },
+    "hibp": {
+        "path": "remote_servers/hibp_server.py",
+        "port": 8106,
+        "name": "HaveIBeenPwned",
+        "category": "intelligence",
+    },
+    "nvd": {
+        "path": "remote_servers/nvd_server.py",
+        "port": 8107,
+        "name": "NVD",
+        "category": "intelligence",
+    },
+    "exploitdb": {
+        "path": "remote_servers/exploitdb_server.py",
+        "port": 8108,
+        "name": "Exploit-DB",
+        "category": "exploitation",
+    },
+    "github_advisory": {
+        "path": "remote_servers/gh_advisory_server.py",
+        "port": 8109,
+        "name": "GitHub Advisory",
+        "category": "intelligence",
+    },
+    "cisa_kev": {
+        "path": "remote_servers/cisa_kev_server.py",
+        "port": 8110,
+        "name": "CISA KEV",
+        "category": "intelligence",
+    },
     # --- Aether Forge: Custom Suite (Ports 8201-8207) ---
-    "nuclei": {"path": "custom_servers/nuclei_server.py", "port": 8201, "name": "Nuclei Forge", "category": "exploitation"},
-    "burp": {"path": "custom_servers/burp_server.py", "port": 8202, "name": "Burp Suite", "category": "web"},
-    "target_tracker": {"path": "custom_servers/target_tracker_server.py", "port": 8203, "name": "Target Tracker", "category": "recon"},
-    "recon_engine": {"path": "custom_servers/recon_server.py", "port": 8204, "name": "Unified Recon", "category": "recon"},
-    "exploit_hub": {"path": "custom_servers/exploit_hub_server.py", "port": 8205, "name": "Exploit Hub", "category": "exploitation"},
-    "report_gen": {"path": "custom_servers/report_gen_server.py", "port": 8206, "name": "Report Engine", "category": "utilities"},
-    "security_elite": {"path": "custom_servers/security_tools.py", "port": 8207, "name": "Elite Security", "category": "exploitation"}
+    "nuclei": {
+        "path": "custom_servers/nuclei_server.py",
+        "port": 8201,
+        "name": "Nuclei Forge",
+        "category": "exploitation",
+    },
+    "burp": {
+        "path": "custom_servers/burp_server.py",
+        "port": 8202,
+        "name": "Burp Suite",
+        "category": "web",
+    },
+    "target_tracker": {
+        "path": "custom_servers/target_tracker_server.py",
+        "port": 8203,
+        "name": "Target Tracker",
+        "category": "recon",
+    },
+    "recon_engine": {
+        "path": "custom_servers/recon_server.py",
+        "port": 8204,
+        "name": "Unified Recon",
+        "category": "recon",
+    },
+    "exploit_hub": {
+        "path": "custom_servers/exploit_hub_server.py",
+        "port": 8205,
+        "name": "Exploit Hub",
+        "category": "exploitation",
+    },
+    "report_gen": {
+        "path": "custom_servers/report_gen_server.py",
+        "port": 8206,
+        "name": "Report Engine",
+        "category": "utilities",
+    },
+    "security_elite": {
+        "path": "custom_servers/security_tools.py",
+        "port": 8207,
+        "name": "Elite Security",
+        "category": "exploitation",
+    },
 }
 
 # Caching
@@ -139,23 +275,93 @@ CACHE_FILE = os.path.join(os.path.dirname(__file__), ".mcp_tool_cache.json")
 manager = None
 _server_processes = []  # Track subprocesses for atomic cleanup
 
+
 def _refine_category(tool_name: str, current_category: str) -> str:
     """Refine tool category based on name keywords if current category is generic."""
     if current_category not in ["utilities", "intelligence"]:
         return current_category
-        
+
     name_lower = tool_name.lower()
-    if any(k in name_lower for k in ["exploit", "attack", "payload", "infect", "pwn", "bypass", "vuln", "nuclei", "injection", "sqli", "xss", "ssrf"]):
+    if any(
+        k in name_lower
+        for k in [
+            "exploit",
+            "attack",
+            "payload",
+            "infect",
+            "pwn",
+            "bypass",
+            "vuln",
+            "nuclei",
+            "injection",
+            "sqli",
+            "xss",
+            "ssrf",
+        ]
+    ):
         return "exploitation"
-    if any(k in name_lower for k in ["scan", "recon", "shodan", "census", "whois", "dns", "subdomain", "map", "port", "search"]):
+    if any(
+        k in name_lower
+        for k in [
+            "scan",
+            "recon",
+            "shodan",
+            "census",
+            "whois",
+            "dns",
+            "subdomain",
+            "map",
+            "port",
+            "search",
+        ]
+    ):
         return "recon"
-    if any(k in name_lower for k in ["evade", "stealth", "obfuscate", "unhook", "mask", "hide", "av", "edr"]):
+    if any(
+        k in name_lower
+        for k in [
+            "evade",
+            "stealth",
+            "obfuscate",
+            "unhook",
+            "mask",
+            "hide",
+            "av",
+            "edr",
+        ]
+    ):
         return "evasion"
-    if any(k in name_lower for k in ["process", "registry", "service", "system", "health", "disk", "net", "bash", "shell", "cmd"]):
+    if any(
+        k in name_lower
+        for k in [
+            "process",
+            "registry",
+            "service",
+            "system",
+            "health",
+            "disk",
+            "net",
+            "bash",
+            "shell",
+            "cmd",
+        ]
+    ):
         return "system"
-    if any(k in name_lower for k in ["github", "repo", "commit", "issue", "branch", "intelligence", "threat", "cve"]):
+    if any(
+        k in name_lower
+        for k in [
+            "github",
+            "repo",
+            "commit",
+            "issue",
+            "branch",
+            "intelligence",
+            "threat",
+            "cve",
+        ]
+    ):
         return "intelligence"
     return current_category
+
 
 def _sanitize_schema(schema: Any) -> Optional[Dict]:
     """Ensure schema is a JSON-serializable dict using Pydantic V2 methods."""
@@ -163,50 +369,55 @@ def _sanitize_schema(schema: Any) -> Optional[Dict]:
         return None
     try:
         # Pydantic V2 class (e.g., BaseModel)
-        if hasattr(schema, 'model_json_schema'):
+        if hasattr(schema, "model_json_schema"):
             return schema.model_json_schema()
-            
+
         # Pydantic V2 instance
-        if hasattr(schema, 'model_dump'):
+        if hasattr(schema, "model_dump"):
             return schema.model_dump()
-            
+
         if isinstance(schema, dict):
             # Attempt JSON roundtrip to verify serializability and check size
             try:
                 s_str = json.dumps(schema)
-                if len(s_str) > 50000: # 50KB limit
+                if len(s_str) > 50000:  # 50KB limit
                     return {"error": "Schema too large"}
                 return schema
-            except:
+            except Exception:
                 return {"error": "Non-serializable object in schema"}
         return None
-    except:
+    except Exception:
         return None
+
 
 def _get_config_fingerprint() -> str:
     """Generate a unique fingerprint for the current SSE server configuration."""
     import hashlib
+
     config_str = json.dumps(SSE_CONFIGS, sort_keys=True)
     return hashlib.sha256(config_str.encode()).hexdigest()
+
 
 def _is_port_open(port: int) -> bool:
     """Check if a port is open."""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(1.0)
-            return s.connect_ex(('127.0.0.1', port)) == 0
-    except:
+            return s.connect_ex(("127.0.0.1", port)) == 0
+    except Exception:
         return False
+
 
 class TitanSessionPool:
     """Singularity Grade: Persistent Session Orchestrator for Ultra-Fast Tool Access."""
+
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance._sessions = {} # port -> session
-            cls._instance._contexts = {} # port -> (sse_ctx, session_ctx)
+            cls._instance._sessions = {}  # port -> session
+            cls._instance._contexts = {}  # port -> (sse_ctx, session_ctx)
             cls._instance._schemas = {}  # port -> tool_list
             cls._instance._lock = None
         return cls._instance
@@ -222,32 +433,32 @@ class TitanSessionPool:
         async with self.lock:
             if port in self._sessions:
                 return self._sessions[port], self._schemas.get(port, [])
-            
+
             # Initialize new session
             url = f"http://127.0.0.1:{port}/sse"
-            from mcp.client.sse import sse_client
-            from mcp import ClientSession
             from langchain_mcp_adapters.tools import load_mcp_tools
-            
+            from mcp import ClientSession
+            from mcp.client.sse import sse_client
+
             try:
                 # Start SSE client with timeout
                 sse_ctx = sse_client(url)
                 # INDUSTRIAL TIMEOUTS: Prevent session acquisition deadlock
                 read, write = await asyncio.wait_for(sse_ctx.__aenter__(), timeout=5.0)
-                
+
                 # Start MCP Session
                 session_ctx = ClientSession(read, write)
                 session = await asyncio.wait_for(session_ctx.__aenter__(), timeout=5.0)
                 await asyncio.wait_for(session.initialize(), timeout=5.0)
-                
+
                 # Warm up cache: load tools once
                 tools = await asyncio.wait_for(load_mcp_tools(session), timeout=10.0)
-                
+
                 # Cache everything
                 self._contexts[port] = (sse_ctx, session_ctx)
                 self._sessions[port] = session
                 self._schemas[port] = tools
-                
+
                 return session, tools
             except Exception as e:
                 raise e
@@ -260,7 +471,8 @@ class TitanSessionPool:
                     sse_ctx, session_ctx = self._contexts[port]
                     await session_ctx.__aexit__(None, None, None)
                     await sse_ctx.__aexit__(None, None, None)
-                except: pass
+                except Exception:
+                    pass
                 self._sessions.pop(port, None)
                 self._contexts.pop(port, None)
                 self._schemas.pop(port, None)
@@ -268,23 +480,27 @@ class TitanSessionPool:
     async def shutdown(self):
         """Gracefully close all pooled sessions."""
         async with self.lock:
-            if not self._sessions: return
+            if not self._sessions:
+                return
             print(f"  🛑 [POOL] Closing {len(self._sessions)} persistent sessions...")
             for port in list(self._contexts.keys()):
                 await self.purge_session(port)
 
+
 # Global session pool singleton
 session_pool = TitanSessionPool()
 
+
 class MCPManager:
     """Singularity Grade: Infinite Resilience Orchestrator.
-    
+
     Supports two execution modes:
     - **Development / Normal**: Spawns each MCP server as a subprocess via sys.executable
     - **Frozen (PyInstaller)**: Imports each server module in-process and runs its
       FastMCP SSE app in a daemon thread, since sys.executable is the frozen .exe
       and can't execute .py scripts.
     """
+
     def __init__(self):
         self.processes: Dict[str, subprocess.Popen] = {}
         self._inprocess_threads: Dict[str, threading.Thread] = {}
@@ -293,15 +509,16 @@ class MCPManager:
 
     async def bootstrap(self):
         """Ultra-Fast Parallel Startup with Consolidated Progress."""
-        if self._running: return
+        if self._running:
+            return
         self._running = True
-        
+
         mode_label = "IN-PROCESS" if is_frozen() else "SUBPROCESS"
-        
+
         # INDUSTRIAL PURGE: Clear zombie processes from target ports before starting
         if not is_frozen():
             await asyncio.to_thread(self._purge_zombies)
-        
+
         # INDUSTRIAL PATH INJECTION: Prepend bundled Node.js to PATH
         node_dir = _get_node_runtime_path()
         if node_dir:
@@ -309,15 +526,19 @@ class MCPManager:
                 bin_path = node_dir
             else:
                 bin_path = os.path.join(node_dir, "bin")
-            
+
             if bin_path not in os.environ.get("PATH", ""):
-                os.environ["PATH"] = f"{bin_path}{os.pathsep}{os.environ.get('PATH', '')}"
+                os.environ["PATH"] = (
+                    f"{bin_path}{os.pathsep}{os.environ.get('PATH', '')}"
+                )
                 print(f"  🧠 [INIT] Injected bundled Node.js into PATH: {bin_path}")
-        
+
         configs = list(SSE_CONFIGS.items())
         total = len(configs)
-        print(f"🚀 [INIT] Bootstrapping {total} MCP Tool Servers ({mode_label} mode)...")
-        
+        print(
+            f"🚀 [INIT] Bootstrapping {total} MCP Tool Servers ({mode_label} mode)..."
+        )
+
         # High-concurrency parallel startup
         ready_count = 0
         failed_servers = []
@@ -325,7 +546,7 @@ class MCPManager:
 
         # Industrial Throttle: Balance speed vs OS congestion
         launch_semaphore = asyncio.Semaphore(10)
-        
+
         async def _launch(key, cfg):
             nonlocal ready_count
             async with launch_semaphore:
@@ -334,69 +555,81 @@ class MCPManager:
                     if success:
                         ready_count += 1
                     else:
-                        failed_servers.append(cfg['name'])
-                    print(f"  ⚡ MCP Progress: [{ready_count}/{total}] servers ready", end="\r")
-        
+                        failed_servers.append(cfg["name"])
+                    print(
+                        f"  ⚡ MCP Progress: [{ready_count}/{total}] servers ready",
+                        end="\r",
+                    )
+
         await asyncio.gather(*[_launch(k, c) for k, c in configs])
-        
+
         # Final status
-        print(f"\n✨ [INIT] MCP Servers: {ready_count}/{total} operational ({mode_label}). Watchdog active.")
+        print(
+            f"\n✨ [INIT] MCP Servers: {ready_count}/{total} operational ({mode_label}). Watchdog active."
+        )
         if failed_servers:
             print(f"  ⚠️ Failed: {', '.join(failed_servers)}")
-        
+
         # Start the Watchdog
         self.watchdog_task = asyncio.create_task(self._watchdog_loop())
 
     def _purge_zombies(self):
         """Singularity Grade: Purge any rogue processes holding MCP ports on this machine."""
         import psutil
+
         target_ports = {cfg["port"] for cfg in SSE_CONFIGS.values()}
         purged_count = 0
-        
-        for conn in psutil.net_connections(kind='inet'):
-            if conn.status == 'LISTEN' and conn.laddr.port in target_ports:
+
+        for conn in psutil.net_connections(kind="inet"):
+            if conn.status == "LISTEN" and conn.laddr.port in target_ports:
                 try:
                     proc = psutil.Process(conn.pid)
-                    print(f"  🧹 [PURGE] Terminating zombie process {proc.pid} ({proc.name()}) holding port {conn.laddr.port}...")
+                    print(
+                        f"  🧹 [PURGE] Terminating zombie process {proc.pid} ({proc.name()}) holding port {conn.laddr.port}..."
+                    )
                     proc.terminate()
                     purged_count += 1
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     continue
-        
+
         if purged_count > 0:
-            print(f"  ✨ [PURGE] Cleared {purged_count} rogue process(es). Ready for clean boot.")
+            print(
+                f"  ✨ [PURGE] Cleared {purged_count} rogue process(es). Ready for clean boot."
+            )
 
     def _run_server_inprocess(self, key: str, module_path: str, port: int):
         """Run an MCP server in-process in a daemon thread.
-        
+
         This is the frozen-mode alternative to subprocess.Popen. Each server module
         exposes a `mcp = FastMCP(...)` instance. We import the module, find that
         instance, and run its SSE transport via uvicorn in a background thread.
         """
+
         def _thread_target():
             try:
                 import uvicorn
+
                 # Import the server module dynamically
                 mod = importlib.import_module(module_path)
-                
+
                 # Find the FastMCP instance (conventionally named 'mcp')
-                mcp_app = getattr(mod, 'mcp', None)
+                mcp_app = getattr(mod, "mcp", None)
                 if mcp_app is None:
                     # Fallback: look for any FastMCP instance
                     for attr_name in dir(mod):
                         obj = getattr(mod, attr_name, None)
-                        if type(obj).__name__ == 'FastMCP':
+                        if type(obj).__name__ == "FastMCP":
                             mcp_app = obj
                             break
-                
+
                 if mcp_app is None:
                     print(f"  ❌ [INPROC] No FastMCP instance found in {module_path}")
                     return
-                
+
                 # Get the ASGI app from FastMCP for uvicorn
                 # FastMCP.sse_app() returns a Starlette ASGI application
                 asgi_app = mcp_app.sse_app()
-                
+
                 # Run uvicorn in this thread (blocking)
                 uvicorn.run(
                     asgi_app,
@@ -407,62 +640,65 @@ class MCPManager:
                 )
             except Exception as e:
                 print(f"  ❌ [INPROC] Failed to start {key} ({module_path}): {e}")
-        
+
         thread = threading.Thread(
             target=_thread_target,
             name=f"mcp-{key}-{port}",
-            daemon=True  # Die with main process
+            daemon=True,  # Die with main process
         )
         thread.start()
         self._inprocess_threads[key] = thread
 
-    async def ensure_server_running(self, key: str, cfg: Dict[str, Any], index: int = 0, total: int = 0):
+    async def ensure_server_running(
+        self, key: str, cfg: Dict[str, Any], index: int = 0, total: int = 0
+    ):
         """Ensure a specific server is operational, restart if needed. Returns True if healthy.
-        
+
         Automatically selects in-process (frozen) or subprocess (dev) mode.
         """
         # Immediate fast-path check
         if await self._is_server_healthy_async(cfg):
-            return True 
-        
+            return True
+
         # ── FROZEN MODE: In-Process Thread Runner ──
         if is_frozen():
             module_path = _SERVER_MODULE_MAP.get(cfg["path"])
             if not module_path:
                 print(f"  ❌ [INPROC] No module mapping for {cfg['path']}")
                 return False
-            
+
             try:
                 # Set environment for the server
                 os.environ["FASTMCP_PORT"] = str(cfg["port"])
-                
+
                 # Launch in daemon thread
                 await asyncio.to_thread(
                     self._run_server_inprocess, key, module_path, cfg["port"]
                 )
-                
+
                 # Poll for readiness (10s timeout)
                 for _ in range(200):
                     await asyncio.sleep(0.05)
                     if await self._is_server_healthy_async(cfg):
                         return True
-                
+
                 return False
             except Exception as e:
                 print(f"  ❌ [INPROC] Error starting {cfg['name']}: {e}")
                 return False
-        
+
         # ── NORMAL MODE: Subprocess ──
         try:
             current_env = os.environ.copy()
             mcp_root = os.path.dirname(os.path.abspath(__file__))
-            
+
             # Redirect output to log file
             from myth_utils.paths import get_app_data_path
+
             log_dir = get_app_data_path("logs/mcp")
             log_file = os.path.join(log_dir, f"{key}.log")
             try:
-                server_log = open(log_file, "w") 
+                server_log = open(log_file, "w")
             except Exception:
                 server_log = subprocess.DEVNULL
 
@@ -477,11 +713,13 @@ class MCPManager:
                 cwd=mcp_root,
                 stdout=server_log,
                 stderr=subprocess.STDOUT,
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+                if sys.platform == "win32"
+                else 0,
             )
             self.processes[key] = p
             _server_processes.append(p)
-            
+
             # Industrial Polling: 200 * 0.05s = 10s timeout for complex cold-starts
             for _ in range(200):
                 await asyncio.sleep(0.05)
@@ -490,10 +728,10 @@ class MCPManager:
                 # If process died early, exit early
                 if p.poll() is not None:
                     break
-            
-            return False 
+
+            return False
         except Exception:
-            return False 
+            return False
 
     async def _is_server_healthy_async(self, cfg: Dict[str, Any]) -> bool:
         """Industrial Non-Blocking Health Check: Offload socket ops to avoid stalling event loop."""
@@ -506,13 +744,15 @@ class MCPManager:
                 recovery_tasks = []
                 for key, cfg in SSE_CONFIGS.items():
                     if not await self._is_server_healthy_async(cfg):
-                        print(f"⚠️ [WATCHDOG] {cfg['name']} on port {cfg['port']} is UNHEALTHY. Heal scheduled...")
+                        print(
+                            f"⚠️ [WATCHDOG] {cfg['name']} on port {cfg['port']} is UNHEALTHY. Heal scheduled..."
+                        )
                         recovery_tasks.append(self.ensure_server_running(key, cfg))
-                
-                if recovery_tasks:
-                   await asyncio.gather(*recovery_tasks) 
 
-                await asyncio.sleep(10) # Industrial interval
+                if recovery_tasks:
+                    await asyncio.gather(*recovery_tasks)
+
+                await asyncio.sleep(10)  # Industrial interval
             except asyncio.CancelledError:
                 break
             except Exception:
@@ -524,8 +764,8 @@ class MCPManager:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(0.5)
-                return s.connect_ex(('127.0.0.1', port)) == 0
-        except:
+                return s.connect_ex(("127.0.0.1", port)) == 0
+        except Exception:
             return False
 
     async def shutdown(self):
@@ -533,54 +773,58 @@ class MCPManager:
         self._running = False
         if self.watchdog_task:
             self.watchdog_task.cancel()
-        
-        print("\n🛑 [SINGULARITY] Extinguishing Tool Infrastructure...")
+
+        print("\n🛑 [MYTH] Extinguishing Tool Infrastructure...")
         for key, p in list(self.processes.items()):
             try:
                 p.terminate()
                 p.wait(timeout=1)
-            except:
-                try: p.kill()
-                except: pass
+            except Exception:
+                try:
+                    p.kill()
+                except Exception:
+                    pass
         self.processes.clear()
+
 
 # Instantiate manager
 manager = MCPManager()
+
 
 async def start_mcp_servers(wait_for_ready: bool = False) -> bool:
     """Async engine to bootstrap tooling."""
     await manager.bootstrap()
     return True
 
+
 def stop_mcp_servers(signum=None, frame=None):
     """Atomic shutdown: ensure every subprocess is killed."""
     global _server_processes
     print("\n🛑 Initiating Atomic Shutdown...")
-    
+
     if manager:
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                asyncio.create_task(manager.shutdown())
-                asyncio.create_task(session_pool.shutdown())
-            else:
-                loop.run_until_complete(manager.shutdown())
-                loop.run_until_complete(session_pool.shutdown())
-        except: pass
+            manager.shutdown()
+        except Exception:
+            pass
 
     # Force kill any remaining rogue processes
     for p in _server_processes:
         try:
-            p.terminate()
-        except: pass
-    
+            p.kill()
+        except Exception:
+            pass
+
     _server_processes = []
-    print("✨ System clean. Singularity extinguished.")
+    print("✨ System clean. MYTH extinguished.")
+
 
 # ==================== MCP TOOL IMPLEMENTATION ====================
 
+
 class GenericArgs(BaseModel):
     """Generic arguments schema for tools where we don't know the exact schema."""
+
     query: Optional[str] = Field(default=None, description="Generic query parameter")
     input: Optional[str] = Field(default=None, description="Generic input parameter")
     text: Optional[str] = Field(default=None, description="Generic text parameter")
@@ -596,135 +840,203 @@ class GenericArgs(BaseModel):
     repo: Optional[str] = Field(default=None, description="Repository parameter")
     length: Optional[int] = Field(default=None, description="Length parameter")
     password: Optional[str] = Field(default=None, description="Password parameter")
-    include_special: Optional[bool] = Field(default=None, description="Include special characters")
-    use_special: Optional[bool] = Field(default=None, description="Use special characters")
-    use_special_chars: Optional[bool] = Field(default=None, description="Use special characters")
+    include_special: Optional[bool] = Field(
+        default=None, description="Include special characters"
+    )
+    use_special: Optional[bool] = Field(
+        default=None, description="Use special characters"
+    )
+    use_special_chars: Optional[bool] = Field(
+        default=None, description="Use special characters"
+    )
+
 
 class ParameterMapper:
     """Maps and normalizes parameters for MCP tools."""
-    
+
     @staticmethod
     def map_parameters(tool_name: str, kwargs: Dict[str, Any]) -> Dict[str, Any]:
         """Map LLM parameter names to MCP tool parameter names."""
         mapped = kwargs.copy()
-        
+
         # Debug
         print(f"   🐛 DEBUG ParameterMapper.map_parameters for {tool_name}")
         print(f"   🐛 DEBUG Input kwargs: {kwargs}")
-        
+
         # Tool-specific mappings
         if tool_name == "generate_password":
             # ... password mapping ...
-            if "use_special" in mapped: mapped["include_special"] = mapped.pop("use_special")
-            if "use_special_chars" in mapped: mapped["include_special"] = mapped.pop("use_special_chars")
-            if "special" in mapped: mapped["include_special"] = mapped.pop("special")
-            if "password_length" in mapped: mapped["length"] = mapped.pop("password_length")
-            elif "len" in mapped: mapped["length"] = mapped.pop("len")
-            if "length" not in mapped: mapped["length"] = 12
-            
+            if "use_special" in mapped:
+                mapped["include_special"] = mapped.pop("use_special")
+            if "use_special_chars" in mapped:
+                mapped["include_special"] = mapped.pop("use_special_chars")
+            if "special" in mapped:
+                mapped["include_special"] = mapped.pop("special")
+            if "password_length" in mapped:
+                mapped["length"] = mapped.pop("password_length")
+            elif "len" in mapped:
+                mapped["length"] = mapped.pop("len")
+            if "length" not in mapped:
+                mapped["length"] = 12
+
         elif tool_name == "extract_strings":
-            if "input" in mapped: mapped["file_path"] = mapped.pop("input")
-            if "path" in mapped: mapped["file_path"] = mapped.pop("path")
-            
+            if "input" in mapped:
+                mapped["file_path"] = mapped.pop("input")
+            if "path" in mapped:
+                mapped["file_path"] = mapped.pop("path")
+
         elif tool_name == "analyze_file_hash":
-            if "input" in mapped: mapped["file_path"] = mapped.pop("input")
-            if "path" in mapped: mapped["file_path"] = mapped.pop("path")
+            if "input" in mapped:
+                mapped["file_path"] = mapped.pop("input")
+            if "path" in mapped:
+                mapped["file_path"] = mapped.pop("path")
 
         elif tool_name == "check_open_ports":
-            if "target" in mapped: mapped["host"] = mapped.pop("target")
-            if "address" in mapped: mapped["host"] = mapped.pop("address")
+            if "target" in mapped:
+                mapped["host"] = mapped.pop("target")
+            if "address" in mapped:
+                mapped["host"] = mapped.pop("address")
 
         elif tool_name == "shodan_search":
-            if "input" in mapped: mapped["query"] = mapped.pop("input")
-            
+            if "input" in mapped:
+                mapped["query"] = mapped.pop("input")
+
         elif tool_name == "search_repositories":
             # ... github mapping ...
             github_creds = config.get_credentials("github")
-            github_username = github_creds.get("username") if isinstance(github_creds, dict) else agent_config.runtime.node_id.lower()
-            if "username" in mapped: mapped["query"] = f"user:{mapped.pop('username')}"
-            elif "user" in mapped: mapped["query"] = f"user:{mapped.pop('user')}"
-            elif "owner" in mapped: mapped["query"] = f"user:{mapped.pop('owner')}"
-            elif "query" not in mapped: mapped["query"] = f"user:{github_username}"
+            github_username = (
+                github_creds.get("username")
+                if isinstance(github_creds, dict)
+                else agent_config.runtime.node_id.lower()
+            )
+            if "username" in mapped:
+                mapped["query"] = f"user:{mapped.pop('username')}"
+            elif "user" in mapped:
+                mapped["query"] = f"user:{mapped.pop('user')}"
+            elif "owner" in mapped:
+                mapped["query"] = f"user:{mapped.pop('owner')}"
+            elif "query" not in mapped:
+                mapped["query"] = f"user:{github_username}"
             query = mapped.get("query", "")
             if "user:" not in query.lower() and "owner:" not in query.lower():
                 mapped["query"] = f"user:{github_username} {query}".strip()
-        
+
         elif tool_name == "registry_read":
-            if "key" in mapped: mapped["subkey"] = mapped.pop("key")
-            if "path" in mapped: mapped["subkey"] = mapped.pop("path")
-            if "root" in mapped: mapped["root_key"] = mapped.pop("root")
-            if "value" in mapped: mapped["value_name"] = mapped.pop("value")
-            
+            if "key" in mapped:
+                mapped["subkey"] = mapped.pop("key")
+            if "path" in mapped:
+                mapped["subkey"] = mapped.pop("path")
+            if "root" in mapped:
+                mapped["root_key"] = mapped.pop("root")
+            if "value" in mapped:
+                mapped["value_name"] = mapped.pop("value")
+
         elif tool_name == "list_services":
-            if "status" in mapped: mapped["status_filter"] = mapped.pop("status")
-            if "filter" in mapped: mapped["status_filter"] = mapped.pop("filter")
+            if "status" in mapped:
+                mapped["status_filter"] = mapped.pop("status")
+            if "filter" in mapped:
+                mapped["status_filter"] = mapped.pop("filter")
 
         elif tool_name == "dns_lookup":
-            if "url" in mapped: mapped["domain"] = mapped.pop("url")
-            if "host" in mapped: mapped["domain"] = mapped.pop("host")
-            if "type" in mapped: mapped["record_type"] = mapped.pop("type")
-            if "record" in mapped: mapped["record_type"] = mapped.pop("record")
+            if "url" in mapped:
+                mapped["domain"] = mapped.pop("url")
+            if "host" in mapped:
+                mapped["domain"] = mapped.pop("host")
+            if "type" in mapped:
+                mapped["record_type"] = mapped.pop("type")
+            if "record" in mapped:
+                mapped["record_type"] = mapped.pop("record")
 
         elif tool_name == "ssl_cert_check":
-            if "host" in mapped: mapped["hostname"] = mapped.pop("host")
-            if "url" in mapped: mapped["hostname"] = mapped.pop("url")
-            if "domain" in mapped: mapped["hostname"] = mapped.pop("domain")
-            
+            if "host" in mapped:
+                mapped["hostname"] = mapped.pop("host")
+            if "url" in mapped:
+                mapped["hostname"] = mapped.pop("url")
+            if "domain" in mapped:
+                mapped["hostname"] = mapped.pop("domain")
+
         return mapped
+
 
 class MCPTool(BaseTool):
     """A concrete implementation of BaseTool for MCP tools."""
-    
+
     port: int = Field(default=8001, description="Port of the MCP server")
-    server_type: str = Field(default="sse", description="Type of server (sse or github)")
-    original_tool_name: str = Field(default="", description="Original tool name from MCP server")
+    server_type: str = Field(
+        default="sse", description="Type of server (sse or github)"
+    )
+    original_tool_name: str = Field(
+        default="", description="Original tool name from MCP server"
+    )
     category: str = Field(default="utilities", description="Mission area category")
-    mcp_input_schema: Optional[Dict] = Field(default=None, description="Original JSON schema for arguments")
-    
+    mcp_input_schema: Optional[Dict] = Field(
+        default=None, description="Original JSON schema for arguments"
+    )
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    
+
     def __init__(self, **kwargs):
         # Store original tool name
-        if 'original_tool_name' not in kwargs and 'name' in kwargs:
-            kwargs['original_tool_name'] = kwargs['name']
-            
+        if "original_tool_name" not in kwargs and "name" in kwargs:
+            kwargs["original_tool_name"] = kwargs["name"]
+
         # If we have an mcp_input_schema but no specific args_schema, try to reconstruct it for the LLM
-        if kwargs.get('mcp_input_schema') and ('args_schema' not in kwargs or kwargs['args_schema'] == GenericArgs):
+        if kwargs.get("mcp_input_schema") and (
+            "args_schema" not in kwargs or kwargs["args_schema"] == GenericArgs
+        ):
             try:
                 # Basic reconstruction: Create a Pydantic model from JSON schema
                 # This helps the LLM see the actual parameters instead of "GenericArgs"
                 from pydantic import create_model
-                
-                schema = kwargs['mcp_input_schema']
-                properties = schema.get('properties', {})
-                required = schema.get('required', [])
-                
+
+                schema = kwargs["mcp_input_schema"]
+                properties = schema.get("properties", {})
+                required = schema.get("required", [])
+
                 fields = {}
                 for prop_name, prop_info in properties.items():
-                    prop_type = Any # Default
+                    prop_type = Any  # Default
                     # Map basic JSON types to Python types
-                    json_type = prop_info.get('type')
-                    if json_type == 'string': prop_type = str
-                    elif json_type == 'integer': prop_type = int
-                    elif json_type == 'number': prop_type = float
-                    elif json_type == 'boolean': prop_type = bool
-                    elif json_type == 'array': prop_type = List
-                    elif json_type == 'object': prop_type = Dict
-                    
-                    default = ... if prop_name in required else prop_info.get('default', None)
-                    fields[prop_name] = (Optional[prop_type] if prop_name not in required else prop_type, Field(default=default, description=prop_info.get('description', '')))
-                
+                    json_type = prop_info.get("type")
+                    if json_type == "string":
+                        prop_type = str
+                    elif json_type == "integer":
+                        prop_type = int
+                    elif json_type == "number":
+                        prop_type = float
+                    elif json_type == "boolean":
+                        prop_type = bool
+                    elif json_type == "array":
+                        prop_type = List
+                    elif json_type == "object":
+                        prop_type = Dict
+
+                    default = (
+                        ... if prop_name in required else prop_info.get("default", None)
+                    )
+                    fields[prop_name] = (
+                        Optional[prop_type] if prop_name not in required else prop_type,
+                        Field(
+                            default=default,
+                            description=prop_info.get("description", ""),
+                        ),
+                    )
+
                 if fields:
-                    kwargs['args_schema'] = create_model(f"{kwargs['name']}Args", **fields)
+                    kwargs["args_schema"] = create_model(
+                        f"{kwargs['name']}Args", **fields
+                    )
             except Exception as e:
-                print(f"⚠️ [MCP] Failed to reconstruct schema for {kwargs.get('name')}: {e}")
-                if 'args_schema' not in kwargs:
-                    kwargs['args_schema'] = GenericArgs
-        elif 'args_schema' not in kwargs:
-            kwargs['args_schema'] = GenericArgs
-            
+                logger.warning(
+                    f"⚠️ [MCP] Failed to reconstruct schema for {kwargs.get('name')}: {e}"
+                )
+                if "args_schema" not in kwargs:
+                    kwargs["args_schema"] = GenericArgs
+        elif "args_schema" not in kwargs:
+            kwargs["args_schema"] = GenericArgs
+
         super().__init__(**kwargs)
-    
+
     def _run(
         self,
         tool_input: Union[str, Dict],
@@ -732,10 +1044,10 @@ class MCPTool(BaseTool):
         **kwargs: Any,
     ) -> str:
         """Synchronous run method."""
-        print(f"   🐛 DEBUG MCPTool._run called")
-        print(f"   🐛 DEBUG tool_input type: {type(tool_input)}, value: {tool_input}")
-        print(f"   🐛 DEBUG kwargs: {kwargs}")
-        
+        logger.debug(f"   🐛 DEBUG MCPTool._run called for {self.name}")
+        logger.debug(f"   🐛 DEBUG tool_input type: {type(tool_input)}")
+        logger.debug(f"   🐛 DEBUG kwargs: {kwargs}")
+
         # Handle the input based on its type
         if isinstance(tool_input, dict):
             # Dictionary input - combine with kwargs
@@ -759,11 +1071,11 @@ class MCPTool(BaseTool):
             # Unknown type, just use kwargs
             combined_input = kwargs.copy()
             print(f"   🐛 DEBUG Combined input from kwargs only: {combined_input}")
-        
+
         # Map parameters
         final_kwargs = ParameterMapper.map_parameters(self.name, combined_input)
         print(f"   🐛 DEBUG Final kwargs for {self.name}: {final_kwargs}")
-        
+
         try:
             # Run async code synchronously
             if self.server_type == "sse":
@@ -780,7 +1092,9 @@ class MCPTool(BaseTool):
                 if self.server_type == "sse":
                     result = loop.run_until_complete(self._run_sse_tool(**final_kwargs))
                 elif self.server_type == "github":
-                    result = loop.run_until_complete(self._run_github_tool(**final_kwargs))
+                    result = loop.run_until_complete(
+                        self._run_github_tool(**final_kwargs)
+                    )
                 else:
                     result = f"Unknown server type: {self.server_type}"
                 loop.close()
@@ -788,7 +1102,7 @@ class MCPTool(BaseTool):
             except Exception as e:
                 loop.close()
                 return f"Error running tool '{self.name}': {str(e)}"
-    
+
     async def _arun(
         self,
         tool_input: Union[str, Dict] = None,
@@ -796,10 +1110,10 @@ class MCPTool(BaseTool):
         **kwargs: Any,
     ) -> str:
         """Async run method."""
-        print(f"   🐛 DEBUG MCPTool._arun called")
+        print("   🐛 DEBUG MCPTool._arun called")
         print(f"   🐛 DEBUG tool_input type: {type(tool_input)}, value: {tool_input}")
         print(f"   🐛 DEBUG kwargs: {kwargs}")
-        
+
         # Handle the input based on its type
         if isinstance(tool_input, dict):
             # Dictionary input - combine with kwargs
@@ -823,11 +1137,11 @@ class MCPTool(BaseTool):
             # None or unknown type, just use kwargs
             combined_input = kwargs.copy()
             print(f"   🐛 DEBUG Combined input from kwargs only: {combined_input}")
-        
+
         # Map parameters
         final_kwargs = ParameterMapper.map_parameters(self.name, combined_input)
         print(f"   🐛 DEBUG Final kwargs for {self.name}: {final_kwargs}")
-        
+
         # Singularity Grade: Set Quantum Correlation ID
         try:
             from mcp_common import MCPUtils
@@ -838,37 +1152,37 @@ class MCPTool(BaseTool):
                 # Fallback for direct scripts
                 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
                 from mcp_common import MCPUtils
-                
+
         cid = kwargs.get("correlation_id", MCPUtils.set_correlation_id())
         MCPUtils.set_correlation_id(cid)
-        
+
         if self.server_type == "sse":
             return await self._run_sse_tool(**final_kwargs)
         elif self.server_type == "github":
             return await self._run_github_tool(**final_kwargs)
         else:
             return f"Unknown server type: {self.server_type}"
-    
+
     async def _run_sse_tool(self, **kwargs: Any) -> str:
         """Run a tool on an SSE server using the Titan persistent session pool."""
         try:
             # ACQUIRE POOLED SESSION (Handshake skipped if warm)
             session, server_tools = await session_pool.get_session(self.port)
-            
+
             # Find the specific tool
             target_tool = None
             for tool in server_tools:
-                if hasattr(tool, 'name') and tool.name == self.original_tool_name:
+                if hasattr(tool, "name") and tool.name == self.original_tool_name:
                     target_tool = tool
                     break
-            
+
             if not target_tool:
                 # Try with our name if original_tool_name not found
                 for tool in server_tools:
-                    if hasattr(tool, 'name') and tool.name == self.name:
+                    if hasattr(tool, "name") and tool.name == self.name:
                         target_tool = tool
                         break
-            
+
             if target_tool:
                 # Clean kwargs - convert bool to string if needed for MCP
                 cleaned_kwargs = {}
@@ -877,13 +1191,13 @@ class MCPTool(BaseTool):
                         cleaned_kwargs[key] = str(value).lower()
                     else:
                         cleaned_kwargs[key] = value
-                
+
                 # Execute tool using the fastest available method
                 result = None
                 start_exec = time.perf_counter()
-                
+
                 try:
-                    if hasattr(target_tool, 'func') and callable(target_tool.func):
+                    if hasattr(target_tool, "func") and callable(target_tool.func):
                         func = target_tool.func
                         if asyncio.iscoroutinefunction(func):
                             result = await func(**cleaned_kwargs)
@@ -894,89 +1208,103 @@ class MCPTool(BaseTool):
                             result = await target_tool(**cleaned_kwargs)
                         else:
                             result = target_tool(**cleaned_kwargs)
-                    elif hasattr(target_tool, 'ainvoke'):
+                    elif hasattr(target_tool, "ainvoke"):
                         result = await target_tool.ainvoke(cleaned_kwargs)
-                    elif hasattr(target_tool, 'invoke'):
+                    elif hasattr(target_tool, "invoke"):
                         result = target_tool.invoke(cleaned_kwargs)
-                    elif hasattr(target_tool, '_arun'):
+                    elif hasattr(target_tool, "_arun"):
                         result = await target_tool._arun(**cleaned_kwargs)
-                    elif hasattr(target_tool, '_run'):
+                    elif hasattr(target_tool, "_run"):
                         result = target_tool._run(**cleaned_kwargs)
                     else:
                         return f"Tool '{self.name}' is not callable."
                 except Exception as e:
                     # If call failed, the session might be dead. Purge and report.
                     logger = logging.getLogger("mcp_fortress")
-                    logger.warning(f"⚡ [POOL] Session error on port {self.port}: {e}. Purging.")
+                    logger.warning(
+                        f"⚡ [POOL] Session error on port {self.port}: {e}. Purging."
+                    )
                     await session_pool.purge_session(self.port)
                     return f"Execution error: {str(e)}"
-                
+
+                elapsed = time.perf_counter() - start_exec
+                logger.info(f"⚡ [POOL] Tool {self.name} executed in {elapsed:.3f}s")
                 return self._process_result(result)
             else:
                 return f"Tool '{self.name}' not found on server {self.port}."
-                
+
         except Exception as e:
-            import traceback
             error_msg = f"Error running pooled tool '{self.name}': {str(e)}"
             print(f"  ❌ {error_msg}")
             return error_msg
-    
+
     async def _run_github_tool(self, **kwargs: Any) -> str:
         """Run a tool on GitHub server."""
         try:
-            from mcp import ClientSession
-            from mcp.client.stdio import stdio_client, StdioServerParameters
             from langchain_mcp_adapters.tools import load_mcp_tools
-            
+            from mcp import ClientSession
+            from mcp.client.stdio import StdioServerParameters, stdio_client
+
             github_creds = config.get_credentials("github")
-            github_token = github_creds.get("token") if isinstance(github_creds, dict) else config.get_api_key("github")
-            
+            github_token = (
+                github_creds.get("token")
+                if isinstance(github_creds, dict)
+                else config.get_api_key("github")
+            )
+
             if not github_token:
-                return "❌ GitHub token not found in rotation. Please check secrets.yaml"
-            
+                return (
+                    "❌ GitHub token not found in rotation. Please check secrets.yaml"
+                )
+
             if not _is_npx_available():
                 return "❌ GitHub MCP tools require Node.js (npx). Install Node.js from https://nodejs.org to enable GitHub integration."
-            
+
             print(f"  🔧 Connecting to GitHub MCP server for {self.name}")
             print(f"  🔧 Tool args: {kwargs}")
-            
+
             npx_cmd = _get_npx_cmd()
-            
+
             params = StdioServerParameters(
                 command=npx_cmd,
                 args=["-y", "@modelcontextprotocol/server-github"],
-                env={**os.environ, "GITHUB_PERSONAL_ACCESS_TOKEN": github_token}
+                env={**os.environ, "GITHUB_PERSONAL_ACCESS_TOKEN": github_token},
             )
-            
+
             # Connect to GitHub server
             stdio_ctx = stdio_client(params)
             read, write = await stdio_ctx.__aenter__()
-            
+
             try:
                 session_ctx = ClientSession(read, write)
                 session = await session_ctx.__aenter__()
-                
+
                 try:
                     await session.initialize()
                     server_tools = await load_mcp_tools(session)
-                    
+
                     # Find the specific tool
                     target_tool = None
                     for tool in server_tools:
-                        if hasattr(tool, 'name') and tool.name == self.original_tool_name:
+                        if (
+                            hasattr(tool, "name")
+                            and tool.name == self.original_tool_name
+                        ):
                             target_tool = tool
                             break
-                    
+
                     if not target_tool:
                         # Try with our name if original_tool_name not found
                         for tool in server_tools:
-                            if hasattr(tool, 'name') and tool.name == self.name:
+                            if hasattr(tool, "name") and tool.name == self.name:
                                 target_tool = tool
                                 break
-                    
+
                     if target_tool:
-                        print(f"  🔧 Running GitHub MCP tool: {self.name} with args: {kwargs}")
-                        
+                        print(
+                            f"  🔧 Running GitHub MCP tool: {self.name} with args: {kwargs}"
+                        )
+
                         # Clean kwargs - convert bool to string if needed
                         cleaned_kwargs = {}
                         for key, value in kwargs.items():
@@ -984,11 +1312,11 @@ class MCPTool(BaseTool):
                                 cleaned_kwargs[key] = str(value).lower()
                             else:
                                 cleaned_kwargs[key] = value
-                        
+
                         # Try the same methods as SSE tools
                         result = None
-                        
-                        if hasattr(target_tool, 'func') and callable(target_tool.func):
+
+                        if hasattr(target_tool, "func") and callable(target_tool.func):
                             func = target_tool.func
                             if asyncio.iscoroutinefunction(func):
                                 result = await func(**cleaned_kwargs)
@@ -999,73 +1327,75 @@ class MCPTool(BaseTool):
                                 result = await target_tool(**cleaned_kwargs)
                             else:
                                 result = target_tool(**cleaned_kwargs)
-                        elif hasattr(target_tool, 'ainvoke'):
+                        elif hasattr(target_tool, "ainvoke"):
                             result = await target_tool.ainvoke(cleaned_kwargs)
-                        elif hasattr(target_tool, 'invoke'):
+                        elif hasattr(target_tool, "invoke"):
                             result = target_tool.invoke(cleaned_kwargs)
-                        elif hasattr(target_tool, '_arun'):
+                        elif hasattr(target_tool, "_arun"):
                             result = await target_tool._arun(**cleaned_kwargs)
-                        elif hasattr(target_tool, '_run'):
+                        elif hasattr(target_tool, "_run"):
                             result = target_tool._run(**cleaned_kwargs)
                         else:
                             return f"GitHub tool '{self.name}' is not callable"
-                        
+
                         # Process result
                         return self._process_result(result)
                     else:
                         return f"Tool '{self.name}' not found on GitHub server"
-                        
+
                 finally:
                     await session_ctx.__aexit__(None, None, None)
             finally:
                 await stdio_ctx.__aexit__(None, None, None)
-                
+
         except Exception as e:
             import traceback
+
             error_msg = f"Error running GitHub tool '{self.name}': {str(e)}\n{traceback.format_exc()}"
             print(f"  ❌ {error_msg}")
             return error_msg
-    
+
     def _process_result(self, result: Any) -> str:
         """Process tool result into string."""
         try:
             if result is None:
                 return "Tool returned None"
-            
+
             if isinstance(result, list):
                 text_parts = []
                 for item in result:
-                    if hasattr(item, 'text'):
+                    if hasattr(item, "text"):
                         text_parts.append(item.text)
-                    elif isinstance(item, dict) and 'text' in item:
-                        text_parts.append(item['text'])
+                    elif isinstance(item, dict) and "text" in item:
+                        text_parts.append(item["text"])
                     elif isinstance(item, str):
                         text_parts.append(item)
-                
+
                 if text_parts:
-                    return '\n'.join(text_parts)
+                    return "\n".join(text_parts)
                 else:
                     return str(result)
             elif isinstance(result, dict):
                 return json.dumps(result, indent=2)
-            elif hasattr(result, 'text'):
+            elif hasattr(result, "text"):
                 return result.text
             else:
                 return str(result)
         except Exception as e:
             return f"Error processing result: {str(e)}\nRaw result: {result}"
 
+
 async def _discover_from_sse(key: str, cfg: Dict[str, Any]) -> List[MCPTool]:
     """Helper to discover tools from a single SSE server."""
     tools = []
     url = f"http://127.0.0.1:{cfg['port']}/sse"
     try:
-        from mcp import ClientSession
-        from mcp.client.sse import sse_client
-        from langchain_mcp_adapters.tools import load_mcp_tools
-        
         # We use a short timeout for the connection attempt to fail fast if the server is offline
         import httpx
+        from langchain_mcp_adapters.tools import load_mcp_tools
+        from mcp import ClientSession
+        from mcp.client.sse import sse_client
+
         try:
             # INDUSTRIAL DISCOVERY: Force global 15s timeout for specific server discovery
             async def _discover():
@@ -1073,65 +1403,88 @@ async def _discover_from_sse(key: str, cfg: Dict[str, Any]) -> List[MCPTool]:
                     async with ClientSession(read, write) as session:
                         await session.initialize()
                         server_tools = await load_mcp_tools(session)
-                        
+
                         for server_tool in server_tools:
-                            if hasattr(server_tool, 'name'):
+                            if hasattr(server_tool, "name"):
                                 tool_name = server_tool.name
-                                tool_description = getattr(server_tool, 'description', f"Tool from {cfg['name']}")
-                                
+                                tool_description = getattr(
+                                    server_tool,
+                                    "description",
+                                    f"Tool from {cfg['name']}",
+                                )
+
                                 # Capture argument schema if available
-                                input_schema = _sanitize_schema(getattr(server_tool, 'args_schema', None))
-                                    
-                                category = _refine_category(tool_name, cfg.get("category", "utilities"))
-                                    
-                                tools.append(MCPTool(
-                                    name=tool_name,
-                                    description=tool_description,
-                                    port=cfg['port'],
-                                    server_type="sse",
-                                    original_tool_name=tool_name,
-                                    category=category,
-                                    mcp_input_schema=input_schema
-                                ))
-                        print(f"  ✅ Found {len(server_tools)} tools from {cfg['name']}")
+                                input_schema = _sanitize_schema(
+                                    getattr(server_tool, "args_schema", None)
+                                )
+
+                                category = _refine_category(
+                                    tool_name, cfg.get("category", "utilities")
+                                )
+
+                                tools.append(
+                                    MCPTool(
+                                        name=tool_name,
+                                        description=tool_description,
+                                        port=cfg["port"],
+                                        server_type="sse",
+                                        original_tool_name=tool_name,
+                                        category=category,
+                                        mcp_input_schema=input_schema,
+                                    )
+                                )
+                        print(
+                            f"  ✅ Found {len(server_tools)} tools from {cfg['name']}"
+                        )
                         return tools
 
             try:
-                # Execute with absolute 15s safety boundary
-                discovered_tools = await asyncio.wait_for(_discover(), timeout=15.0)
+                # Execute with absolute 45s safety boundary (increased from 15s for heavy servers)
+                discovered_tools = await asyncio.wait_for(_discover(), timeout=45.0)
                 return discovered_tools
             except asyncio.TimeoutError:
-                print(f"  ⚠️  Discovery timeout (15s) for {cfg['name']} on port {cfg['port']}. Skipping.")
+                print(
+                    f"  ⚠️  Discovery timeout (45s) for {cfg['name']} on port {cfg['port']}. Skipping."
+                )
                 return tools
         except (httpx.ConnectError, ConnectionRefusedError):
-            print(f"  ⚠️  Server '{cfg['name']}' is offline (Connection Refused). Skipping.")
+            print(
+                f"  ⚠️  Server '{cfg['name']}' is offline (Connection Refused). Skipping."
+            )
         except Exception as e:
             # Handle ExceptionGroup (Python 3.11+) if it contains ConnectError
             if "ExceptionGroup" in str(type(e)) or "BaseExceptionGroup" in str(type(e)):
-                 if "ConnectError" in str(e) or "All connection attempts failed" in str(e):
-                     print(f"  ⚠️  Server '{cfg['name']}' is offline (Connection Group Error). Skipping.")
-                     return tools
-            
-            print(f"  ❌ Failed to discover tools from {cfg['name']}: {type(e).__name__}: {e}")
-            
+                if "ConnectError" in str(e) or "All connection attempts failed" in str(
+                    e
+                ):
+                    print(
+                        f"  ⚠️  Server '{cfg['name']}' is offline (Connection Group Error). Skipping."
+                    )
+                    return tools
+
+            print(
+                f"  ❌ Failed to discover tools from {cfg['name']}: {type(e).__name__}: {e}"
+            )
+
     except Exception as e:
         print(f"  ❌ Discovery Orchestration Error for {cfg['name']}: {e}")
     return tools
 
-import json
-import sys
-import subprocess
 
 async def _run_discovery_worker():
     """Worker function: Runs in a separate process to discover GitHub tools."""
     try:
-        from mcp import ClientSession
-        from mcp.client.stdio import stdio_client, StdioServerParameters
         from langchain_mcp_adapters.tools import load_mcp_tools
-        
+        from mcp import ClientSession
+        from mcp.client.stdio import StdioServerParameters, stdio_client
+
         github_creds = config.get_credentials("github")
-        github_token = github_creds.get("token") if isinstance(github_creds, dict) else config.get_api_key("github")
-        
+        github_token = (
+            github_creds.get("token")
+            if isinstance(github_creds, dict)
+            else config.get_api_key("github")
+        )
+
         if not github_token:
             print(json.dumps({"error": "GitHub token not found in rotation"}))
             return
@@ -1141,56 +1494,71 @@ async def _run_discovery_worker():
         params = StdioServerParameters(
             command=npx_cmd,
             args=["-y", "@modelcontextprotocol/server-github"],
-            env={**os.environ, "GITHUB_PERSONAL_ACCESS_TOKEN": github_token}
+            env={**os.environ, "GITHUB_PERSONAL_ACCESS_TOKEN": github_token},
         )
-        
+
         tools_data = []
         async with stdio_client(params) as (read, write):
             async with ClientSession(read, write) as session:
                 await session.initialize()
                 server_tools = await load_mcp_tools(session)
-                
+
                 for tool in server_tools:
-                    if hasattr(tool, 'name'):
+                    if hasattr(tool, "name"):
                         # Capture schema for GitHub tools too
-                        input_schema = _sanitize_schema(getattr(tool, 'args_schema', None))
-                            
-                        tools_data.append({
-                            "name": tool.name,
-                            "description": getattr(tool, 'description', "GitHub tool"),
-                            "input_schema": input_schema
-                        })
-        
+                        input_schema = _sanitize_schema(
+                            getattr(tool, "args_schema", None)
+                        )
+
+                        tools_data.append(
+                            {
+                                "name": tool.name,
+                                "description": getattr(
+                                    tool, "description", "GitHub tool"
+                                ),
+                                "input_schema": input_schema,
+                            }
+                        )
+
         print(json.dumps({"success": True, "tools": tools_data}))
-        
+
     except Exception as e:
         print(json.dumps({"error": str(e)}))
+
 
 async def _discover_from_github() -> List[MCPTool]:
     """Helper to discover tools from GitHub using a detached worker process."""
     tools = []
     github_creds = config.get_credentials("github")
-    github_token = github_creds.get("token") if isinstance(github_creds, dict) else config.get_api_key("github")
-    
+    github_token = (
+        github_creds.get("token")
+        if isinstance(github_creds, dict)
+        else config.get_api_key("github")
+    )
+
     if not github_token:
         print("  ℹ️ GitHub token missing in rotation, skipping GitHub tools discovery")
         return []
-    
+
     if not _is_npx_available():
-        print("  ⚠️ Node.js (npx) not found. GitHub MCP tools disabled. Install Node.js to enable.")
+        print(
+            "  ⚠️ Node.js (npx) not found. GitHub MCP tools disabled. Install Node.js to enable."
+        )
         return []
 
     print("  🔍 Discovering tools from GitHub (Isolated Worker)...")
-    
+
     try:
         # Run this script in a subprocess with a flag
         script_path = os.path.abspath(__file__)
         python_exe = sys.executable
-        
+
         # Ensure the subprocess can import modules from the project root
         env = os.environ.copy()
         current_pythonpath = env.get("PYTHONPATH", "")
-        project_root = os.path.dirname(os.path.dirname(script_path)) # up one level from mcp_client.py
+        project_root = os.path.dirname(
+            os.path.dirname(script_path)
+        )  # up one level from mcp_client.py
         env["PYTHONPATH"] = f"{project_root}{os.pathsep}{current_pythonpath}"
 
         def _run_worker():
@@ -1203,132 +1571,220 @@ async def _discover_from_github() -> List[MCPTool]:
                     capture_output=True,
                     text=True,
                     check=False,
-                    timeout=120, # Extended from 20s to 120s
-                    env=env
+                    timeout=120,  # Extended from 20s to 120s
+                    env=env,
                 )
                 return result
             except subprocess.TimeoutExpired:
                 return None
-                
+
         # Run the subprocess in a thread to verify blocking behavior
         result = await asyncio.to_thread(_run_worker)
-        
+
         if result and result.returncode == 0:
             try:
                 output = json.loads(result.stdout.strip())
                 if output.get("success"):
                     tool_list = output.get("tools", [])
                     for t_data in tool_list:
-                        tools.append(MCPTool(
-                            name=t_data["name"],
-                            description=t_data["description"],
-                            port=0,
-                            server_type="github",
-                            original_tool_name=t_data["name"],
-                            category="intelligence",
-                            mcp_input_schema=_sanitize_schema(t_data.get("input_schema"))
-                        ))
+                        tools.append(
+                            MCPTool(
+                                name=t_data["name"],
+                                description=t_data["description"],
+                                port=0,
+                                server_type="github",
+                                original_tool_name=t_data["name"],
+                                category="intelligence",
+                                mcp_input_schema=_sanitize_schema(
+                                    t_data.get("input_schema")
+                                ),
+                            )
+                        )
                     print(f"  ✅ Found {len(tools)} tools from GitHub")
                 else:
                     print(f"  ❌ GitHub worker error: {output.get('error')}")
             except json.JSONDecodeError:
-                print(f"  ❌ Failed to parse GitHub worker output: {result.stdout[:100]}...")
+                print(
+                    f"  ❌ Failed to parse GitHub worker output: {result.stdout[:100]}..."
+                )
         elif result is None:
-             print("  ❌ GitHub tools discovery timed out (Worker timeout)")
+            print("  ❌ GitHub tools discovery timed out (Worker timeout)")
         else:
-             print(f"  ❌ GitHub worker failed (Exit {result.returncode}): {result.stderr[:100]}...")
-            
+            print(
+                f"  ❌ GitHub worker failed (Exit {result.returncode}): {result.stderr[:100]}..."
+            )
     except Exception as e:
         print(f"  ❌ Failed to run GitHub discovery worker: {e}")
-        
+
     return tools
 
-async def discover_mcp_tools_async(use_cache: bool = True, bootstrap_if_needed: bool = False) -> List[BaseTool]:
+
+async def _discover_from_brave() -> List[MCPTool]:
+    """Helper to discover tools from Brave Search using npx."""
+    tools = []
+    brave_creds = config.get_credentials("brave")
+    brave_api_key = (
+        brave_creds.get("keys")[0]
+        if isinstance(brave_creds, dict) and brave_creds.get("keys")
+        else config.get_api_key("brave")
+    )
+
+    if not brave_api_key:
+        print("  ℹ️ Brave API key missing in rotation, skipping Brave tools discovery")
+        return []
+
+    if not _is_npx_available():
+        print("  ⚠️ Node.js (npx) not found. Brave MCP tools disabled.")
+        return []
+
+    print("  🔍 Discovering tools from Brave Search...")
+
+    try:
+        from langchain_mcp_adapters.tools import load_mcp_tools
+        from mcp import ClientSession
+        from mcp.client.stdio import StdioServerParameters, stdio_client
+
+        npx_cmd = _get_npx_cmd()
+        params = StdioServerParameters(
+            command=npx_cmd,
+            args=["-y", "@modelcontextprotocol/server-brave-search"],
+            env={**os.environ, "BRAVE_API_KEY": brave_api_key},
+        )
+
+        async with stdio_client(params) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                server_tools = await load_mcp_tools(session)
+
+                for tool in server_tools:
+                    if hasattr(tool, "name"):
+                        input_schema = _sanitize_schema(
+                            getattr(tool, "args_schema", None)
+                        )
+
+                        tools.append(
+                            MCPTool(
+                                name=tool.name,
+                                description=getattr(
+                                    tool, "description", "Brave Search tool"
+                                ),
+                                port=0,
+                                server_type="brave",
+                                original_tool_name=tool.name,
+                                category="recon",
+                                mcp_input_schema=input_schema,
+                            )
+                        )
+                print(f"  ✅ Found {len(tools)} tools from Brave Search")
+    except Exception as e:
+        print(f"  ❌ Failed to discover tools from Brave: {e}")
+
+    return tools
+
+
+async def discover_mcp_tools_async(
+    use_cache: bool = True, bootstrap_if_needed: bool = False
+) -> List[BaseTool]:
     """Discover ALL tools from MCP servers dynamically in parallel with caching."""
-    
+
     if bootstrap_if_needed:
         print("🚀 [DISCOVERY] Ensuring servers are bootstrapped...")
         await start_mcp_servers()
-    
+
     # Check cache first
     current_fingerprint = _get_config_fingerprint()
-    
+
     if use_cache and os.path.exists(CACHE_FILE):
         try:
-            with open(CACHE_FILE, 'r') as f:
+            with open(CACHE_FILE, "r") as f:
                 cache_bundle = json.load(f)
-                
+
                 # Validation: Handle both old format (list) and new format (dict with metadata)
                 if isinstance(cache_bundle, dict):
                     cached_metadata = cache_bundle.get("metadata", {})
                     stored_fingerprint = cached_metadata.get("config_fingerprint")
-                    
+
                     if stored_fingerprint == current_fingerprint:
                         t_list = cache_bundle.get("tools", [])
                         cached_tools = []
                         for t_data in t_list:
                             tool_name = t_data["name"]
-                            category = _refine_category(tool_name, t_data.get("category", "utilities"))
-                            
-                            cached_tools.append(MCPTool(
-                                name=tool_name,
-                                description=t_data["description"],
-                                port=t_data.get("port", 8001),
-                                server_type=t_data.get("server_type", "sse"),
-                                original_tool_name=t_data.get("original_tool_name", tool_name),
-                                category=category,
-                                mcp_input_schema=t_data.get("input_schema")
-                            ))
-                        print(f"⚡ [CACHE] Successfully validated and loaded {len(cached_tools)} tools.")
+                            category = _refine_category(
+                                tool_name, t_data.get("category", "utilities")
+                            )
+
+                            cached_tools.append(
+                                MCPTool(
+                                    name=tool_name,
+                                    description=t_data["description"],
+                                    port=t_data.get("port", 8001),
+                                    server_type=t_data.get("server_type", "sse"),
+                                    original_tool_name=t_data.get(
+                                        "original_tool_name", tool_name
+                                    ),
+                                    category=category,
+                                    mcp_input_schema=t_data.get("input_schema"),
+                                )
+                            )
+                        print(
+                            f"⚡ [CACHE] Successfully validated and loaded {len(cached_tools)} tools."
+                        )
                         return cached_tools
                     else:
-                        print("🔄 [CACHE] Configuration drift detected. Re-discovering tools...")
+                        print(
+                            "🔄 [CACHE] Configuration drift detected. Re-discovering tools..."
+                        )
                 else:
                     # Legacy list format - always refresh to upgrade to metadata format
                     print("🔄 [CACHE] Upgrading legacy cache format...")
-                    
+
         except Exception as e:
             print(f"⚠️ [CACHE] Failed to load cache: {e}")
 
     print("🔍 Discovering MCP tools from servers (Parallel-Mode)...")
-    
+
     tasks = []
     # Queue up SSE tasks
     for key, cfg in SSE_CONFIGS.items():
         tasks.append(_discover_from_sse(key, cfg))
-    
+
     # Queue up GitHub task
     tasks.append(_discover_from_github())
-    
+
+    # Queue up Brave task
+    tasks.append(_discover_from_brave())
+
     # Run all discovery tasks in parallel
     results = await asyncio.gather(*tasks)
-    
+
     # Flatten results
     all_tools = [tool for sublist in results for tool in sublist]
-    
+
     # Save to cache
     try:
         tools_metadata = []
         for tool in all_tools:
-            tools_metadata.append({
-                "name": tool.name,
-                "description": tool.description,
-                "port": tool.port,
-                "server_type": tool.server_type,
-                "original_tool_name": tool.original_tool_name,
-                "category": tool.category,
-                "input_schema": tool.mcp_input_schema
-            })
-        
+            tools_metadata.append(
+                {
+                    "name": tool.name,
+                    "description": tool.description,
+                    "port": tool.port,
+                    "server_type": tool.server_type,
+                    "original_tool_name": tool.original_tool_name,
+                    "category": tool.category,
+                    "input_schema": tool.mcp_input_schema,
+                }
+            )
+
         cache_bundle = {
             "metadata": {
                 "config_fingerprint": current_fingerprint,
                 "timestamp": datetime.now().isoformat(),
-                "server_count": len(SSE_CONFIGS)
+                "server_count": len(SSE_CONFIGS),
             },
-            "tools": tools_metadata
+            "tools": tools_metadata,
         }
-        
+
         # Serialize to string first to ensure atomic write
         def _json_serial_fallback(obj):
             if isinstance(obj, (datetime)):
@@ -1338,14 +1794,17 @@ async def discover_mcp_tools_async(use_cache: bool = True, bootstrap_if_needed: 
             return f"<<Not Serializable: {type(obj)}>>"
 
         json_str = json.dumps(cache_bundle, indent=2, default=_json_serial_fallback)
-        with open(CACHE_FILE, 'w') as f:
+        with open(CACHE_FILE, "w") as f:
             f.write(json_str)
-        print(f"💾 [CACHE] Saved {len(all_tools)} tools to cache with config fingerprint {current_fingerprint[:8]}.")
+        print(
+            f"💾 [CACHE] Saved {len(all_tools)} tools to cache with config fingerprint {current_fingerprint[:8]}."
+        )
     except Exception as e:
         print(f"⚠️ [CACHE] Failed to save cache: {e}")
 
     print(f"🎯 Total MCP tools discovered: {len(all_tools)}")
     return all_tools
+
 
 def create_mcp_tools() -> List[BaseTool]:
     """Create MCP tools by dynamically discovering from servers."""
@@ -1361,55 +1820,67 @@ def create_mcp_tools() -> List[BaseTool]:
                 # However, during startup, we should ideally use async all the way.
                 # A common hack: run in a separate thread and wait
                 from concurrent.futures import ThreadPoolExecutor
+
                 with ThreadPoolExecutor() as executor:
                     future = executor.submit(asyncio.run, discover_mcp_tools_async())
                     return future.result()
         except RuntimeError:
             # No running loop, safe to use asyncio.run
             return asyncio.run(discover_mcp_tools_async())
-            
+
     except Exception as e:
         print(f"❌ Error in tool discovery: {e}")
         return []
+
 
 def get_all_mcp_tools() -> List[BaseTool]:
     """Get all MCP tools."""
     return create_mcp_tools()
 
+
 def get_mcp_tools_sync() -> List[BaseTool]:
     """Alias for get_all_mcp_tools."""
     return get_all_mcp_tools()
+
 
 def cleanup_mcp_manager():
     """Alias for stop_mcp_servers."""
     stop_mcp_servers()
 
+
 def test_mcp_connection():
     """Test MCP connections."""
     print("🧪 Testing MCP connections...")
-    
+
     # Test ports
     for key, cfg in SSE_CONFIGS.items():
         if _is_port_open(cfg["port"]):
             print(f"  ✅ {cfg['name']} port {cfg['port']} is open")
         else:
             print(f"  ❌ {cfg['name']} port {cfg['port']} is not open")
-    
+
     # Test GitHub token
     github_creds = config.get_credentials("github")
-    github_token = github_creds.get("token") if isinstance(github_creds, dict) else config.get_api_key("github")
-    
+    github_token = (
+        github_creds.get("token")
+        if isinstance(github_creds, dict)
+        else config.get_api_key("github")
+    )
+
     if github_token:
         print(f"  ✅ GitHub token found in rotation ({len(github_token)} chars)")
     else:
         print("  ❌ GitHub token not found in rotation")
-    
+
     # Test GitHub username
-    github_username = github_creds.get("username") if isinstance(github_creds, dict) else "myth-tools"
+    github_username = (
+        github_creds.get("username") if isinstance(github_creds, dict) else "myth-tools"
+    )
     if github_username:
         print(f"  ✅ GitHub username: {github_username}")
     else:
         print("  ⚠️  GitHub username not set in rotation, using default")
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--discover-github":

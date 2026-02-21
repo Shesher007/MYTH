@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Activity, Server, Database, Globe, Shield, Map as MapIcon } from 'lucide-react';
+import { X, Activity, Server, Database, Globe, Shield } from 'lucide-react';
 import SecurityMap from './SecurityMap';
 
-const TopologyModal = ({ isOpen, onClose, systemStatus, networkConnections = [] }) => {
-    const mcp = systemStatus?.mcp_servers || { security: 'INIT', system: 'INIT', external: 'INIT' };
+const TopologyModal = ({ isOpen, onClose, systemStatus: _systemStatus, networkConnections = [] }) => {
     const [activeTab, setActiveTab] = useState('logical'); // 'logical' or 'spatial'
     const [selectedNode, setSelectedNode] = useState(null);
 
     // Dynamic node generation logic
     const nodes = useMemo(() => {
         const baseNodes = [
-            { id: 'host', label: systemStatus?.hostname || 'LOCAL_HOST', type: 'shield', x: 250, y: 250, status: 'secure', isHost: true },
+            { id: 'host', label: _systemStatus?.hostname || 'LOCAL_HOST', type: 'shield', x: 250, y: 250, status: 'secure', isHost: true },
         ];
 
         // Group connections by process name to create individual process nodes
@@ -43,7 +42,7 @@ const TopologyModal = ({ isOpen, onClose, systemStatus, networkConnections = [] 
         });
 
         return [...baseNodes, ...dynamicNodes];
-    }, [networkConnections, systemStatus]);
+    }, [networkConnections, _systemStatus]);
 
     const links = useMemo(() => {
         return nodes.filter(n => !n.isHost).map(n => ({

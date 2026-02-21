@@ -1,0 +1,103 @@
+import { motion } from "framer-motion"
+import { Shield, Zap } from "lucide-react"
+import MagneticButton from "./ui/MagneticButton"
+import TextDecode from "./ui/TextDecode"
+
+export default function Hero() {
+    return (
+        <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
+            {/* Ambient Background Elements */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-6xl pointer-events-none">
+            </div>
+
+            <div className="container relative z-10 px-6 text-center mx-auto">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-8"
+                >
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+                    </span>
+                    <span className="text-sm font-medium text-accent tracking-widest uppercase">
+                        <TextDecode text="Titan Edition — v{{VERSION}} Online" />
+                    </span>
+                </motion.div>
+
+                <motion.h1
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="text-4xl md:text-8xl font-bold tracking-tighter leading-tight"
+                >
+                    Autonomous <br />
+                    <span className="text-gradient">Sovereign Agent</span>
+                </motion.h1>
+
+                <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+                >
+                    The professional-grade AI engine for industrial security.
+                    Orchestrating 670+ specialized tools with deterministic precision.
+                    100% Local. 100% Private. Built for the mission.
+                </motion.p>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6"
+                >
+                    <MagneticButton strength={30}>
+                        <a
+                            href="#downloads"
+                            aria-label="Deploy Titan Agent Installer"
+                            className="group relative flex items-center gap-3 bg-primary text-white px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(124,58,237,0.4)] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
+                        >
+                            Deploy Titan Agent
+                            <Zap className="w-5 h-5 group-hover:animate-pulse" />
+                        </a>
+                    </MagneticButton>
+
+                    <button
+                        onClick={() => {
+                            const el = document.getElementById('capabilities');
+                            el?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        aria-label="View Titan Agent Capabilities"
+                        className="flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg border border-white/10 hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-background"
+                    >
+                        View Capabilities
+                        <Shield className="w-5 h-5 text-muted-foreground" />
+                    </button>
+                </motion.div>
+
+                {/* Trust Badges / Stats */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1, delay: 0.8 }}
+                    className="mt-24 grid grid-cols-2 md:grid-cols-3 gap-8 max-w-4xl mx-auto pt-12 border-t border-white/5"
+                >
+                    <div className="flex flex-col items-center">
+                        <span className="text-3xl font-bold">670+</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Tools Orchestrated</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                        <span className="text-3xl font-bold">0ms</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Cloud Latency</span>
+                    </div>
+                    <div className="flex flex-col items-center col-span-2 md:col-span-1">
+                        <span className="text-3xl font-bold">100%</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Sovereign Data</span>
+                    </div>
+                </motion.div>
+            </div>
+        </section>
+    )
+}

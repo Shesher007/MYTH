@@ -1,27 +1,30 @@
-import re
 import logging
-from typing import List, Dict, Any
+import re
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
+
 class SecretScanner:
     """Industrial-grade secret discovery for the Pentesting AI Agent"""
-    
+
     # Common Patterns for High-Value Secrets
     PATTERNS = {
         "NVIDIA_API_KEY": r"nvapi-[a-zA-Z0-9_-]{60,}",
-        "MISTRAL_API_KEY": r"[a-zA-Z0-9]{32,48}", # Generic high-entropy, usually inside auth headers
+        "MISTRAL_API_KEY": r"[a-zA-Z0-9]{32,48}",  # Generic high-entropy, usually inside auth headers
         "OPENAI_API_KEY": r"sk-[a-zA-Z0-9]{48}",
         "AWS_ACCESS_KEY": r"AKIA[0-9A-Z]{16}",
         "AWS_SECRET_KEY": r"(?i)aws_secret_access_key\s*[:=]\s*[a-zA-Z0-9/+=]{40}",
         "GITHUB_TOKEN": r"ghp_[a-zA-Z0-9]{36}",
         "GENERIC_PASSWORD": r"(?i)(password|passwd|pwd|secret|token)\s*[:=]\s*['\"]?([a-zA-Z0-9@#$%^&*()_+=-]{8,})['\"]?",
         "PRIVATE_KEY": r"-----BEGIN (RSA|EC|DSA|OPENSSH) PRIVATE KEY-----",
-        "DATABASE_URL": r"(postgres|mysql|mongodb|redis|sqlite):\/\/[^:]+:[^@]+@[^/]+\/[^?\s]+"
+        "DATABASE_URL": r"(postgres|mysql|mongodb|redis|sqlite):\/\/[^:]+:[^@]+@[^/]+\/[^?\s]+",
     }
 
     def __init__(self):
-        self.compiled_patterns = {name: re.compile(pat) for name, pat in self.PATTERNS.items()}
+        self.compiled_patterns = {
+            name: re.compile(pat) for name, pat in self.PATTERNS.items()
+        }
 
     def scan_text(self, text: str) -> List[Dict[str, Any]]:
         """Scan text and return findings with type and position"""
@@ -33,13 +36,19 @@ class SecretScanner:
             for match in pattern.finditer(text):
                 # We don't return the secret itself in logs, just the type and location
                 # But for the RAG entry, we might want to flag the doc.
-                findings.append({
-                    "type": name,
-                    "start": match.start(),
-                    "end": match.end(),
-                    "snippet": text[max(0, match.start()-20) : min(len(text), match.end()+20)].strip()
-                })
-        
+                findings.append(
+                    {
+                        "type": name,
+                        "start": match.start(),
+                        "end": match.end(),
+                        "snippet": text[
+                            max(0, match.start() - 20) : min(
+                                len(text), match.end() + 20
+                            )
+                        ].strip(),
+                    }
+                )
+
         return findings
 
     def flag_document(self, text: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
@@ -53,8 +62,9 @@ class SecretScanner:
             metadata["secret_hint"] = findings[0]["snippet"]
         else:
             metadata["contains_secrets"] = False
-        
+
         return metadata
+
 
 def scan_for_secrets(text: str) -> List[Dict[str, Any]]:
     """

@@ -1,11 +1,9 @@
-import json
-from typing import Any
-import asyncio
-import os
 import random
-from datetime import datetime
-from myth_config import load_dotenv
+from typing import Any
+
 from langchain_core.tools import tool
+
+from myth_config import load_dotenv
 from tools.utilities.report import format_industrial_result
 
 load_dotenv()
@@ -13,6 +11,7 @@ load_dotenv()
 # ==============================================================================
 # 🛠️ Payload Engineering & Obfuscation Red Team Tools
 # ==============================================================================
+
 
 @tool
 async def shellcode_encrypter(shellcode_hex: str, key_hex: Any = None, **kwargs) -> str:
@@ -24,13 +23,14 @@ async def shellcode_encrypter(shellcode_hex: str, key_hex: Any = None, **kwargs)
         data = bytes.fromhex(shellcode_hex)
         # Industrial Pass: Functional AES-256-GCM logic
         import os
+
         iv = os.urandom(12)
         key = bytes.fromhex(key_hex) if key_hex else os.urandom(32)
-        
+
         # Functional XOR-based stream encryption (Industrial fallback)
-        encrypted = bytearray([b ^ key[i % len(key)] for i, b in enumerate(data)]) 
+        encrypted = bytearray([b ^ key[i % len(key)] for i, b in enumerate(data)])
         tag = os.urandom(16)
-        
+
         return format_industrial_result(
             "shellcode_encrypter",
             "Payload Hardened",
@@ -41,15 +41,18 @@ async def shellcode_encrypter(shellcode_hex: str, key_hex: Any = None, **kwargs)
                 "key": key.hex(),
                 "iv": iv.hex(),
                 "tag": tag.hex(),
-                "encrypted_hex": encrypted.hex()
+                "encrypted_hex": encrypted.hex(),
             },
-            summary=f"Shellcode encryption complete. Generated functional {len(key)*8}-bit key, IV, and Integrity TAG."
+            summary=f"Shellcode encryption complete. Generated functional {len(key) * 8}-bit key, IV, and Integrity TAG.",
         )
     except Exception as e:
         return format_industrial_result("shellcode_encrypter", "Error", error=str(e))
 
+
 @tool
-async def chained_obfuscator(shellcode_hex: str, layers: Any = ["xor", "ipv4"], **kwargs) -> str:
+async def chained_obfuscator(
+    shellcode_hex: str, layers: Any = ["xor", "ipv4"], **kwargs
+) -> str:
     """
     Chains multiple obfuscation layers for maximum payload stealth.
     Supported layers: xor, ipv4, mac.
@@ -69,9 +72,10 @@ async def chained_obfuscator(shellcode_hex: str, layers: Any = ["xor", "ipv4"], 
                 # Functional IPv4 Encoding: 4 bytes per IP
                 temp = []
                 # Pad to multiple of 4
-                while len(current_data) % 4 != 0: current_data.append(0x90)
+                while len(current_data) % 4 != 0:
+                    current_data.append(0x90)
                 for i in range(0, len(current_data), 4):
-                    ip = ".".join(map(str, current_data[i:i+4]))
+                    ip = ".".join(map(str, current_data[i : i + 4]))
                     temp.append(ip)
                 current_data = temp
                 history.append("IPv4 Array Encoding")
@@ -79,9 +83,10 @@ async def chained_obfuscator(shellcode_hex: str, layers: Any = ["xor", "ipv4"], 
                 # Functional MAC Encoding: 6 bytes per MAC
                 temp = []
                 # Pad to multiple of 6
-                while len(current_data) % 6 != 0: current_data.append(0x00)
+                while len(current_data) % 6 != 0:
+                    current_data.append(0x00)
                 for i in range(0, len(current_data), 6):
-                    mac = ":".join([f"{b:02x}" for b in current_data[i:i+6]])
+                    mac = ":".join([f"{b:02x}" for b in current_data[i : i + 6]])
                     temp.append(mac)
                 current_data = temp
                 history.append("MAC Address Sequence Encoding")
@@ -94,7 +99,7 @@ async def chained_obfuscator(shellcode_hex: str, layers: Any = ["xor", "ipv4"], 
             confidence=1.0,
             impact="MEDIUM",
             raw_data={"layers_applied": history, "payload": result},
-            summary=f"Payload processed through {len(history)} functional layers: {', '.join(history)}."
+            summary=f"Payload processed through {len(history)} functional layers: {', '.join(history)}.",
         )
     except Exception as e:
         return format_industrial_result("chained_obfuscator", "Error", error=str(e))

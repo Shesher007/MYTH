@@ -1,5 +1,5 @@
 #!/bin/bash
-# MYTH Desktop — macOS PKG Builder
+# {{NAME}} Desktop — macOS PKG Builder
 # Wraps the .app bundle into a signed .pkg installer
 # Usage: ./scripts/build_macos_pkg.sh
 
@@ -35,8 +35,8 @@ productbuild "${PROD_ARGS[@]}"
 # Optional signing
 if [ -n "$SIGNING_ID" ]; then
     echo "🔏 Signing package with ID: $SIGNING_ID"
-    productsign --sign "$SIGNING_ID" "$PKG_OUTPUT" "dist/MYTH-{{VERSION}}-signed.pkg"
-    mv "dist/MYTH-{{VERSION}}-signed.pkg" "$PKG_OUTPUT"
+    productsign --sign "$SIGNING_ID" "$PKG_OUTPUT" "dist/{{NAME}}-{{VERSION}}-signed.pkg"
+    mv "dist/{{NAME}}-{{VERSION}}-signed.pkg" "$PKG_OUTPUT"
 fi
 
 rm dist/component.pkg

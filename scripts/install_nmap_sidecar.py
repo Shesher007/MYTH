@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-import os
-import sys
-import zipfile
-import urllib.request
 import shutil
 import subprocess
+import sys
+import urllib.request
+import zipfile
 from pathlib import Path
 
 # --- Configuration ---
@@ -23,12 +22,21 @@ NMAP_URL = f"https://nmap.org/dist/nmap-{NMAP_VERSION}-win32.zip"
 NPCAP_URL = f"https://npcap.com/dist/npcap-{NPCAP_VERSION}.exe"
 WINDUMP_URL = "https://www.winpcap.org/install/bin/WinDump.exe"
 
+
 def download_file(url, target_path):
     """Download a file with User-Agent set."""
     print(f"  [INIT] Downloading: {url}...")
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'})
-        with urllib.request.urlopen(req) as response, open(target_path, 'wb') as out_file:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            },
+        )
+        with (
+            urllib.request.urlopen(req) as response,
+            open(target_path, "wb") as out_file,
+        ):
             shutil.copyfileobj(response, out_file)
         print("  [SUCCESS] Download complete.")
         return True
@@ -36,12 +44,17 @@ def download_file(url, target_path):
         print(f"  [ERROR] Download failed: {e}")
         return False
 
+
 def install_nmap_sidecar():
     """Download and set up portable Nmap and Npcap installer."""
-    print(f"[NMAP] Setting up portable Nmap v{NMAP_VERSION} and Npcap v{NPCAP_VERSION}...")
+    print(
+        f"[NMAP] Setting up portable Nmap v{NMAP_VERSION} and Npcap v{NPCAP_VERSION}..."
+    )
 
     if sys.platform != "win32":
-        print(f"  [ERROR] Nmap sidecar bundling is currently only configured for Windows. (Found: {sys.platform})")
+        print(
+            f"  [ERROR] Nmap sidecar bundling is currently only configured for Windows. (Found: {sys.platform})"
+        )
         return False
 
     BINARIES_DIR.mkdir(parents=True, exist_ok=True)
@@ -54,7 +67,7 @@ def install_nmap_sidecar():
         if not download_file(NMAP_URL, nmap_archive):
             return False
     else:
-        print(f"  [SKIP] Using cached Nmap archive.")
+        print("  [SKIP] Using cached Nmap archive.")
 
     # 2. Extract Nmap
     print(f"  [EXTRACT] Extracting Nmap to {NMAP_TARGET_DIR}...")
@@ -64,16 +77,20 @@ def install_nmap_sidecar():
     temp_extract_dir.mkdir()
 
     try:
-        with zipfile.ZipFile(nmap_archive, 'r') as zip_ref:
+        with zipfile.ZipFile(nmap_archive, "r") as zip_ref:
             zip_ref.extractall(temp_extract_dir)
-        
+
         # Move the inner nmap-VER folder contents to the final target
-        extracted_dirs = [d for d in temp_extract_dir.iterdir() if d.is_dir() and d.name.startswith("nmap-")]
+        extracted_dirs = [
+            d
+            for d in temp_extract_dir.iterdir()
+            if d.is_dir() and d.name.startswith("nmap-")
+        ]
         if extracted_dirs:
             # Check if target exists and clean it
             if NMAP_TARGET_DIR.exists():
                 shutil.rmtree(NMAP_TARGET_DIR)
-            
+
             shutil.move(str(extracted_dirs[0]), str(NMAP_TARGET_DIR))
             print(f"  [SUCCESS] Portable Nmap installed at: {NMAP_TARGET_DIR}")
         else:
@@ -92,7 +109,7 @@ def install_nmap_sidecar():
         if not download_file(NPCAP_URL, npcap_installer):
             return False
     else:
-        print(f"  [SKIP] Using cached Npcap installer.")
+        print("  [SKIP] Using cached Npcap installer.")
 
     # 4. Download WinDump
     windump_exe = NMAP_TARGET_DIR / "WinDump.exe"
@@ -100,7 +117,7 @@ def install_nmap_sidecar():
         if not download_file(WINDUMP_URL, windump_exe):
             print("  [WARNING] WinDump download failed. Continuing with Nmap only.")
     else:
-        print(f"  [SKIP] Using cached WinDump.")
+        print("  [SKIP] Using cached WinDump.")
 
     # 5. Verification
     nmap_exe = NMAP_TARGET_DIR / "nmap.exe"
@@ -116,6 +133,7 @@ def install_nmap_sidecar():
     else:
         print(f"  [ERROR] Verification failed: nmap.exe not found at {nmap_exe}")
         return False
+
 
 if __name__ == "__main__":
     if install_nmap_sidecar():

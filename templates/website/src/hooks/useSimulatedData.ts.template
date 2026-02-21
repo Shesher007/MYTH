@@ -1,0 +1,61 @@
+import { useState, useEffect } from 'react'
+
+export const useSimulatedData = () => {
+    const [stats, setStats] = useState({
+        cpu: Array(20).fill(0),
+        ram: Array(20).fill(0),
+        networkIn: 0,
+        networkOut: 0,
+        activeThreats: 0,
+        scanProgress: 0,
+        logs: [] as string[]
+    })
+
+    useEffect(() => {
+        const initialLogs = [
+            "Initializing neural pathways...",
+            "Loading tactical toolsets (670+ orchestrated)",
+            "Establishing sovereign local connection...",
+            "Update check: {{NAME}} v{{VERSION}} is current",
+            "Hardware encryption verified: AES-256-GCM",
+            "System state: READY"
+        ]
+        
+        setStats(prev => ({ ...prev, logs: initialLogs }))
+
+        const interval = setInterval(() => {
+            setStats(prev => {
+                const newCpuVal = Math.floor(Math.random() * 45) + 15
+                const newRamVal = Math.floor(Math.random() * 30) + 40
+                
+                const newCpu = [...prev.cpu.slice(1), newCpuVal]
+                const newRam = [...prev.ram.slice(1), newRamVal]
+                
+                const newNetworkIn = Math.floor(Math.random() * 500) + 100
+                const newNetworkOut = Math.floor(Math.random() * 200) + 50
+                const addThreat = Math.random() > 0.9
+                
+                const newLogs = [...prev.logs]
+                if (addThreat) {
+                    const threats = ["Attempted probe blocked", "Traffic anomaly intercepted", "Credential rotation enforced", "Neural link optimized"]
+                    newLogs.unshift(`[${new Date().toLocaleTimeString()}] ${threats[Math.floor(Math.random() * threats.length)]}`)
+                    if (newLogs.length > 20) newLogs.pop()
+                }
+
+                return {
+                    cpu: newCpu,
+                    ram: newRam,
+                    networkIn: newNetworkIn,
+                    networkOut: newNetworkOut,
+                    activeThreats: prev.activeThreats + (addThreat ? 1 : 0),
+                    scanProgress: (prev.scanProgress + 1) % 100,
+                    logs: newLogs
+                }
+            })
+        }, 3000)
+
+        return () => clearInterval(interval)
+    }, [])
+
+    return stats
+}

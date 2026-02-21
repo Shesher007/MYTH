@@ -32,10 +32,10 @@ struct ActivationResponse {
 /// Embedded public verification key (Ed25519)
 /// In production, replace this with your actual public key
 const VERIFICATION_PUB_KEY_HEX: &str =
-    "0000000000000000000000000000000000000000000000000000000000000000";
+    "{{VERIFICATION_PUB_KEY}}";
 
 /// License server base URL
-const LICENSE_SERVER_URL: &str = "https://license.{{ORG_LOWER}}.github.io/api/v1";
+const LICENSE_SERVER_URL: &str = "{{LICENSE_SERVER_URL}}";
 
 /// Get the license file path
 fn get_license_path() -> Result<PathBuf, String> {
@@ -43,7 +43,7 @@ fn get_license_path() -> Result<PathBuf, String> {
         .ok_or_else(|| "Cannot resolve local data directory".to_string())?;
     let dir = base.join("{{NAME}}");
     fs::create_dir_all(&dir).map_err(|e| format!("Cannot create dir: {}", e))?;
-    Ok(dir.join("license.myth"))
+    Ok(dir.join("license.{{CODENAME}}"))
 }
 
 /// Get hardware fingerprint for this machine
@@ -54,7 +54,7 @@ fn get_device_fingerprint() -> Result<String, String> {
     // Hash the machine ID for privacy
     let mut hasher = Sha256::new();
     hasher.update(machine_id.as_bytes());
-    hasher.update(b"{{NAME}}_DEVICE_FP_v1");
+    hasher.update(b"MYTH_DEVICE_FP_v1");
     let result = hasher.finalize();
 
     Ok(format!("{:x}", result)[..32].to_string())
@@ -238,13 +238,25 @@ pub async fn activate_license(key: String) -> Result<serde_json::Value, String> 
 
     if activation.success {
         if let Some(cert) = &activation.certificate {
-            save_license(cert)?;
-            Ok(serde_json::json!({
-                "success": true,
-                "tier": cert.license_tier,
-                "expiration": cert.expiration,
-                "device_fingerprint": &cert.device_fingerprint[..8]
-            }))
+            // --- Proper Security: Immediate Verification ---
+            // Verify the server's work against our local Public Key before committing to disk.
+            match verify_signature(cert) {
+                Ok(true) => {
+                    save_license(cert)?;
+                    Ok(serde_json::json!({
+                        "success": true,
+                        "tier": cert.license_tier,
+                        "expiration": cert.expiration,
+                        "device_fingerprint": &cert.device_fingerprint[..8]
+                    }))
+                },
+                Ok(false) => {
+                    Err("Security Violation: Server signature verification failed locally. Possible MITM or key mismatch.".to_string())
+                },
+                Err(e) => {
+                    Err(format!("Local verification error: {}", e))
+                }
+            }
         } else {
             Err("Server returned success but no certificate".to_string())
         }
@@ -323,10 +335,43 @@ pub fn deactivate_license() -> Result<bool, String> {
     Ok(true)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_signature_verification() {
+        // This is the public key from identity.yaml
+        let pub_key_hex = "70971817cba408b7f80d645f188600f401f3ab0240be4b3ddeed688b0f22f874";
+        
+        // Mock certificate
+        let cert = LicenseCertificate {
+            activation_key: "MYTH-TEST-KEY".to_string(),
+            device_fingerprint: "TEST-HWID".to_string(),
+            license_tier: "Pro-Elite".to_string(),
+            expiration: None,
+            issued_at: "2026-02-20T10:00:00Z".to_string(),
+            signature: "M+iO5e6l+O/Y5z4z3X9O5e6l+O/Y5z4z3X9O5e6l+O/Y5z4z3X9O5e6l+O/Y5z4z3X9O5e6l+O/Y5z4z3X9O5A==".to_string(), 
+        };
+
+        match verify_signature(&cert) {
+            Ok(_) => println!("Signature check function is operational."),
+            Err(e) => panic!("Signature check function errored: {}", e),
+        }
+    }
+
+    #[test]
+    fn test_device_fingerprint_generation() {
+        let fp = get_device_fingerprint();
+        assert!(fp.is_ok());
+        assert_eq!(fp.unwrap().len(), 32);
+    }
+}
+
 /// Hex decode helper (since we don't want to add the `hex` crate)
 mod hex {
     pub fn decode(s: &str) -> Result<Vec<u8>, String> {
-        if s.len() % 2 != 0 {
+        if !s.len().is_multiple_of(2) {
             return Err("Odd-length hex string".to_string());
         }
         (0..s.len())

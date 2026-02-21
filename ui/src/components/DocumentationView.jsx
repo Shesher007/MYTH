@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Book, Shield, Cpu, ChevronRight, Info, Zap, Terminal, ExternalLink, Filter, BarChart3, Fingerprint, ShieldCheck, Activity, Globe, Layout, Layers, Box, ChevronDown } from 'lucide-react';
+import { Search, Cpu, ChevronRight, Info, Zap, Terminal, Filter, BarChart3, Fingerprint, ShieldCheck, Activity, Globe, Layout, Layers, Box, ChevronDown } from 'lucide-react';
 
 const API_BASE = 'http://127.0.0.1:8890';
 
@@ -75,7 +75,7 @@ const DocumentationView = () => {
             } else {
                 setRefreshMessage('Sync Failed: ' + data.error);
             }
-        } catch (error) {
+        } catch {
             setRefreshMessage('Sync Error: Connection Refused');
         } finally {
             setIsRefreshing(false);
@@ -544,7 +544,7 @@ const DocumentationView = () => {
                     </div>
                     <div className="flex flex-col items-center gap-2">
                         <span className="text-[10px] font-black text-teal-500 uppercase tracking-[0.4em] animate-pulse">Syncing Knowledge Matrix</span>
-                        <span className="text-[8px] font-mono text-teal-950 uppercase tracking-widest opacity-50">Industrial Resource Protocol V1.1.1</span>
+                        <span className="text-[8px] font-mono text-teal-950 uppercase tracking-widest opacity-50">Industrial Resource Protocol V1.1.6</span>
                     </div>
                 </div>
             </div>

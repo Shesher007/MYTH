@@ -36,12 +36,12 @@
         "copyright_year": "{{COPYRIGHT_YEAR}}"
     },
     "artifacts": {
-        "deb": "myth_{{VERSION}}_amd64.deb",
+        "deb": "{{NAME_LOWER}}_{{VERSION}}_amd64.deb",
         "rpm": "{{NAME_LOWER}}-{{VERSION}}-1.x86_64.rpm",
-        "msi": "MYTH_{{VERSION}}_x64_en-US.msi",
-        "nsis": "MYTH_{{VERSION}}_x64-setup.exe",
-        "dmg": "MYTH_{{VERSION}}_universal.dmg",
-        "appimage": "MYTH_{{VERSION}}_amd64.AppImage",
+        "msi": "{{NAME}}_{{VERSION}}_x64_en-US.msi",
+        "nsis": "{{NAME}}_{{VERSION}}_x64-setup.exe",
+        "dmg": "{{NAME}}_{{VERSION}}_universal.dmg",
+        "appimage": "{{NAME}}_{{VERSION}}_amd64.AppImage",
         "tarball": "v{{VERSION}}.tar.gz"
     },
     "architectures": [

@@ -5,7 +5,7 @@ PORTNAME=       {{NAME_LOWER}}
 PORTVERSION=    {{VERSION}}
 CATEGORIES=     security net
 MASTER_SITES=   {{REPO_URL}}/releases/download/v${PORTVERSION}/
-DISTFILES=      myth_${PORTVERSION}_amd64.deb
+DISTFILES=      {{NAME_LOWER}}_${PORTVERSION}_amd64.deb
 
 MAINTAINER=     {{EMAIL}}
 COMMENT=        {{DESCRIPTION}} (Binary)
@@ -22,7 +22,7 @@ RUN_DEPENDS=    python3:lang/python3 \
 NO_BUILD=       yes
 
 do-install:
-	${INSTALL_PROGRAM} ${DISTDIR}/MYTH_freebsd_x64 \
+	${INSTALL_PROGRAM} ${DISTDIR}/{{NAME}}_freebsd_x64 \
 		${STAGEDIR}${PREFIX}/bin/{{NAME}}
 
 .include <bsd.port.mk>

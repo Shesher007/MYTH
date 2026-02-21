@@ -1,91 +1,103 @@
-import sys
 import asyncio
+import base64
+import hashlib
+import json
 import logging
+import mimetypes
+import os
+import shutil
+import socket
+import subprocess
+import sys
+import time
+import uuid
 import warnings
+from contextlib import asynccontextmanager
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import httpx
+import psutil
+import tldextract
+from fastapi import (
+    Body,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
+from fastapi.middleware.cors import CORSMiddleware
+from langchain_core.documents import Document
+from langchain_core.messages import HumanMessage
+from pydantic import BaseModel
+from sse_starlette.sse import EventSourceResponse
+from starlette.websockets import WebSocketState
+
+# --- Windows Compatibility ---
+if sys.platform == "win32":
+    # Industry Grade: Selector loop is required for high-performance networking on Windows
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+# Import core agent components from backend.py
+import backend
+from backend import initialize_system_async
+from config_loader import agent_config
+from myth_utils.paths import get_app_data_path, get_resource_path, is_frozen
+from myth_utils.sanitizer import SovereignSanitizer
 
 # Industry Grade: Suppress noisy third-party SyntaxWarnings (e.g., from ropper)
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 # Industry Grade: Suppress noisy library logs as early as possible
-# This prevents intermittent DNS errors from appearing in the industrial console
 for noise_maker in ["ddgs", "duckduckgo_search", "primp", "httpx", "httpcore"]:
     logging.getLogger(noise_maker).setLevel(logging.CRITICAL)
     logging.getLogger(f"{noise_maker}.{noise_maker}").setLevel(logging.CRITICAL)
 
-if sys.platform == 'win32':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-import logging
-import os
-import shutil
-import subprocess
-import json
-import asyncio
-import uuid
-import time
-import sys
-import psutil
-import httpx
-import hashlib
-import base64
-from datetime import datetime
-import atexit
-import tldextract 
-from typing import List, Optional, Dict, Any
-import socket
-import re
-import threading
-import mimetypes
-from fastapi import FastAPI, UploadFile, File, WebSocket, WebSocketDisconnect, BackgroundTasks, HTTPException, Body, Form
-from starlette.websockets import WebSocketState
-
-# --- Windows Compatibility ---
-if sys.platform == 'win32':
-    # Industry Grade: Selector loop is required for high-performance networking on Windows
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from fastapi.middleware.cors import CORSMiddleware
-from sse_starlette.sse import EventSourceResponse
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, SystemMessage
-from pydantic import BaseModel
-
-from contextlib import asynccontextmanager
-from langchain_core.documents import Document
-
-# Import core agent components from backend.py
-import backend
-from backend import initialize_system_async
-from myth_utils.sanitizer import SovereignSanitizer
-from config_loader import agent_config
-
-from myth_utils.paths import is_frozen, get_app_data_path
-
 if not is_frozen():
     from myth_config import load_dotenv
+
     load_dotenv()
+
 
 # --- LOGGING CONFIG (Industrial Synchronization) ---
 class TerminalFilter(logging.Filter):
     def filter(self, record):
         # Noise reduction: suppress polling, health checks, and background sentinels from terminal
         noisy_patterns = [
-            "/ping", "/health", "/security/threats", "/security/alerts", 
-            "/security/network", "/security/sessions", "/security/report",
-            "/vpn/status", "/vpn/nodes", "/chat/sessions", "/system/files",
-            "THREAT_INTEL", "FIM", "sentinel",
-            "HTTP Request: GET http://ip-api.com"
+            "/ping",
+            "/health",
+            "/security/threats",
+            "/security/alerts",
+            "/security/network",
+            "/security/sessions",
+            "/security/report",
+            "/vpn/status",
+            "/vpn/nodes",
+            "/chat/sessions",
+            "/system/files",
+            "THREAT_INTEL",
+            "FIM",
+            "sentinel",
+            "HTTP Request: GET http://ip-api.com",
         ]
         msg = record.getMessage()
         return not any(pattern in msg for pattern in noisy_patterns)
 
+
 # Apply filter to StreamHandler only (the one writing to console)
 for h in logging.root.handlers:
     # Specifically catch the console StreamHandler, avoiding subclasses like RotatingFileHandler
-    if type(h) == logging.StreamHandler:
+    if isinstance(h, logging.StreamHandler):
         h.addFilter(TerminalFilter())
 
 # Industry Grade: Terminal filter already applied to root handlers in api.py initialization
 
 logger = logging.getLogger(f"{agent_config.identity.name.upper()}_API")
+
+
 # --- NOTIFICATION SYSTEM (Industrial UI Feedback) ---
 class NotificationManager:
     """
@@ -93,6 +105,7 @@ class NotificationManager:
     Manages a queue of system notifications for the desktop UI.
     Supports ERROR, WARNING, INFO, SUCCESS types.
     """
+
     def __init__(self, max_queue_size: int = 50):
         self._queue: List[Dict[str, Any]] = []
         self._lock = asyncio.Lock()
@@ -106,13 +119,19 @@ class NotificationManager:
         """
         async with self._lock:
             # Check for immediate duplicates to prevent UI flooding (Group within 10 second window)
-            if self._queue and self._queue[-1]["title"] == title and self._queue[-1]["message"] == message:
+            if (
+                self._queue
+                and self._queue[-1]["title"] == title
+                and self._queue[-1]["message"] == message
+            ):
                 try:
                     last_ts = datetime.fromisoformat(self._queue[-1]["timestamp"])
                     if (datetime.now() - last_ts).total_seconds() < 10:
                         self._queue[-1]["timestamp"] = datetime.now().isoformat()
                         self._queue[-1]["count"] = self._queue[-1].get("count", 1) + 1
-                        logger.debug(f"🔄 [NOTIFY] Suppressed duplicate: {title} (Count: {self._queue[-1]['count']})")
+                        logger.debug(
+                            f"🔄 [NOTIFY] Suppressed duplicate: {title} (Count: {self._queue[-1]['count']})"
+                        )
                         # Trigger telemetry update even for duplicates to refresh the count in UI
                         asyncio.create_task(trigger_telemetry_update())
                         return self._queue[-1]
@@ -127,20 +146,18 @@ class NotificationManager:
                 "message": message,
                 "timestamp": datetime.now().isoformat(),
                 "read": False,
-                "count": 1
+                "count": 1,
             }
             self._queue.append(notification)
             # Enforce max queue size (FIFO eviction)
             if len(self._queue) > self._max_size:
                 self._queue.pop(0)
             logger.debug(f"🔔 [NOTIFY] {type.upper()}: {title}")
-            
+
             # Industrial Bridge: Trigger instant telemetry broadcast
             asyncio.create_task(trigger_telemetry_update())
-            
+
         return notification
-
-
 
     async def dismiss(self, notification_id: str):
         """Mark a notification as read/dismissed."""
@@ -157,10 +174,13 @@ class NotificationManager:
         async with self._lock:
             self._queue = []
 
+
 notification_manager = NotificationManager()
+
 
 class SystemTelemetryManager:
     """Manages global system telemetry broadcasts to all connected dashboards."""
+
     def __init__(self):
         self.active_connections: List[WebSocket] = []
         self._lock = asyncio.Lock()
@@ -169,16 +189,20 @@ class SystemTelemetryManager:
         await websocket.accept()
         async with self._lock:
             self.active_connections.append(websocket)
-        logger.info(f"📊 [TELEMETRY] Dashboard link established (Active: {len(self.active_connections)})")
-        
-    async def report_progress(self, task_id: str, progress: int, status: str = "processing"):
+        logger.info(
+            f"📊 [TELEMETRY] Dashboard link established (Active: {len(self.active_connections)})"
+        )
+
+    async def report_progress(
+        self, task_id: str, progress: int, status: str = "processing"
+    ):
         """Broadcast RAG/System progress update to all active dashboards."""
         packet = {
             "type": "PROGRESS_UPDATE",
             "task_id": task_id,
             "progress": progress,
             "status": status,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
         await self.broadcast(packet)
 
@@ -195,41 +219,54 @@ class SystemTelemetryManager:
             if packet.get("type") == "PING":
                 # logger.info("📥 [TELEMETRY] Received PING, sending PONG")
                 if websocket.client_state == WebSocketState.CONNECTED:
-                    await websocket.send_json({
-                        "type": "PONG",
-                        "timestamp": datetime.now().isoformat(),
-                        "client_ts": packet.get("timestamp")
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "PONG",
+                            "timestamp": datetime.now().isoformat(),
+                            "client_ts": packet.get("timestamp"),
+                        }
+                    )
         except Exception as e:
             logger.warning(f"⚠️ [TELEMETRY] Packet error: {repr(e)}")
 
     async def broadcast(self, data: dict):
         """Push unified state update to all connected observers concurrently."""
-        if not self.active_connections: return
-        
+        if not self.active_connections:
+            return
+
         # Industrial Grade: Snapshot connections to allow non-blocking iteration
         ws_list = []
         async with self._lock:
-            if not self.active_connections: return
+            if not self.active_connections:
+                return
             ws_list = list(self.active_connections)
-        
+
         # Optimize: Broadcast in parallel using gather (Simultaneous Injection)
         # using return_exceptions=True to ensure one failure doesn't halt others
         results = await asyncio.gather(
-            *[connection.send_json(data) for connection in ws_list if connection.client_state == WebSocketState.CONNECTED],
-            return_exceptions=True
+            *[
+                connection.send_json(data)
+                for connection in ws_list
+                if connection.client_state == WebSocketState.CONNECTED
+            ],
+            return_exceptions=True,
         )
-        
+
         # Cleanup dead connections identified during broadcast
-        disconnected_indices = [i for i, res in enumerate(results) if isinstance(res, Exception)]
-        
+        disconnected_indices = [
+            i for i, res in enumerate(results) if isinstance(res, Exception)
+        ]
+
         if disconnected_indices:
             to_remove = [ws_list[i] for i in disconnected_indices]
             async with self._lock:
                 for ws in to_remove:
                     if ws in self.active_connections:
                         self.active_connections.remove(ws)
-                        logger.debug(f"⚠️ [TELEMETRY] Pruned dead connection during broadcast")
+                        logger.debug(
+                            "⚠️ [TELEMETRY] Pruned dead connection during broadcast"
+                        )
+
 
 telemetry_manager = SystemTelemetryManager()
 
@@ -237,51 +274,59 @@ telemetry_manager = SystemTelemetryManager()
 _telemetry_debounce_task: Optional[asyncio.Task] = None
 _telemetry_pending: bool = False
 
+
 async def trigger_telemetry_update():
     """
     Triggers a telemetry update with industrial-grade debouncing.
-    Ensures that rapid-fire state changes (e.g., 50 notifications/sec) 
+    Ensures that rapid-fire state changes (e.g., 50 notifications/sec)
     do not saturate the network or CPU.
     """
     global _telemetry_debounce_task, _telemetry_pending
-    
+
     # If a broadcast is already pending, just mark it and return
     if _telemetry_pending:
         return
-        
+
     _telemetry_pending = True
-    
+
     # Wait for a small window to consolidate multiple changes
-    await asyncio.sleep(0.05) # 50ms window
-    
+    await asyncio.sleep(0.05)  # 50ms window
+
     try:
         # Collect baseline rapid data in parallel
-        # Note: health_data and files_data might not be defined if trigger_telemetry_update is called very early, 
+        # Note: health_data and files_data might not be defined if trigger_telemetry_update is called very early,
         # but the try/except in asyncio.gather handles it, or we can assume they exist later.
         health_data, files_data, notifications_data = await asyncio.gather(
             get_health(),
             list_generated_files(),
             notification_manager.get_all(),
-            return_exceptions=True
+            return_exceptions=True,
         )
-        
+
         packet = {
             "type": "SYSTEM_TELEMETRY_V2",
             "timestamp": datetime.now().isoformat(),
-            "health": health_data if not isinstance(health_data, Exception) else {"status": "error"},
+            "health": health_data
+            if not isinstance(health_data, Exception)
+            else {"status": "error"},
             "sessions": [],
-            "files": files_data.get("files", []) if not isinstance(files_data, Exception) else [],
+            "files": files_data.get("files", [])
+            if not isinstance(files_data, Exception)
+            else [],
             "security": {
                 "alerts": security_alerts,
-                "vpn": vpn_controller.get_status().model_dump()
+                "vpn": vpn_controller.get_status().model_dump(),
             },
-            "notifications": notifications_data if not isinstance(notifications_data, Exception) else []
+            "notifications": notifications_data
+            if not isinstance(notifications_data, Exception)
+            else [],
         }
         await telemetry_manager.broadcast(packet)
     except Exception as e:
         logger.warning(f"Proactive telemetry failed: {e}")
     finally:
         _telemetry_pending = False
+
 
 logger.info("🔥 [BOOT] CORE_RELAY_V4_LOADED")
 BOOT_ID = str(uuid.uuid4())[:8].upper()
@@ -292,10 +337,18 @@ logger.info(f"🆔 [BOOT_ID] {BOOT_ID}")
 
 # --- Security Core: FIM & State ---
 CRITICAL_FILES = [
-    "api.py", "backend.py", "secrets.yaml", "governance/agent_manifest.yaml", 
-    "governance/identity.yaml", "requirements.txt", "pyproject.toml",
-    "rag_system/vector_store.py", "rag_system/rag_chain.py",
-    "tools/utilities/shell.py", "tools/__init__.py", "mcp_servers/local_servers/system_tools.py"
+    "api.py",
+    "backend.py",
+    "secrets.yaml",
+    "governance/agent_manifest.yaml",
+    "governance/identity.yaml",
+    "requirements.txt",
+    "pyproject.toml",
+    "rag_system/vector_store.py",
+    "rag_system/rag_chain.py",
+    "tools/utilities/shell.py",
+    "tools/__init__.py",
+    "mcp_servers/local_servers/system_tools.py",
 ]
 baseline_hashes: Dict[str, str] = {}
 security_alerts: List[Dict[str, Any]] = []
@@ -308,21 +361,23 @@ async def notify_error(title: str, message: str):
     await notification_manager.add("ERROR", title, message)
     asyncio.create_task(trigger_telemetry_update())
 
+
 async def notify_warning(title: str, message: str):
     """Push a warning notification to the UI immediately."""
     await notification_manager.add("WARNING", title, message)
     asyncio.create_task(trigger_telemetry_update())
+
 
 async def notify_info(title: str, message: str):
     """Push an info notification to the UI immediately."""
     await notification_manager.add("INFO", title, message)
     asyncio.create_task(trigger_telemetry_update())
 
+
 async def notify_success(title: str, message: str):
     """Push a success notification to the UI immediately."""
     await notification_manager.add("SUCCESS", title, message)
     asyncio.create_task(trigger_telemetry_update())
-
 
 
 class VPNNode(BaseModel):
@@ -333,15 +388,17 @@ class VPNNode(BaseModel):
     load: int
     secure: bool = True
 
+
 class VPNStatus(BaseModel):
     connected: bool
     active_node: Optional[VPNNode] = None
     nodes: List[VPNNode] = []
     ip_virtual: str = "0.0.0.0"
-    throughput_tx: float = 0.0 # MB/s
-    throughput_rx: float = 0.0 # MB/s
+    throughput_tx: float = 0.0  # MB/s
+    throughput_rx: float = 0.0  # MB/s
     uptime: str = "0h 0m"
     encryption: str = "AES-256-GCM / WireGuard"
+
 
 class VPNManager:
     def __init__(self):
@@ -350,30 +407,55 @@ class VPNManager:
         self.start_time = 0
         self.virtual_ip = "10.84.0.1"
         self.nodes = [
-            VPNNode(id="nx-01", name="Storage_Nordic", region="Norway", latency="12ms", load=14),
-            VPNNode(id="nx-02", name="Neural_Gate_US", region="New York", latency="45ms", load=42),
-            VPNNode(id="nx-03", name="Cipher_Swiss", region="Zurich", latency="8ms", load=21),
-            VPNNode(id="nx-04", name="Tokyo_Relay", region="Japan", latency="110ms", load=65),
-            VPNNode(id="nx-05", name="Berlin_Anchor", region="Germany", latency="15ms", load=38)
+            VPNNode(
+                id="nx-01",
+                name="Storage_Nordic",
+                region="Norway",
+                latency="12ms",
+                load=14,
+            ),
+            VPNNode(
+                id="nx-02",
+                name="Neural_Gate_US",
+                region="New York",
+                latency="45ms",
+                load=42,
+            ),
+            VPNNode(
+                id="nx-03", name="Cipher_Swiss", region="Zurich", latency="8ms", load=21
+            ),
+            VPNNode(
+                id="nx-04", name="Tokyo_Relay", region="Japan", latency="110ms", load=65
+            ),
+            VPNNode(
+                id="nx-05",
+                name="Berlin_Anchor",
+                region="Germany",
+                latency="15ms",
+                load=38,
+            ),
         ]
 
     def toggle(self, node_id: Optional[str] = None):
         if not self.connected:
             self.connected = True
             self.start_time = time.time()
-            self.active_node = next((n for n in self.nodes if n.id == node_id), self.nodes[0])
-            logger.info(f"🔒 [VPN] Neural Tunnel Established: {self.active_node.name} (TUNNEL_ID: {uuid.uuid4().hex[:8].upper()})")
+            self.active_node = next(
+                (n for n in self.nodes if n.id == node_id), self.nodes[0]
+            )
+            logger.info(
+                f"🔒 [VPN] Neural Tunnel Established: {self.active_node.name} (TUNNEL_ID: {uuid.uuid4().hex[:8].upper()})"
+            )
             # backend.notify_system("SUCCESS", "VPN Tunnel Established", f"Connected via: {self.active_node.name} ({self.active_node.region})")
-            pass
+            return True
         else:
             self.connected = False
             self.active_node = None
             logger.info("🔓 [VPN] Neural Tunnel Terminated.")
             # Industrial Hook: Notify tunnel closure
             # backend.notify_system("INFO", "VPN Tunnel Purged", "Secure neural link terminated.")
-            pass
+            return False
         return self.connected
-
 
     def get_status(self) -> VPNStatus:
         uptime_str = "0h 0m"
@@ -384,7 +466,7 @@ class VPNManager:
             # Simulate real-time industrial throughput
             tx = 0.5 + (os.getpid() % 10) / 10.0 + (time.time() % 2)
             rx = 1.2 + (os.getpid() % 5) / 5.0 + (time.time() % 5)
-            
+
         return VPNStatus(
             connected=self.connected,
             active_node=self.active_node,
@@ -392,23 +474,25 @@ class VPNManager:
             ip_virtual=self.virtual_ip if self.connected else "0.0.0.0",
             throughput_tx=round(tx, 2),
             throughput_rx=round(rx, 2),
-            uptime=uptime_str
+            uptime=uptime_str,
         )
+
 
 vpn_controller = VPNManager()
 
 # --- Security Data Caching ---
 
 
-
 def compute_hash(filepath: str) -> str:
     """Compute SHA-256 hash of a file."""
-    if not os.path.exists(filepath): return ""
+    if not os.path.exists(filepath):
+        return ""
     sha256 = hashlib.sha256()
     with open(filepath, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             sha256.update(chunk)
     return sha256.hexdigest()
+
 
 async def file_integrity_monitor():
     """Service to detect unauthorized core file changes."""
@@ -416,13 +500,16 @@ async def file_integrity_monitor():
     # Initialize baselines
     for f in CRITICAL_FILES:
         baseline_hashes[f] = await asyncio.to_thread(compute_hash, f)
-    
-    logger.info(f"🛡️ [FIM] Initialized integrity anchors for {len(CRITICAL_FILES)} core modules")
-    
+
+    logger.info(
+        f"🛡️ [FIM] Initialized integrity anchors for {len(CRITICAL_FILES)} core modules"
+    )
+
     while True:
         try:
             for f in CRITICAL_FILES:
-                if not os.path.exists(f): continue
+                if not os.path.exists(f):
+                    continue
 
                 # Normalize to absolute path for consistent matching
                 abs_f = os.path.abspath(f).lower()
@@ -444,9 +531,11 @@ async def file_integrity_monitor():
                     mtime = os.path.getmtime(f)
                     if time.time() - mtime < 2.0:
                         continue
-                except OSError: continue
+                except OSError:
+                    continue
 
-                except OSError: continue
+                except OSError:
+                    continue
 
                 current = await asyncio.to_thread(compute_hash, f)
                 if current != baseline_hashes.get(f) and current != "":
@@ -455,35 +544,39 @@ async def file_integrity_monitor():
                         "type": "INTEGRITY_TAMPER",
                         "severity": "CRITICAL",
                         "message": f"Source breach detected: {f} modified externally",
-                        "timestamp": datetime.now().isoformat()
+                        "timestamp": datetime.now().isoformat(),
                     }
                     security_alerts.append(alert)
                     logger.error(f"🚨 [INTEGRITY] Critical Hash Mismatch in {f}!")
                     # Industrial Hook: Surface source breach
-                    backend.notify_system("ERROR", "Source Integrity Breach", f"Critical module '{f}' was modified externally.")
+                    backend.notify_system(
+                        "ERROR",
+                        "Source Integrity Breach",
+                        f"Critical module '{f}' was modified externally.",
+                    )
                     asyncio.create_task(trigger_telemetry_update())
 
                     # Update baseline to acknowledge (or keep alerting until revert)
                     baseline_hashes[f] = current
             await asyncio.sleep(10)
-        except Exception as e:
+        except Exception:
             await asyncio.sleep(30)
+
 
 async def honey_pot_watcher():
     """
     Industrial Honeypot: Monitor a decoy directory for unauthorized access.
     Uses recursive hashing and self-healing decoys.
     """
-    from myth_utils.paths import get_app_data_path
     path = get_app_data_path("honeypot")
     os.makedirs(path, exist_ok=True)
-    
+
     # Industrial Decoy Set: Realistic targets for intrusion
     decoys = {
         "secrets.txt": "CREDENTIALS_DB_v1: ADMIN/PASSWORD_P@$$\n",
         ".env.production": "DB_PASSWORD=9k$Lp2#vR9_industrial_secret\nSTRIPE_SECRET_KEY=sk_live_51MxYz_fake_key_007\n",
-        "id_rsa.pub.bak": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCs5Xo... decoy_myth_key\n",
-        "db_dump.sql.bz2": "-- Industrial SQL Dump Decoy\n-- Version: 4.2.0\n-- Table: users (38,492 entries)\n"
+        "id_rsa.pub.bak": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCs5Xo... decoy_{{CODENAME}}_key\n",
+        "db_dump.sql.bz2": "-- Industrial SQL Dump Decoy\n-- Version: 4.2.0\n-- Table: users (38,492 entries)\n",
     }
 
     async def initialize_decoys():
@@ -491,14 +584,13 @@ async def honey_pot_watcher():
         for filename, content in decoys.items():
             fpath = os.path.join(path, filename)
             if not os.path.exists(fpath):
-                with open(fpath, "w", encoding='utf-8') as f:
+                with open(fpath, "w", encoding="utf-8") as f:
                     f.write(content)
             baseline[fpath] = await asyncio.to_thread(compute_hash, fpath)
         return baseline
 
     honey_baselines = await initialize_decoys()
     logger.info(f"🍯 [HONEYPOT] Anchored {len(decoys)} decoys for intrusion detection.")
-
 
     # Infinite loop for honeypot monitoring
     while True:
@@ -517,14 +609,16 @@ async def honey_pot_watcher():
                         "type": "HONEYPOT_INTRUSION",
                         "severity": "CRITICAL",
                         "message": alert_msg,
-                        "timestamp": datetime.now().isoformat()
+                        "timestamp": datetime.now().isoformat(),
                     }
                     security_alerts.append(alert)
                     logger.error(f"🚨 [HONEYPOT] {alert_msg}")
                     # Industrial Hook: Surface intrusion
                     backend.notify_system("WARNING", "Honeypot Intrusion", alert_msg)
                     # Accept it into baseline to stop spamming, but log it as host-based breach
-                    honey_baselines[fpath] = await asyncio.to_thread(compute_hash, fpath)
+                    honey_baselines[fpath] = await asyncio.to_thread(
+                        compute_hash, fpath
+                    )
                     asyncio.create_task(trigger_telemetry_update())
 
             # 2. Detect Modifications or Deletions
@@ -537,37 +631,43 @@ async def honey_pot_watcher():
                         "type": "HONEYPOT_TAMPER",
                         "severity": "CRITICAL",
                         "message": alert_msg,
-                        "timestamp": datetime.now().isoformat()
+                        "timestamp": datetime.now().isoformat(),
                     }
                     security_alerts.append(alert)
                     logger.error(f"🚨 [HONEYPOT] {alert_msg}")
                     # Industrial Hook: Surface tamper
-                    backend.notify_system("WARNING", "Anti-Forensics Detected", alert_msg)
-                    
+                    backend.notify_system(
+                        "WARNING", "Anti-Forensics Detected", alert_msg
+                    )
+
                     # Self-Healing: Recreate if it was a primary decoy
                     fname = os.path.basename(fpath)
                     if fname in decoys:
-                        with open(fpath, "w", encoding='utf-8') as f:
+                        with open(fpath, "w", encoding="utf-8") as f:
                             f.write(decoys[fname])
                         # Reset hash
-                        honey_baselines[fpath] = await asyncio.to_thread(compute_hash, fpath)
+                        honey_baselines[fpath] = await asyncio.to_thread(
+                            compute_hash, fpath
+                        )
                         logger.warning(f"🛡️ [HONEYPOT] Decoy {fname} reconstructed.")
                     else:
                         # Stop tracking non-standard file if deleted
                         del honey_baselines[fpath]
-                    
+
                     asyncio.create_task(trigger_telemetry_update())
                 else:
                     # Check for Modification
                     current_hash = await asyncio.to_thread(compute_hash, fpath)
                     if current_hash != old_hash:
-                        alert_msg = f"Decoy accessed/modified: {os.path.basename(fpath)}"
+                        alert_msg = (
+                            f"Decoy accessed/modified: {os.path.basename(fpath)}"
+                        )
                         alert = {
                             "id": str(uuid.uuid4())[:8].upper(),
                             "type": "HONEYPOT_BREACH",
                             "severity": "CRITICAL",
                             "message": alert_msg,
-                            "timestamp": datetime.now().isoformat()
+                            "timestamp": datetime.now().isoformat(),
                         }
                         security_alerts.append(alert)
                         logger.error(f"🚨 [HONEYPOT] {alert_msg}")
@@ -581,13 +681,14 @@ async def honey_pot_watcher():
             logger.debug(f"Honeypot loop trace: {e}")
             await asyncio.sleep(5)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Industrial Lifespan Manager: Handles system boot and graceful shutdown.
     """
     logger.info("🚀 [API] Booting Industrial Lifecycle...")
-    
+
     # 1. Sync critical assets (manifest, secrets) to AppData
     await ensure_standalone_assets()
 
@@ -595,13 +696,12 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(check_system_dependencies())
 
     # Initialize infrastructure
-    from myth_utils.paths import get_app_data_path
     os.makedirs(get_app_data_path("asset_inventory"), exist_ok=True)
-    
+
     # Bind callbacks
     backend.REGISTRY["progress_callback"] = telemetry_manager.report_progress
     backend.REGISTRY["telemetry_manager"] = telemetry_manager
-    
+
     # Spawn Sentinel Tasks
     asyncio.create_task(initialize_system_async())
     asyncio.create_task(honey_pot_watcher())
@@ -610,21 +710,22 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(threat_intel_sentinel())
     asyncio.create_task(system_telemetry_sentinel())
     asyncio.create_task(network_ping_sentinel())
-    
+
     yield
-    
+
     logger.info("🛑 [API] Shutting down lifecycle...")
-    
+
     # Industrial Cleanup: Close Vector Store Pools
     try:
         if backend.REGISTRY.get("vector_store"):
             await backend.REGISTRY["vector_store"].close()
     except Exception as e:
         logger.error(f"Error during vector store cleanup: {e}")
-        
+
     # Industrial Cleanup: Shutdown Document Processor Executor
     try:
         from rag_system import DocumentProcessor
+
         if hasattr(DocumentProcessor, "_executor"):
             DocumentProcessor._executor.shutdown(wait=True)
             logger.info("⚙️ [DOC] Document processor executor shutdown.")
@@ -634,16 +735,18 @@ async def lifespan(app: FastAPI):
     # Industrial Cleanup: Shutdown MCP Servers
     try:
         from mcp_servers.mcp_client import stop_mcp_servers
+
         await asyncio.to_thread(stop_mcp_servers)
         logger.info("🔌 [MCP] MCP servers shutdown.")
     except Exception as e:
         logger.error(f"Error during MCP server cleanup: {e}")
 
+
 app = FastAPI(
     title=f"⌬ {agent_config.identity.name.lower()}.ᴄᴏʀᴇ API",
     description=agent_config.identity.description,
     version=agent_config.identity.version,
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # --- GLOBAL UTILITY MIDDLEWARE ---
@@ -651,11 +754,14 @@ app = FastAPI(
 # Enable CORS for local cross-origin requests (Industrially Hardened)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=agent_config.security.allowed_domains if agent_config.security.allowed_domains else ["*"],
+    allow_origins=agent_config.security.allowed_domains
+    if agent_config.security.allowed_domains
+    else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/health/dependencies")
 async def get_dependency_health():
@@ -663,8 +769,9 @@ async def get_dependency_health():
     Get the health status of all core and optional sidecar dependencies.
     """
     from myth_utils.paths import get_sidecar_dir
+
     sidecar_dir = get_sidecar_dir()
-    
+
     dependencies = [
         {"name": "Nmap", "binary": "nmap", "core": True},
         {"name": "Node.js", "binary": "node", "core": True},
@@ -672,14 +779,15 @@ async def get_dependency_health():
         {"name": "Nuclei", "binary": "nuclei", "core": True},
         {"name": "Subfinder", "binary": "subfinder", "core": True},
     ]
-    
+
     # Temporarily inject sidecar paths for the check
     if sidecar_dir:
         paths = [sidecar_dir]
         for folder in ["nmap", "nodejs"]:
             sub = os.path.join(sidecar_dir, folder)
-            if os.path.exists(sub): paths.append(sub)
-        
+            if os.path.exists(sub):
+                paths.append(sub)
+
         # Industry Grade: Robust PATH accumulation to avoid stale variable bugs
         for p in paths:
             current_path = os.environ.get("PATH", "")
@@ -688,28 +796,34 @@ async def get_dependency_health():
 
     results = []
     for dep in dependencies:
-        found = shutil.which(dep["binary"]) or (os.name == "nt" and shutil.which(f"{dep['binary']}.exe"))
-        results.append({
-            "name": dep["name"],
-            "status": "READY" if found else ("MISSING" if dep["core"] else "OPTIONAL_MISSING"),
-            "path": found or "N/A"
-        })
-    
+        found = shutil.which(dep["binary"]) or (
+            os.name == "nt" and shutil.which(f"{dep['binary']}.exe")
+        )
+        results.append(
+            {
+                "name": dep["name"],
+                "status": "READY"
+                if found
+                else ("MISSING" if dep["core"] else "OPTIONAL_MISSING"),
+                "path": found or "N/A",
+            }
+        )
+
     return {
         "timestamp": datetime.now().isoformat(),
         "sidecar_dir": sidecar_dir,
-        "dependencies": results
+        "dependencies": results,
     }
+
 
 async def ensure_standalone_assets():
     """
     Ensure critical configuration assets are synced to the AppData directory.
     This handles first-run scenarios for standalone installations.
     """
-    from myth_utils.paths import get_app_data_path, get_resource_path
-    
+
     app_data_root = get_app_data_path()
-    
+
     # 1. Sync agent_manifest.yaml
     manifest_src = get_resource_path("governance/agent_manifest.yaml")
     manifest_dest = os.path.join(app_data_root, "agent_manifest.yaml")
@@ -731,11 +845,13 @@ async def ensure_standalone_assets():
                 shutil.copy2(template_src, secrets_file)
                 logger.info("📦 [INIT] Initialized secrets.yaml from template")
                 await notification_manager.add(
-                    "INFO", "First Run Setup", 
-                    "Initialized secrets.yaml in AppData. Please configure your API keys."
+                    "INFO",
+                    "First Run Setup",
+                    "Initialized secrets.yaml in AppData. Please configure your API keys.",
                 )
             except Exception as e:
                 logger.error(f"❌ [INIT] Failed to initialize secrets: {e}")
+
 
 async def check_system_dependencies():
     """
@@ -743,37 +859,59 @@ async def check_system_dependencies():
     Provides detailed health reports via notifications.
     """
     from myth_utils.paths import get_sidecar_dir
+
     sidecar_dir = get_sidecar_dir()
-    
+
     dependencies = [
-        {"name": "Nmap", "binary": "nmap", "link": "https://nmap.org/download.html", "core": True},
-        {"name": "Node.js", "binary": "node", "link": "https://nodejs.org/", "core": True},
-        {"name": "Docker", "binary": "docker", "link": "https://www.docker.com/products/docker-desktop/", "core": False},
-        {"name": "Nuclei", "binary": "nuclei", "link": "https://github.com/projectdiscovery/nuclei", "core": True},
+        {
+            "name": "Nmap",
+            "binary": "nmap",
+            "link": "https://nmap.org/download.html",
+            "core": True,
+        },
+        {
+            "name": "Node.js",
+            "binary": "node",
+            "link": "https://nodejs.org/",
+            "core": True,
+        },
+        {
+            "name": "Docker",
+            "binary": "docker",
+            "link": "https://www.docker.com/products/docker-desktop/",
+            "core": False,
+        },
+        {
+            "name": "Nuclei",
+            "binary": "nuclei",
+            "link": "https://github.com/projectdiscovery/nuclei",
+            "core": True,
+        },
     ]
-    
+
     missing = []
     found_count = 0
-    
+
     # 1. Inject sidecar paths into environ for the duration of the check
     if sidecar_dir:
         paths = [sidecar_dir]
         # Check for subfolders if sidecars are nested
         for folder in ["nmap", "nodejs", "gnupg"]:
             sub = os.path.join(sidecar_dir, folder)
-            if os.path.exists(sub): paths.append(sub)
-        
+            if os.path.exists(sub):
+                paths.append(sub)
+
         # Industry Grade: Robust PATH accumulation
         for p in paths:
             current_path = os.environ.get("PATH", "")
             if p not in current_path:
                 os.environ["PATH"] = f"{p}{os.pathsep}{current_path}"
-    
+
     for dep in dependencies:
         binary_found = shutil.which(dep["binary"])
         if not binary_found and os.name == "nt":
             binary_found = shutil.which(f"{dep['binary']}.exe")
-            
+
         if binary_found:
             found_count += 1
             logger.debug(f"✅ [HEALTH] Found {dep['name']}: {binary_found}")
@@ -784,11 +922,18 @@ async def check_system_dependencies():
                 logger.info(f"ℹ️ [HEALTH] Optional dependency missing: {dep['name']}")
 
     if missing:
-        msg = f"Standalone Core Alert: {len(missing)} bundled sidecars are missing or unreachable: " + ", ".join([d["name"] for d in missing])
+        msg = (
+            f"Standalone Core Alert: {len(missing)} bundled sidecars are missing or unreachable: "
+            + ", ".join([d["name"] for d in missing])
+        )
         await notification_manager.add("WARNING", "Standalone Integrity Check", msg)
-        logger.warning(f"⚠️ [HEALTH] Missing core dependencies: {[d['name'] for d in missing]}")
+        logger.warning(
+            f"⚠️ [HEALTH] Missing core dependencies: {[d['name'] for d in missing]}"
+        )
     else:
-        logger.info(f"✨ [HEALTH] All core sidecars ({found_count}/{len(dependencies)}) are operational.")
+        logger.info(
+            f"✨ [HEALTH] All core sidecars ({found_count}/{len(dependencies)}) are operational."
+        )
 
 
 # Logging Middleware
@@ -798,7 +943,9 @@ async def await_system_ready(timeout: int = 40):
     try:
         if not backend.REGISTRY["is_ready_event"].is_set():
             logger.info("⏳ [API] Waiting for system readiness event...")
-            await asyncio.wait_for(backend.REGISTRY["is_ready_event"].wait(), timeout=timeout)
+            await asyncio.wait_for(
+                backend.REGISTRY["is_ready_event"].wait(), timeout=timeout
+            )
         return True
     except asyncio.TimeoutError:
         logger.error(f"❌ [API] System readiness timeout after {timeout}s")
@@ -807,30 +954,44 @@ async def await_system_ready(timeout: int = 40):
         logger.error(f"❌ [API] Readiness check failed: {e}")
         raise HTTPException(status_code=500, detail=f"Readiness check failed: {e}")
 
+
 def should_suppress(content):
     """Returns True if the content looks like internal classification/state leakage."""
-    if not content: return False
+    if not content:
+        return False
     s = str(content).strip()
     # 1. Exact matches
-    if s in ["SIMPLE", "COMPLEX"]: return True
+    if s in ["SIMPLE", "COMPLEX"]:
+        return True
     # 2. JSON-like classification blobs
-    if '"classification":' in s or "'classification':" in s: return True
+    if '"classification":' in s or "'classification':" in s:
+        return True
     # 3. Path/Node internal markers
-    if s.startswith("AUTO_EFF_VERIFIED_NODE_ID"): return True
+    if s.startswith("AUTO_EFF_VERIFIED_NODE_ID"):
+        return True
     # 4. Filter out raw tags themselves from being displayed
-    if s in ["<think>", "</think>"]: return True
+    if s in ["<think>", "</think>"]:
+        return True
     return False
+
 
 class IndustrialLoggingMiddleware:
     def __init__(self, app):
         self.app = app
         self.polling_endpoints = {
-            "/ping", "/health", "/chat/sessions", 
-            "/security/threats", "/security/alerts", "/security/network", 
-            "/security/sessions", "/security/report",
-            "/vpn/status", "/vpn/nodes",
-            "/notifications/dismiss", "/notifications/clear",
-            "/chat/stream"  # Explicitly exclude stream to prevent log noise and ASGI conflicts
+            "/ping",
+            "/health",
+            "/chat/sessions",
+            "/security/threats",
+            "/security/alerts",
+            "/security/network",
+            "/security/sessions",
+            "/security/report",
+            "/vpn/status",
+            "/vpn/nodes",
+            "/notifications/dismiss",
+            "/notifications/clear",
+            "/chat/stream",  # Explicitly exclude stream to prevent log noise and ASGI conflicts
         }
 
     async def __call__(self, scope, receive, send):
@@ -839,7 +1000,7 @@ class IndustrialLoggingMiddleware:
             return
 
         path = scope.get("path", "")
-        
+
         try:
             # Fast check for polling/ignored endpoints
             if path in self.polling_endpoints:
@@ -866,13 +1027,16 @@ class IndustrialLoggingMiddleware:
             else:
                 raise e
 
+
 app.add_middleware(IndustrialLoggingMiddleware)
+
 
 # --- HIGH PRIORITY SECURITY ENDPOINTS ---
 @app.get("/security/alerts")
 async def get_security_alerts():
     """Fetch active security alerts."""
     return {"alerts": security_alerts}
+
 
 # --- NOTIFICATION ENDPOINTS ---
 @app.post("/notifications/dismiss")
@@ -885,6 +1049,7 @@ async def dismiss_notification(payload: Dict[str, str] = Body(...)):
         asyncio.create_task(trigger_telemetry_update())
         return {"success": True, "message": f"Dismissed {notification_id}"}
     return {"success": False, "message": "Notification ID required"}
+
 
 @app.post("/notifications/clear")
 async def clear_all_notifications():
@@ -906,6 +1071,7 @@ async def authorize_file_change(request: dict):
         return {"success": True, "message": f"Authorized {filename}"}
     return {"success": False, "message": "Filename required"}
 
+
 @app.post("/security/alerts/clear")
 async def clear_security_alerts():
     """Purge all security alerts and re-baseline the Integrity Monitor."""
@@ -914,12 +1080,17 @@ async def clear_security_alerts():
     security_alerts.clear()
     for f in CRITICAL_FILES:
         current_hash = compute_hash(f)
-        if current_hash: baseline_hashes[f] = current_hash
-    logger.warning(f"🧹 [PURGE] Security labs cleared. Re-baselined {len(baseline_hashes)} core modules.")
+        if current_hash:
+            baseline_hashes[f] = current_hash
+    logger.warning(
+        f"🧹 [PURGE] Security labs cleared. Re-baselined {len(baseline_hashes)} core modules."
+    )
     return {"success": True, "purged": count}
+
 
 # --- Port Scanning Cache (Industrial Reliability) ---
 cached_mcp_status = {"security": "INIT", "system": "INIT", "external": "INIT"}
+
 
 async def mcp_health_sentinel():
     """Background scanner to keep health metrics fresh without blocking requests."""
@@ -928,20 +1099,22 @@ async def mcp_health_sentinel():
         from mcp_servers.mcp_client import SSE_CONFIGS
     except ImportError:
         SSE_CONFIGS = {}
-    
+
     while True:
         try:
             # Get target ports from config to avoid blind scanning
-            target_ports = {cfg["port"]: cfg["category"] for cfg in SSE_CONFIGS.values()}
+            target_ports = {
+                cfg["port"]: cfg["category"] for cfg in SSE_CONFIGS.values()
+            }
             if not target_ports:
-                 # Default if config not loaded yet
-                 target_ports = {8001: "local", 8002: "local", 8003: "local"}
-            
+                # Default if config not loaded yet
+                target_ports = {8001: "local", 8002: "local", 8003: "local"}
+
             # PARALLEL SCAN: Check all relevant ports concurrently
             port_list = list(target_ports.keys())
             tasks = [asyncio.to_thread(_check_port, port) for port in port_list]
             results = await asyncio.gather(*tasks)
-            
+
             status_map = {}
             for port, status in zip(port_list, results):
                 if status == "SECURE":
@@ -949,46 +1122,55 @@ async def mcp_health_sentinel():
 
             # Aggregate for the simple heartbeat status
             security_up = _check_port(8001) == "SECURE"
-            system_up = _check_port(8002) == "SECURE" 
+            system_up = _check_port(8002) == "SECURE"
             external_up = _check_port(8003) == "SECURE"
-            
+
             # Industrial Hook: Notify if critical tool layers fluctuate
             new_status = {
                 "security": "SECURE" if security_up else "INIT",
                 "system": "SECURE" if system_up else "INIT",
-                "external": "SECURE" if external_up else "INIT"
+                "external": "SECURE" if external_up else "INIT",
             }
-            
+
             for key, val in new_status.items():
                 if val != cached_mcp_status.get(key):
                     if val == "SECURE":
                         # backend.notify_system("SUCCESS", "MCP Layer Re-established", f"Component '{key.upper()}' is now operational.")
                         pass
                     else:
-                        backend.notify_system("ERROR", "MCP Layer offline", f"Component '{key.upper()}' link lost. Tactical tools unavailable.")
+                        backend.notify_system(
+                            "ERROR",
+                            "MCP Layer offline",
+                            f"Component '{key.upper()}' link lost. Tactical tools unavailable.",
+                        )
 
             cached_mcp_status = {
                 "security": "SECURE" if security_up else "INIT",
                 "system": "SECURE" if system_up else "INIT",
                 "external": "SECURE" if external_up else "INIT",
-                "active_count": len(status_map)
+                "active_count": len(status_map),
             }
         except Exception as e:
             logger.warning(f"⚠️ [HEALTH_SENTINEL] Scan error: {e}")
-        await asyncio.sleep(10) # Industrial Speed: 10s updates (relaxed from 5s to save CPU)
+        await asyncio.sleep(
+            10
+        )  # Industrial Speed: 10s updates (relaxed from 5s to save CPU)
+
 
 def _check_port(port: int) -> str:
     """Check if a port is open and return status."""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.5) # Industrial Grade: 0.5s for reliable Windows concurrency
-            if s.connect_ex(('127.0.0.1', port)) == 0:
+            s.settimeout(0.5)  # Industrial Grade: 0.5s for reliable Windows concurrency
+            if s.connect_ex(("127.0.0.1", port)) == 0:
                 return "SECURE"
             return "WARNING"
-    except:
+    except Exception:
         return "WARNING"
 
+
 # --- Models ---
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -996,14 +1178,17 @@ class ChatRequest(BaseModel):
     collection_name: Optional[str] = "security_docs"
     speaking_mode: Optional[bool] = False
 
+
 class RAGQueryRequest(BaseModel):
     query: str
     collection_name: Optional[str] = "security_docs"
     k: int = 10
 
+
 class FolderIndexRequest(BaseModel):
     folder_path: str
     collection_name: Optional[str] = "security_docs"
+
 
 class SettingsKeyRequest(BaseModel):
     # Support for legacy single keys if still sent by older UI versions
@@ -1012,12 +1197,16 @@ class SettingsKeyRequest(BaseModel):
     # Support for the new structured industrial payload
     updates: Optional[Dict[str, Any]] = None
 
+
 # --- State & Observability ---
 session_locks: Dict[str, asyncio.Lock] = {}
 in_flight_requests = 0
+
+
 # --- Socket Management (Industry-Grade) ---
 class ConnectionManager:
     """Manages active WebSocket connections with heartbeat and binary support."""
+
     def __init__(self):
         self.active_connections: Dict[str, List[WebSocket]] = {}
         self._lock = asyncio.Lock()
@@ -1059,6 +1248,7 @@ class ConnectionManager:
                 except Exception:
                     pass
 
+
 manager = ConnectionManager()
 
 
@@ -1066,7 +1256,8 @@ manager = ConnectionManager()
 _telemetry_debounce_task: Optional[asyncio.Task] = None
 _telemetry_pending: bool = False
 
-latency_history: List[float] = [] # Rolling history of reasoning latency
+latency_history: List[float] = []  # Rolling history of reasoning latency
+
 
 def add_latency_metric(latency: float):
     global latency_history
@@ -1074,82 +1265,90 @@ def add_latency_metric(latency: float):
     if len(latency_history) > 50:
         latency_history.pop(0)
 
+
 def get_avg_latency() -> float:
-    if not latency_history: return 0.0
+    if not latency_history:
+        return 0.0
     return round(sum(latency_history) / len(latency_history), 2)
+
 
 # DISABLE TELEMETRY (Environment level is safest)
 
 # --- Network Ping Sentinel (Industrial-Grade Internet Latency) ---
 cached_network_ping: float = -1.0  # -1 indicates no measurement yet
 
+
 async def network_ping_sentinel():
     """Background sentinel to measure real-time internet latency via ICMP ping."""
     global cached_network_ping
     logger.info("🌐 [NETWORK_PING] Starting Network Latency Sentinel...")
-    
+
     # Ping targets (DNS servers for reliability)
     targets = ["8.8.8.8", "1.1.1.1", "208.67.222.222"]
-    
+
     while True:
         try:
-            best_ping = float('inf')
-            
+            best_ping = float("inf")
+
             for target in targets:
                 try:
                     # Platform-specific ping command
-                    if sys.platform == 'win32':
-                        cmd = ['ping', '-n', '1', '-w', '1000', target]
+                    if sys.platform == "win32":
+                        cmd = ["ping", "-n", "1", "-w", "1000", target]
                     else:
-                        cmd = ['ping', '-c', '1', '-W', '1', target]
-                    
+                        cmd = ["ping", "-c", "1", "-W", "1", target]
+
                     start = time.perf_counter()
                     result = await asyncio.to_thread(
-                        subprocess.run, cmd, 
-                        capture_output=True, text=True, timeout=1
+                        subprocess.run, cmd, capture_output=True, text=True, timeout=1
                     )
                     elapsed = (time.perf_counter() - start) * 1000  # ms
-                    
+
                     if result.returncode == 0:
                         # Extract actual RTT from ping output for precision
                         output = result.stdout
-                        if sys.platform == 'win32':
+                        if sys.platform == "win32":
                             # Windows: "time=15ms" or "time<1ms"
                             import re
-                            match = re.search(r'time[=<](\d+)', output)
+
+                            match = re.search(r"time[=<](\d+)", output)
                             if match:
                                 elapsed = float(match.group(1))
                         else:
                             # Unix: "time=15.4 ms"
                             import re
-                            match = re.search(r'time=(\d+\.?\d*)', output)
+
+                            match = re.search(r"time=(\d+\.?\d*)", output)
                             if match:
                                 elapsed = float(match.group(1))
-                        
+
                         if elapsed < best_ping:
                             best_ping = elapsed
-                            
+
                 except (subprocess.TimeoutExpired, OSError):
                     continue
-            
+
             # Update cached value
-            if best_ping != float('inf'):
+            if best_ping != float("inf"):
                 cached_network_ping = round(best_ping, 1)
             else:
                 cached_network_ping = -1.0  # Offline
-                
+
         except Exception as e:
             logger.warning(f"⚠️ [NETWORK_PING] Measurement failed: {e}")
             cached_network_ping = -1.0
-        
+
         await asyncio.sleep(0.5)  # Measure every 0.5 seconds (Ultra-Fast)
 
+
 os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
 
 @app.get("/ping")
 async def ping():
     """Ultra-lightweight heartbeat for real-time latency (RTT) measurement."""
     return {"status": "pong", "timestamp": time.time()}
+
 
 @app.get("/health")
 async def get_health():
@@ -1159,21 +1358,23 @@ async def get_health():
         tools_list = backend.REGISTRY.get("tools", [])
         tools_count = len(tools_list)
         is_ready = backend.REGISTRY["is_ready_event"].is_set()
-        
+
         # System metrics (Offload blocking calls to thread)
         def _collect_sys_metrics():
             cpu = psutil.cpu_percent()
             mem = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
             proc = psutil.Process(os.getpid())
             uptime = int(time.time() - proc.create_time())
             net_io = psutil.net_io_counters()
             return cpu, mem, disk, uptime, net_io
 
-        cpu_usage, memory, disk, uptime_sec, net_io = await asyncio.to_thread(_collect_sys_metrics)
-        
+        cpu_usage, memory, disk, uptime_sec, net_io = await asyncio.to_thread(
+            _collect_sys_metrics
+        )
+
         uptime_str = f"{uptime_sec // 3600}h {(uptime_sec % 3600) // 60}m"
-        
+
         # Optimized Network Info (Avoid slow DNS lookups)
         # Detection of actual LAN IP for industrial sharing robustness
         def _get_lan_ip():
@@ -1188,23 +1389,34 @@ async def get_health():
 
         hostname = socket.gethostname().upper()
         local_ip = await asyncio.to_thread(_get_lan_ip)
-            
+
         # MCP Server Statuses (READ FROM CACHE)
         mcp_status = cached_mcp_status
-        
+
         # I/O Deltas
-        io_load = (net_io.bytes_sent + net_io.bytes_recv) / 1024 / 1024 # MB
-        
+        io_load = (net_io.bytes_sent + net_io.bytes_recv) / 1024 / 1024  # MB
+
         # Dynamic Integrity Score
         base_integrity = 100
-        if cpu_usage > 90: base_integrity -= 15
-        if vpn_controller.connected: base_integrity += 5
-        
+        if cpu_usage > 90:
+            base_integrity -= 15
+        if vpn_controller.connected:
+            base_integrity += 5
+
         integrity_score = min(100, max(5, base_integrity))
 
         # Battery Health (Omni-Bundle Dependency Integrity)
         async def _check_batteries():
-            sidecars = ["nuclei", "subfinder", "naabu", "httpx", "dnsx", "katana", "subfinder", "shuffledns"]
+            sidecars = [
+                "nuclei",
+                "subfinder",
+                "naabu",
+                "httpx",
+                "dnsx",
+                "katana",
+                "subfinder",
+                "shuffledns",
+            ]
             binary_integrity = {}
             for s in sidecars:
                 # In development, check PATH. In bundled, Tauri handles sidecar resolution.
@@ -1213,35 +1425,45 @@ async def get_health():
                 if not found:
                     # Check sidecar dir explicitly just in case PATH injection hasn't propagated
                     from myth_utils.paths import get_sidecar_dir
+
                     s_dir = get_sidecar_dir()
                     if s_dir:
-                        exe_n = f"{s}-x86_64-pc-windows-msvc.exe" if sys.platform == "win32" else s
+                        exe_n = (
+                            f"{s}-x86_64-pc-windows-msvc.exe"
+                            if sys.platform == "win32"
+                            else s
+                        )
                         if os.path.exists(os.path.join(s_dir, exe_n)):
                             found = True
                 binary_integrity[s] = "READY" if found else "MISSING"
-            
+
             # AI Connectivity Pulse
             llm_integrity = {
                 "nvidia": "Online" if backend.Config.NVIDIA_KEY else "Missing Key",
-                "mistral": "Online" if backend.Config.MISTRAL_KEY else "Missing Key"
+                "mistral": "Online" if backend.Config.MISTRAL_KEY else "Missing Key",
             }
-            
+
             # RAG Health
             rag_ready = False
             if backend.REGISTRY.get("vector_store"):
                 try:
-                    stats = await backend.REGISTRY["vector_store"].get_collection_stats("security_docs")
+                    stats = await backend.REGISTRY["vector_store"].get_collection_stats(
+                        "security_docs"
+                    )
                     rag_ready = "error" not in stats
-                except:
+                except Exception:
                     rag_ready = False
-            
+
             return {
                 "binaries": binary_integrity,
                 "models": llm_integrity,
                 "rag": "READY" if rag_ready else "OFFLINE",
-                "browser": "READY" if shutil.which("playwright") or os.environ.get("PLAYWRIGHT_BROWSERS_PATH") else "INSTALLING"
+                "browser": "READY"
+                if shutil.which("playwright")
+                or os.environ.get("PLAYWRIGHT_BROWSERS_PATH")
+                else "INSTALLING",
             }
-        
+
         batteries = await _check_batteries()
 
         return {
@@ -1255,7 +1477,6 @@ async def get_health():
             "ip": local_ip,
             "hostname": hostname.upper(),
             "uptime": uptime_str,
-            "uptime": uptime_str,
             "identity": {
                 "name": agent_config.identity.name,
                 "full_name": agent_config.identity.full_name,
@@ -1264,7 +1485,7 @@ async def get_health():
                 "org": agent_config.identity.creator.organization,
                 "creator": agent_config.identity.creator.creator_name,
                 "env": agent_config.runtime.environment,
-                "node": agent_config.runtime.node_id
+                "node": agent_config.runtime.node_id,
             },
             "metrics": {
                 "cpu": cpu_usage,
@@ -1274,15 +1495,15 @@ async def get_health():
                 "latency": f"{15.4 + (cpu_usage / 10):.1f}ms",
                 "io_load": f"{io_load:.2f}MB",
                 "in_flight": in_flight_requests,
-                "avg_reasoning_latency_ms": get_avg_latency()
+                "avg_reasoning_latency_ms": get_avg_latency(),
             },
             "components": {
                 "agent": "ACTIVE" if is_ready else "INIT",
                 "rag": "READY" if backend.REGISTRY.get("vector_store") else "INIT",
-                "mcp": "SECURE" if tools_count > 0 else "INIT"
+                "mcp": "SECURE" if tools_count > 0 else "INIT",
             },
             "mcp_servers": mcp_status,
-            "version_sig": f"{agent_config.identity.name}-{agent_config.identity.codename}-{agent_config.identity.version}"
+            "version_sig": f"{agent_config.identity.name}-{agent_config.identity.codename}-{agent_config.identity.version}",
         }
     except Exception as e:
         logger.error(f"❌ Health Check Error: {e}")
@@ -1290,44 +1511,49 @@ async def get_health():
             "status": "error",
             "ready": False,
             "error": str(e),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Industrial cleanup on server shutdown."""
 
+
 # --- Security Data Caching ---
 cached_forensics: Dict[str, Any] = {}
+
 
 async def threat_intel_sentinel():
     """Background task to keep threat intelligence data fresh."""
     logger.info("🛡️ [THREAT_INTEL] Starting background intelligence sentinel...")
-    tick = 0
     # Initial status broadcast
-    tick = 0
     while True:
         try:
-             # Basic Health Check
-             await asyncio.sleep(600)
+            # Basic Health Check
+            await asyncio.sleep(600)
         except Exception as e:
             logger.warning(f"Sentinel interrupted: {e}")
             await asyncio.sleep(60)
 
 
-
-
-
 # --- Spatial Intelligence ---
 geo_ip_cache: Dict[str, Dict[str, Any]] = {}
 
+
 async def get_geo_info(ip: str) -> Dict[str, Any]:
     """Resolve IP to geographic coordinates (with caching)."""
-    if not ip or ip.startswith("127.") or ip.startswith("192.168.") or ip.startswith("10."):
+    if (
+        not ip
+        or ip.startswith("127.")
+        or ip.startswith("192.168.")
+        or ip.startswith("10.")
+    ):
         return {"country": "INTERNAL", "city": "LOCAL_GRID", "lat": 0, "lon": 0}
-    
-    if ip in geo_ip_cache: return geo_ip_cache[ip]
-    
+
+    if ip in geo_ip_cache:
+        return geo_ip_cache[ip]
+
     try:
         async with httpx.AsyncClient() as client:
             # Using ip-api.com (free, no key required for low volume)
@@ -1338,32 +1564,33 @@ async def get_geo_info(ip: str) -> Dict[str, Any]:
                     "country": data.get("country", "UNKNOWN"),
                     "city": data.get("city", "UNKNOWN"),
                     "lat": data.get("lat", 0),
-                    "lon": data.get("lon", 0)
+                    "lon": data.get("lon", 0),
                 }
                 geo_ip_cache[ip] = geo
                 return geo
-    except:
+    except Exception:
         pass
     return {"country": "UNKNOWN", "city": "REMOTE", "lat": 0, "lon": 0}
+
 
 @app.get("/security/network")
 async def get_network_traffic():
     """Analyze active connections with spatial indicators (Parallelized)."""
     connections = []
-    
+
     try:
         # 1. Fast Synchronous Collection (Offloaded to Thread)
         def _collect_connections():
-             return psutil.net_connections(kind='inet')
+            return psutil.net_connections(kind="inet")
 
         net_conns = await asyncio.to_thread(_collect_connections)
 
         for conn in net_conns:
-            if conn.status == 'ESTABLISHED' and conn.raddr:
+            if conn.status == "ESTABLISHED" and conn.raddr:
                 try:
                     process = psutil.Process(conn.pid)
                     remote_ip = conn.raddr.ip
-                    
+
                     # Store data to pair with future result
                     conn_data = {
                         "pid": conn.pid,
@@ -1371,10 +1598,10 @@ async def get_network_traffic():
                         "local": f"{conn.laddr.ip}:{conn.laddr.port}",
                         "remote": f"{remote_ip}:{conn.raddr.port}",
                         "status": conn.status,
-                        "remote_ip_raw": remote_ip
+                        "remote_ip_raw": remote_ip,
                     }
                     connections.append(conn_data)
-                    
+
                     # Limit to top 15 explicitly to save resources
                     if len(connections) >= 15:
                         break
@@ -1383,18 +1610,21 @@ async def get_network_traffic():
 
         # 2. Parallel GeoIP Resolution
         if connections:
-            geo_results = await asyncio.gather(*[get_geo_info(c["remote_ip_raw"]) for c in connections])
-            
+            geo_results = await asyncio.gather(
+                *[get_geo_info(c["remote_ip_raw"]) for c in connections]
+            )
+
             # 3. Merge Results
             for i, conn in enumerate(connections):
                 conn["geo"] = geo_results[i]
-                del conn["remote_ip_raw"] # Clean up internal key
-        
+                del conn["remote_ip_raw"]  # Clean up internal key
+
         return {"connections": connections}
 
     except Exception as e:
         logger.warning(f"Network analysis limited: {e}")
         return {"connections": []}
+
 
 @app.get("/security/sessions")
 async def get_system_sessions():
@@ -1402,74 +1632,103 @@ async def get_system_sessions():
     sessions = []
     try:
         for user in psutil.users():
-            sessions.append({
-                "user": user.name,
-                "terminal": user.terminal,
-                "host": user.host,
-                "started": datetime.fromtimestamp(user.started).isoformat()
-            })
-            
+            sessions.append(
+                {
+                    "user": user.name,
+                    "terminal": user.terminal,
+                    "host": user.host,
+                    "started": datetime.fromtimestamp(user.started).isoformat(),
+                }
+            )
+
         # Also look for active shell processes
         shells = ["cmd.exe", "powershell.exe", "bash", "zsh", "ssh"]
-        for proc in psutil.process_iter(['name', 'username', 'create_time']):
-            if proc.info['name'].lower() in shells:
-                sessions.append({
-                    "user": proc.info['username'] or "SYSTEM",
-                    "terminal": "CLI_SHELL",
-                    "host": proc.info['name'],
-                    "started": datetime.fromtimestamp(proc.info['create_time']).isoformat(),
-                    "active": True
-                })
-    except:
+        for proc in psutil.process_iter(["name", "username", "create_time"]):
+            if proc.info["name"].lower() in shells:
+                sessions.append(
+                    {
+                        "user": proc.info["username"] or "SYSTEM",
+                        "terminal": "CLI_SHELL",
+                        "host": proc.info["name"],
+                        "started": datetime.fromtimestamp(
+                            proc.info["create_time"]
+                        ).isoformat(),
+                        "active": True,
+                    }
+                )
+    except Exception:
         pass
     return {"sessions": sessions[:10]}
+
 
 @app.get("/security/processes")
 async def get_process_monitor():
     """Identify high-resource or suspicious system processes."""
     processes = []
-    for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
+    for proc in psutil.process_iter(["pid", "name", "cpu_percent", "memory_percent"]):
         try:
-            if proc.info['cpu_percent'] > 5.0 or proc.info['memory_percent'] > 2.0:
-                processes.append({
-                    "pid": proc.info['pid'],
-                    "name": proc.info['name'],
-                    "cpu": proc.info['cpu_percent'],
-                    "memory": f"{proc.info['memory_percent']:.1f}%",
-                    "risk": "MEDIUM" if proc.info['cpu_percent'] > 30.0 else "LOW"
-                })
+            if proc.info["cpu_percent"] > 5.0 or proc.info["memory_percent"] > 2.0:
+                processes.append(
+                    {
+                        "pid": proc.info["pid"],
+                        "name": proc.info["name"],
+                        "cpu": proc.info["cpu_percent"],
+                        "memory": f"{proc.info['memory_percent']:.1f}%",
+                        "risk": "MEDIUM" if proc.info["cpu_percent"] > 30.0 else "LOW",
+                    }
+                )
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
-    return {"processes": sorted(processes, key=lambda x: x['cpu'], reverse=True)[:10]}
+    return {"processes": sorted(processes, key=lambda x: x["cpu"], reverse=True)[:10]}
+
 
 @app.post("/security/scan")
 async def run_port_scan():
     """Perform a high-speed local port audit."""
     # Common industrial/security ports to scan
-    ports_to_check = [21, 22, 23, 25, 53, 80, 443, 445, 1433, 3306, 3389, 5432, 8000, 8080, 27017]
+    ports_to_check = [
+        21,
+        22,
+        23,
+        25,
+        53,
+        80,
+        443,
+        445,
+        1433,
+        3306,
+        3389,
+        5432,
+        8000,
+        8080,
+        27017,
+    ]
     open_ports = []
-    
+
     logger.info("🔍 [SCAN] Initiating local node vulnerability assessment...")
-    
+
     # Simple async scanner
     async def check_port(port):
         try:
-            _, writer = await asyncio.wait_for(asyncio.open_connection('127.0.0.1', port), timeout=0.1)
+            _, writer = await asyncio.wait_for(
+                asyncio.open_connection("127.0.0.1", port), timeout=0.1
+            )
             writer.close()
             await writer.wait_closed()
             return port
-        except:
+        except Exception:
             return None
 
     results = await asyncio.gather(*[check_port(p) for p in ports_to_check])
     open_ports = [p for p in results if p]
-    
+
     return {
         "timestamp": datetime.now().isoformat(),
         "status": "COMPLETED",
         "open_ports": open_ports,
-        "summary": f"Audit complete. {len(open_ports)} exposed entry points detected."
+        "summary": f"Audit complete. {len(open_ports)} exposed entry points detected.",
     }
+
 
 @app.get("/security/report")
 async def generate_compliance_report():
@@ -1477,35 +1736,64 @@ async def generate_compliance_report():
     # Heuristic scoring
     checks = []
     score = 100
-    
+
     # 1. Integrity check (Optimized: Check Alert Logs only)
     # Avoid re-hashing all files on every report request
-    integrity_alerts = [a for a in security_alerts if a['type'] == 'INTEGRITY_TAMPER']
+    integrity_alerts = [a for a in security_alerts if a["type"] == "INTEGRITY_TAMPER"]
     tampered = len(integrity_alerts) > 0
-    checks.append({"name": "Core Integrity", "status": "FAIL" if tampered else "PASS", "weight": 40})
-    if tampered: score -= 40
-    
+    checks.append(
+        {
+            "name": "Core Integrity",
+            "status": "FAIL" if tampered else "PASS",
+            "weight": 40,
+        }
+    )
+    if tampered:
+        score -= 40
+
     # 2. RAG Readiness
     rag_ready = bool(backend.REGISTRY.get("vector_store"))
-    checks.append({"name": "Knowledge Sovereignty", "status": "PASS" if rag_ready else "INIT", "weight": 20})
-    if not rag_ready: score -= 10
-    
+    checks.append(
+        {
+            "name": "Knowledge Sovereignty",
+            "status": "PASS" if rag_ready else "INIT",
+            "weight": 20,
+        }
+    )
+    if not rag_ready:
+        score -= 10
+
     # 3. Connection Audit
-    ext_conns = [c for c in psutil.net_connections() if c.status == 'ESTABLISHED']
-    checks.append({"name": "Network Perimeter", "status": "SECURE" if len(ext_conns) < 50 else "CONGESTED", "weight": 20})
-    
+    ext_conns = [c for c in psutil.net_connections() if c.status == "ESTABLISHED"]
+    checks.append(
+        {
+            "name": "Network Perimeter",
+            "status": "SECURE" if len(ext_conns) < 50 else "CONGESTED",
+            "weight": 20,
+        }
+    )
+
     # 4. System Uptime Resilience
     uptime = time.time() - psutil.Process().create_time()
-    checks.append({"name": "Runtime Stability", "status": "OPTIMAL" if uptime > 300 else "BOOTSTRAP", "weight": 20})
-    
+    checks.append(
+        {
+            "name": "Runtime Stability",
+            "status": "OPTIMAL" if uptime > 300 else "BOOTSTRAP",
+            "weight": 20,
+        }
+    )
+
     return {
         "report_id": f"{agent_config.identity.name.upper()}-{str(uuid.uuid4())[:13].upper()}",
         "tier": "INDUSTRIAL-1" if score > 80 else "VULNERABLE",
         "score": score,
         "timestamp": datetime.now().isoformat(),
         "compliance_matrix": checks,
-        "recommendation": "Maintain integrity anchors." if score > 80 else "Immediate forensic audit required."
+        "recommendation": "Maintain integrity anchors."
+        if score > 80
+        else "Immediate forensic audit required.",
     }
+
 
 @app.get("/vpn/status")
 async def get_vpn_status():
@@ -1517,12 +1805,14 @@ async def get_vpn_status():
         "throughput_rx": status.throughput_rx,
         "uptime": status.uptime,
         "ip_virtual": status.ip_virtual,
-        "active_node": status.active_node.model_dump() if status.active_node else None
+        "active_node": status.active_node.model_dump() if status.active_node else None,
     }
+
 
 @app.get("/vpn/nodes")
 async def get_vpn_nodes():
     return {"nodes": [n.model_dump() for n in vpn_controller.nodes]}
+
 
 @app.post("/vpn/toggle")
 async def toggle_vpn(payload: Dict[str, Any] = Body(...)):
@@ -1536,8 +1826,9 @@ async def toggle_vpn(payload: Dict[str, Any] = Body(...)):
 async def get_settings_keys():
     """Retrieve full masked secrets from the sovereign configuration."""
     from myth_config import config
+
     secrets = config.get_all()
-    
+
     def mask_recursive(data):
         if isinstance(data, dict):
             return {k: mask_recursive(v) for k, v in data.items()}
@@ -1552,11 +1843,12 @@ async def get_settings_keys():
 
     return mask_recursive(secrets)
 
+
 @app.post("/settings/keys")
 async def update_settings_keys(payload: SettingsKeyRequest):
     """Update API keys in SovereignConfig and trigger model reload."""
     from myth_config import config
-    
+
     # Handle the new structured updates first
     if payload.updates:
         success = config.update_secrets(payload.updates)
@@ -1564,20 +1856,29 @@ async def update_settings_keys(payload: SettingsKeyRequest):
         # Fallback to legacy single-key updates for backward compatibility
         legacy_updates = {"ai_providers": {}}
         if payload.nvidia_api_key:
-            legacy_updates["ai_providers"]["nvidia"] = {"keys": [payload.nvidia_api_key]}
+            legacy_updates["ai_providers"]["nvidia"] = {
+                "keys": [payload.nvidia_api_key]
+            }
         if payload.mistral_api_key:
-            legacy_updates["ai_providers"]["mistral"] = {"keys": [payload.mistral_api_key]}
-        
+            legacy_updates["ai_providers"]["mistral"] = {
+                "keys": [payload.mistral_api_key]
+            }
+
         success = config.update_secrets(legacy_updates)
-        
+
     if success:
         # Trigger async reload of the reasoning engine
         asyncio.create_task(backend.reload_models())
-        return {"status": "SUCCESS", "message": "Settings updated. Reloading neural matrix..."}
+        return {
+            "status": "SUCCESS",
+            "message": "Settings updated. Reloading neural matrix...",
+        }
     else:
         return {"status": "ERROR", "message": "Failed to persist industrial secrets."}
 
+
 node_isolated = False
+
 
 @app.post("/security/isolate")
 async def isolate_node(payload: Dict[str, bool] = Body(...)):
@@ -1586,21 +1887,25 @@ async def isolate_node(payload: Dict[str, bool] = Body(...)):
     enabled = payload.get("enabled", False)
     node_isolated = enabled
     # In a real system, this would trigger firewall rules
-    logger.warning(f"🛡️ [SECURITY] NODE ISOLATION {'ACTIVATED' if enabled else 'DEACTIVATED'}")
+    logger.warning(
+        f"🛡️ [SECURITY] NODE ISOLATION {'ACTIVATED' if enabled else 'DEACTIVATED'}"
+    )
     # Industrial Hook: Surface isolation state
     if enabled:
         backend.notify_system(
-            "WARNING", 
-            "Global Isolation Matrix", 
-            f"Node isolation protocols EXTENDED. Tactical communication RESTRICTED."
+            "WARNING",
+            "Global Isolation Matrix",
+            "Node isolation protocols EXTENDED. Tactical communication RESTRICTED.",
         )
     return {"success": True, "enabled": node_isolated}
 
 
 # --- ARCHITECTURE CONTROL ---
 
+
 class ArchitectureRequest(BaseModel):
     mode: str  # "normal" or "multi"
+
 
 @app.get("/settings/architecture")
 async def get_architecture():
@@ -1609,26 +1914,34 @@ async def get_architecture():
     return {
         "mode": mode,
         "display_name": "Solo Strike" if mode == "normal" else "Killchain Matrix",
-        "description": "Single Unified Core" if mode == "normal" else "Distributed Warfare Grid"
+        "description": "Single Unified Core"
+        if mode == "normal"
+        else "Distributed Warfare Grid",
     }
+
 
 @app.post("/settings/architecture")
 async def set_architecture(request: ArchitectureRequest):
     """Switch LLM architecture mode at runtime."""
     success = backend.set_architecture_mode(request.mode)
     if not success:
-        raise HTTPException(status_code=400, detail=f"Invalid architecture mode: {request.mode}. Use 'normal' or 'multi'.")
-    
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid architecture mode: {request.mode}. Use 'normal' or 'multi'.",
+        )
+
     mode = backend.get_architecture_mode()
     logger.info(f"🔄 [API] Architecture switched to: {mode.upper()}")
     return {
         "success": True,
         "mode": mode,
-        "display_name": "Solo Strike" if mode == "normal" else "Killchain Matrix"
+        "display_name": "Solo Strike" if mode == "normal" else "Killchain Matrix",
     }
+
 
 # --- CONVERSATION CONTROL ---
 # MEMORY SYSTEM REMOVED - Using In-Memory Only
+
 
 @app.websocket("/chat/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -1644,49 +1957,56 @@ async def websocket_endpoint(websocket: WebSocket):
         session_id = initial_data.get("session_id", f"session_{uuid.uuid4().hex[:8]}")
         message = initial_data.get("message", "")
         speaking_mode = initial_data.get("speaking_mode", False)
-        
+
         # Security: Configuration Binding
         config = {"configurable": {"thread_id": session_id}}
-        
+
         # Verify readiness before fully engaging
         await await_system_ready()
-        
+
         # Concurrency Lock
         if session_id not in session_locks:
             session_locks[session_id] = asyncio.Lock()
-        
-        async with session_locks[session_id]:
 
+        async with session_locks[session_id]:
             # Loop State
             in_thinking_state = False
             text_buffer = ""
-            
+
             # Persistent Audio Session Setup
             audio_session = None
             audio_consumer_task = None
-            
+
             if speaking_mode and backend.REGISTRY.get("vibevoice_processor"):
                 try:
-                    audio_session = backend.REGISTRY["vibevoice_processor"].create_session()
+                    audio_session = backend.REGISTRY[
+                        "vibevoice_processor"
+                    ].create_session()
                     await audio_session.__aenter__()
-                    logger.info(f"🎙️ [WS-TTS] Persistent Session Established for {session_id}")
-                    
+                    logger.info(
+                        f"🎙️ [WS-TTS] Persistent Session Established for {session_id}"
+                    )
+
                     # Reset splitter if applicable
-                    if hasattr(backend.REGISTRY["vibevoice_processor"].splitter, 'reset'):
-                         backend.REGISTRY["vibevoice_processor"].splitter.reset()
-                         
+                    if hasattr(
+                        backend.REGISTRY["vibevoice_processor"].splitter, "reset"
+                    ):
+                        backend.REGISTRY["vibevoice_processor"].splitter.reset()
+
                 except Exception as e:
                     logger.error(f"❌ [WS-TTS] Failed to start persistent session: {e}")
                     audio_session = None
 
-            audio_tasks = set() # Keep for compatibility, though mostly replaced by consumer
+            # set() # Keep for compatibility
 
             # audio_consumer: Reads from Gemini and pushes bytes to WebSocket
             async def audio_consumer():
-                if not audio_session: return
+                if not audio_session:
+                    return
                 try:
                     async for chunk in audio_session.receive():
-                        if websocket.client_state.name != "CONNECTED": break
+                        if websocket.client_state.name != "CONNECTED":
+                            break
                         if chunk:
                             await websocket.send_bytes(chunk)
                 except Exception as e:
@@ -1697,21 +2017,21 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # queue_audio_binary now just pushes text to the persistent session
             async def queue_audio_binary(txt):
-                if not audio_session: return
+                if not audio_session:
+                    return
                 try:
                     await audio_session.send(txt)
                 except Exception as e:
                     logger.error(f"❌ [WS_AUDIO] Send Error: {e}")
 
-
             # Execution logic mirrored from SSE but optimized for zero-copy frames
             async for event in backend.chatbot.astream_events(
                 {"messages": [HumanMessage(content=message)]},
                 config=config,
-                version="v2"
+                version="v2",
             ):
                 kind = event["event"]
-                
+
                 # --- VISIBILITY LAYER (Thinking Box Updates) ---
                 if kind == "on_chat_model_start":
                     # Display Node Transitions & Model Identity
@@ -1719,61 +2039,91 @@ async def websocket_endpoint(websocket: WebSocket):
                     tags = event.get("tags", [])
                     node_name = metadata.get("langgraph_node", "Unknown")
                     # Robust extraction: metadata -> provider data -> filtered tags -> manifest fallback
-                    model_name = metadata.get("model_id") or event.get("data", {}).get("model")
-                    
+                    model_name = metadata.get("model_id") or event.get("data", {}).get(
+                        "model"
+                    )
+
                     if not model_name and tags:
                         # Filter out LangGraph internal sequence/graph tags
-                        internal_prefixes = ("SEQ:", "ns:", "graph:", "seq:", "langgraph:", "step:")
-                        clean_tags = [t for t in tags if not any(t.startswith(p) for p in internal_prefixes)]
-                        
+                        internal_prefixes = (
+                            "SEQ:",
+                            "ns:",
+                            "graph:",
+                            "seq:",
+                            "langgraph:",
+                            "step:",
+                        )
+                        clean_tags = [
+                            t
+                            for t in tags
+                            if not any(t.startswith(p) for p in internal_prefixes)
+                        ]
+
                         if "planning" in tags and clean_tags:
                             model_name = clean_tags[0]
                         elif clean_tags:
                             model_name = clean_tags[0]
-                    
+
                     # Ultimate fallback: Map node to known model from manifest configuration
-                    if not model_name or any(model_name.startswith(p) for p in ("SEQ:", "ns:", "seq:", "graph:")):
+                    if not model_name or any(
+                        model_name.startswith(p)
+                        for p in ("SEQ:", "ns:", "seq:", "graph:")
+                    ):
                         node_model_map = {
                             "executor_node": agent_config.models.executor,
                             "router_node": agent_config.models.router,
                             "blueprint_node": agent_config.models.blueprint,
                         }
                         model_name = node_model_map.get(node_name, "Default Model")
-                    
+
                     if node_name and node_name != "tools":
                         emoji = "🔄"
-                        if "executor" in node_name: emoji = "⚡"
-                        elif "router" in node_name: emoji = "🔀"
-                        elif "blueprint" in node_name: emoji = "📐"
-                        elif "reflection" in node_name: emoji = "🤔"
-                        
+                        if "executor" in node_name:
+                            emoji = "⚡"
+                        elif "router" in node_name:
+                            emoji = "🔀"
+                        elif "blueprint" in node_name:
+                            emoji = "📐"
+                        elif "reflection" in node_name:
+                            emoji = "🤔"
+
                         # Enhanced structured telemetry for cyber-style UI
-                        await websocket.send_json({
-                            "type": "on_node_transition", 
-                            "content": f"{emoji} TRANSITION: Active Node: `{node_name}`\n↳ Model Interface: `{model_name}`",
-                            "node_name": node_name,
-                            "model_name": model_name,
-                            "architecture_mode": backend.get_architecture_mode()
-                        })
+                        await websocket.send_json(
+                            {
+                                "type": "on_node_transition",
+                                "content": f"{emoji} TRANSITION: Active Node: `{node_name}`\n↳ Model Interface: `{model_name}`",
+                                "node_name": node_name,
+                                "model_name": model_name,
+                                "architecture_mode": backend.get_architecture_mode(),
+                            }
+                        )
 
                 elif kind == "on_tool_start":
                     # Display Tool Execution
                     tool_name = event.get("name", "tool")
                     inputs = event.get("data", {}).get("input")
                     # mask inputs if they are too long or sensitive
-                    input_str = str(inputs)[:200] + "..." if len(str(inputs)) > 200 else str(inputs)
-                    
+                    # mask inputs if they are too long or sensitive
+
                     if "search" in tool_name.lower() or "google" in tool_name.lower():
                         # Extract query safely
-                        query = inputs.get("query") if isinstance(inputs, dict) else str(inputs)
+                        query = (
+                            inputs.get("query")
+                            if isinstance(inputs, dict)
+                            else str(inputs)
+                        )
                         msg = f"🔍 Searching for: {str(query)[:100]}"
                     else:
                         msg = f"🛠️ TOOL: `{tool_name}` initialized."
-                    
-                    await websocket.send_json({"type": "on_tool_execution", "content": msg})
+
+                    await websocket.send_json(
+                        {"type": "on_tool_execution", "content": msg}
+                    )
                     # Structured telemetry for UI logic
                     logger.info(f"📤 [WS] Emitting on_tool_start for {tool_name}")
-                    await websocket.send_json({"type": "on_tool_start", "name": tool_name})
+                    await websocket.send_json(
+                        {"type": "on_tool_start", "name": tool_name}
+                    )
 
                 elif kind == "on_tool_end":
                     # Display Tool Completion
@@ -1781,94 +2131,119 @@ async def websocket_endpoint(websocket: WebSocket):
                     output = event.get("data", {}).get("output")
                     # Clean output string
                     out_str = str(output).strip()
-                    if len(out_str) > 300: out_str = out_str[:297] + "..."
-                    
-                    status_emoji = "✅" if "error" not in out_str.lower() and "exception" not in out_str.lower() else "⚠️"
+                    if len(out_str) > 300:
+                        out_str = out_str[:297] + "..."
+
+                    # status_emoji = "✅" if "error" not in out_str.lower() and "exception" not in out_str.lower() else "⚠️"
                     # status_emoji = "✅" if "error" not in out_str.lower() and "exception" not in out_str.lower() else "⚠️"
                     # msg = f"   ↳ {status_emoji} *Output*: `{out_str}`\n"
                     # await websocket.send_json({"type": "on_thought_stream", "content": msg})
-                    
+
                     # --- SEARCH TOOL SOURCE VISUALIZATION ---
                     # If this was a search tool, parsing the output for URLs/Sources
                     if "search" in tool_name.lower() or "google" in tool_name.lower():
                         try:
-                            # 1. Regex to find URLs in the output string
                             import re
-                            from urllib.parse import urlparse
-                            
-                            urls = re.findall(r'(https?://[^\s,]+)', str(output))
+
+                            urls = re.findall(r"(https?://[^\s,]+)", str(output))
                             domains = []
                             unique_domains = set()
-                            
+
                             for u in urls:
                                 try:
                                     # Use tldextract for cleaner domain names (e.g., sub.google.co.uk -> google.co.uk)
                                     # Fallback to simple splitting if needed, but tldextract is robust
                                     ext = tldextract.extract(u)
                                     domain = f"{ext.domain}.{ext.suffix}"
-                                    if domain not in unique_domains and domain != '.':
+                                    if domain not in unique_domains and domain != ".":
                                         unique_domains.add(domain)
                                         domains.append(domain)
-                                except: pass
-                            
+                                except Exception:
+                                    pass
+
                             # 2. Format the "Read X pages" message with FAVICONS
                             if domains:
                                 count = len(domains)
                                 # Generate Markdown Image Links for Favicons
                                 # Using Google's S2 Favicon service
                                 icons = ""
-                                for d in domains[:5]: # Limit to 5 icons to prevent overflow
+                                for d in domains[
+                                    :5
+                                ]:  # Limit to 5 icons to prevent overflow
                                     icons += f"![{d}](https://www.google.com/s2/favicons?domain={d}&sz=32) "
-                                
+
                                 msg = f"📖 Read {count} web pages {icons}"
-                                await websocket.send_json({"type": "on_tool_execution", "content": msg})
+                                await websocket.send_json(
+                                    {"type": "on_tool_execution", "content": msg}
+                                )
                         except Exception as e:
                             logger.error(f"Error parsing search sources: {e}")
-                    
+
                     # Structured telemetry for UI logic
                     # Filter: If output is a raw JSON string from an industrial tool, humanize it for UI
-                    final_output = str(output.content if hasattr(output, 'content') else output)
+                    final_output = str(
+                        output.content if hasattr(output, "content") else output
+                    )
                     try:
-                        if final_output.strip().startswith('{') and final_output.strip().endswith('}'):
+                        if final_output.strip().startswith(
+                            "{"
+                        ) and final_output.strip().endswith("}"):
                             import json
+
                             parsed = json.loads(final_output)
                             if "status" in parsed and "file" in parsed:
                                 f_meta = parsed["file"]
                                 final_output = f"🛠️ [OMEGA-PRIME] Industrial Asset: {f_meta.get('name')} | Size: {f_meta.get('size')}"
-                    except:
+                    except Exception:
                         pass
 
-                    await websocket.send_json({
-                        "type": "on_tool_end", 
-                        "name": tool_name, 
-                        "output": final_output
-                    })
-                            
-                    pass # Tool output handled by return value in reasoning stream
+                    await websocket.send_json(
+                        {
+                            "type": "on_tool_end",
+                            "name": tool_name,
+                            "output": final_output,
+                        }
+                    )
+
+                    # Tool output handled by return value in reasoning stream
 
                 elif kind == "on_chat_model_stream":
                     chunk = event.get("data", {}).get("chunk")
                     metadata = event.get("metadata", {})
                     node_name = metadata.get("langgraph_node", "")
-                    
+
                     if chunk:
-                        reasoning = getattr(chunk, 'additional_kwargs', {}).get("reasoning_content", "")
-                        content = getattr(chunk, 'content', "")
+                        reasoning = getattr(chunk, "additional_kwargs", {}).get(
+                            "reasoning_content", ""
+                        )
+                        content = getattr(chunk, "content", "")
 
                         # Thought Stream Routing
                         if reasoning:
-                            await websocket.send_json({"type": "on_thought_stream", "content": reasoning})
-                        
+                            await websocket.send_json(
+                                {"type": "on_thought_stream", "content": reasoning}
+                            )
+
                         if content:
                             # Stateful tag parsing for <think>
-                            if "<think>" in content: in_thinking_state = True; content = content.split("<think>")[-1]
+                            if "<think>" in content:
+                                in_thinking_state = True
+                                content = content.split("<think>")[-1]
                             if "</think>" in content:
                                 thought_part, content = content.split("</think>")
-                                if thought_part: await websocket.send_json({"type": "on_thought_stream", "content": thought_part})
+                                if thought_part:
+                                    await websocket.send_json(
+                                        {
+                                            "type": "on_thought_stream",
+                                            "content": thought_part,
+                                        }
+                                    )
                                 in_thinking_state = False
-                                
+
                             if in_thinking_state:
-                                await websocket.send_json({"type": "on_thought_stream", "content": content})
+                                await websocket.send_json(
+                                    {"type": "on_thought_stream", "content": content}
+                                )
                             else:
                                 # Normal Chat Output
                                 is_executor = node_name == "executor_node"
@@ -1876,77 +2251,108 @@ async def websocket_endpoint(websocket: WebSocket):
                                     if audio_session:
                                         text_buffer += content
                                         # Use splitter from the processor instance
-                                        processor = backend.REGISTRY.get("vibevoice_processor")
+                                        processor = backend.REGISTRY.get(
+                                            "vibevoice_processor"
+                                        )
                                         # --- ULTRA-LOW LATENCY: First-Burst Override ---
                                         # Use a lower threshold for the very first chunk to trigger sound immediately
-                                        is_first = getattr(processor.splitter, 'is_first_chunk', True)
+                                        is_first = getattr(
+                                            processor.splitter, "is_first_chunk", True
+                                        )
                                         threshold = 15 if is_first else 40
-                                        
+
                                         if len(text_buffer) >= threshold:
-                                            frags = processor.splitter.split(text_buffer)
+                                            frags = processor.splitter.split(
+                                                text_buffer
+                                            )
                                             if frags:
                                                 for f in frags:
                                                     if f.strip():
                                                         # Put text into session queue (non-blocking)
                                                         await queue_audio_binary(f)
-                                                
+
                                                 # Clean up buffer efficiently
                                                 last_frag = frags[-1]
                                                 idx = text_buffer.rfind(last_frag)
                                                 if idx != -1:
-                                                    text_buffer = text_buffer[idx + len(last_frag):]
-                                    
-                                    await websocket.send_json({"type": "on_chat_model_stream", "content": content})
+                                                    text_buffer = text_buffer[
+                                                        idx + len(last_frag) :
+                                                    ]
+
+                                    await websocket.send_json(
+                                        {
+                                            "type": "on_chat_model_stream",
+                                            "content": content,
+                                        }
+                                    )
                                 elif not is_executor and not should_suppress(content):
-                                    await websocket.send_json({"type": "on_thought_stream", "content": content})
+                                    await websocket.send_json(
+                                        {
+                                            "type": "on_thought_stream",
+                                            "content": content,
+                                        }
+                                    )
 
                 elif kind == "on_chat_model_end":
                     node_name = event.get("metadata", {}).get("langgraph_node", "")
-                    
+
                     # Finalize audio (Send remaining text)
                     if audio_session and text_buffer.strip():
-                        # Mark end_of_turn=True for the final chunk? 
+                        # Mark end_of_turn=True for the final chunk?
                         # Actually keeping it open is fine, but good practice to clear buffer.
                         await audio_session.send(text_buffer.strip(), end_of_turn=True)
                         text_buffer = ""
 
                     output = event.get("data", {}).get("output")
-                    if output and hasattr(output, 'content') and not should_suppress(output.content):
+                    if (
+                        output
+                        and hasattr(output, "content")
+                        and not should_suppress(output.content)
+                    ):
                         if node_name == "executor_node":
-                            await websocket.send_json({
-                                "type": "on_chat_model_end", 
-                                "content": SovereignSanitizer.clean_text(str(output.content))
-                            })
+                            await websocket.send_json(
+                                {
+                                    "type": "on_chat_model_end",
+                                    "content": SovereignSanitizer.clean_text(
+                                        str(output.content)
+                                    ),
+                                }
+                            )
 
                     pass
-                
+
                 elif kind == "on_chain_end":
                     node_name = event.get("metadata", {}).get("langgraph_node", "")
                     output = event.get("data", {}).get("output")
-                    
 
             # Signal completion
             await websocket.send_json({"type": "stream_complete"})
-            
+
             # Flush Persistent Audio Session
             if audio_session:
                 # Wait briefly for consumer to finish yielding received audio
                 await asyncio.sleep(0.5)
-                # Helper: cancel consumer if it takes too long? 
+                # Helper: cancel consumer if it takes too long?
                 # For now just teardown
                 await audio_session.__aexit__(None, None, None)
-                if audio_consumer_task: audio_consumer_task.cancel()
+                if audio_consumer_task:
+                    audio_consumer_task.cancel()
                 logger.info(f"🎙️ [WS-TTS] Persistent Session Closed for {session_id}")
 
     except WebSocketDisconnect:
-        logger.info(f"🔌 [WS] Client disconnected abruptly.")
+        logger.info("🔌 [WS] Client disconnected abruptly.")
     except Exception as e:
         logger.error(f"❌ [WS] Critical error: {e}", exc_info=True)
-        try: await websocket.send_json({"type": "error", "content": str(e)})
-        except: pass
+        try:
+            await websocket.send_json({"type": "error", "content": str(e)})
+        except Exception:
+            pass
     finally:
-        try: await websocket.close()
-        except: pass
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
 
 @app.websocket("/telemetry/ws")
 async def system_telemetry_endpoint(websocket: WebSocket):
@@ -1966,12 +2372,13 @@ async def system_telemetry_endpoint(websocket: WebSocket):
         logger.warning(f"📊 [TELEMETRY] Socket error: {e}")
         await telemetry_manager.disconnect(websocket)
 
+
 async def system_telemetry_sentinel():
     """Industrial background loop that constructs and broadcasts the unified system state."""
     global cached_forensics
     logger.info("📊 [TELEMETRY] Initializing Unified System Stream...")
     tick = 0
-    
+
     # Throughput Calculation State
     last_net_io = psutil.net_io_counters()
     last_time = time.time()
@@ -1983,27 +2390,25 @@ async def system_telemetry_sentinel():
             now = time.time()
             current_net_io = psutil.net_io_counters()
             time_delta = now - last_time
-            
+
             if time_delta >= 1.0:
                 bytes_recv = current_net_io.bytes_recv - last_net_io.bytes_recv
                 bytes_sent = current_net_io.bytes_sent - last_net_io.bytes_sent
-                
+
                 # Convert to Bytes per Second
                 current_speed = {
-                    "down": bytes_recv / time_delta, 
-                    "up": bytes_sent / time_delta
+                    "down": bytes_recv / time_delta,
+                    "up": bytes_sent / time_delta,
                 }
-                
+
                 last_net_io = current_net_io
                 last_time = now
 
             # 1. Collect Core Telemetry (Every Tick - 3s)
             health_data, alerts_data = await asyncio.gather(
-                get_health(),
-                get_security_alerts(),
-                return_exceptions=True
+                get_health(), get_security_alerts(), return_exceptions=True
             )
-            
+
             # 2. Collect Heavy Forensics (Every 4th Tick - 12s)
             if tick % 4 == 0:
                 # Reuse existing high-performance logic but bypass HTTP overhead
@@ -2011,45 +2416,58 @@ async def system_telemetry_sentinel():
                     get_network_traffic(),
                     get_system_sessions(),
                     get_process_monitor(),
-                    return_exceptions=True
+                    return_exceptions=True,
                 )
                 # Cache the results to avoid NameError on intermediate ticks
-                cached_forensics.update({
-                    "network": network_f.get("connections", []) if not isinstance(network_f, Exception) else [],
-                    "sessions": sessions_f.get("sessions", []) if not isinstance(sessions_f, Exception) else [],
-                    "processes": processes_f.get("processes", []) if not isinstance(processes_f, Exception) else []
-                })
+                cached_forensics.update(
+                    {
+                        "network": network_f.get("connections", [])
+                        if not isinstance(network_f, Exception)
+                        else [],
+                        "sessions": sessions_f.get("sessions", [])
+                        if not isinstance(sessions_f, Exception)
+                        else [],
+                        "processes": processes_f.get("processes", [])
+                        if not isinstance(processes_f, Exception)
+                        else [],
+                    }
+                )
 
             # 3. Collect Generated Files (Outputs) - Every Tick
             files_data = await list_generated_files()
-            
+
             # 4. Construct the Unified Telemetry Packet
             packet = {
                 "type": "SYSTEM_TELEMETRY_V2",
                 "timestamp": datetime.now().isoformat(),
-                "health": health_data if not isinstance(health_data, Exception) else {"status": "error"},
+                "health": health_data
+                if not isinstance(health_data, Exception)
+                else {"status": "error"},
                 "sessions": cached_forensics.get("sessions", []),
                 "files": files_data.get("files", []),
                 "network_ping_ms": cached_network_ping,
-                "network_speed": current_speed, # Real-time Throughput (B/s)
+                "network_speed": current_speed,  # Real-time Throughput (B/s)
                 "security": {
-                    "alerts": alerts_data.get("alerts", []) if not isinstance(alerts_data, Exception) else [],
-                    "vpn": vpn_controller.get_status().model_dump()
-                }
+                    "alerts": alerts_data.get("alerts", [])
+                    if not isinstance(alerts_data, Exception)
+                    else [],
+                    "vpn": vpn_controller.get_status().model_dump(),
+                },
             }
-            
+
             # Inject heavy forensics if updated in this tick or previously cached
             if cached_forensics:
                 packet["forensics"] = cached_forensics
 
             # 5. Broadcast to all active dashboards
             await telemetry_manager.broadcast(packet)
-            
+
             tick += 1
-            await asyncio.sleep(1) # High-Frequency Telemetry (1s)
+            await asyncio.sleep(1)  # High-Frequency Telemetry (1s)
         except Exception as e:
             logger.error(f"❌ [TELEMETRY] Sentinel failure: {e}")
             await asyncio.sleep(10)
+
 
 @app.post("/chat/stream")
 async def stream_chat(request: ChatRequest):
@@ -2060,11 +2478,11 @@ async def stream_chat(request: ChatRequest):
     await await_system_ready()
 
     session_id = request.session_id or str(uuid.uuid4())
-    
+
     # Phase 21: Atomic Session Lock (Industrial Concurrency Control)
     if session_id not in session_locks:
         session_locks[session_id] = asyncio.Lock()
-    
+
     global in_flight_requests
     in_flight_requests += 1
     start_time = time.time()
@@ -2073,7 +2491,7 @@ async def stream_chat(request: ChatRequest):
         # Phase 21: Industrial Locking Context
         async with session_locks[session_id]:
             config = {"configurable": {"thread_id": session_id}}
-        
+
         # Audio Streaming state (only initialize if speaking mode is enabled)
         # Use Persistent Session for Zero-Latency
         audio_session = None
@@ -2091,26 +2509,35 @@ async def stream_chat(request: ChatRequest):
         in_thinking_state = False
 
         audio_event_queue = asyncio.Queue()
-        
+
         # Background task to pull audio from the persistent session
         async def audio_consumer():
-            if not audio_session: return
+            if not audio_session:
+                return
             try:
                 async for chunk in audio_session.receive():
                     if chunk:
                         # logger.info(f"📤 [AUDIO_PIXEL] Yielding audio bit ({len(chunk)} bytes)")
-                        await audio_event_queue.put({
-                            "event": "message",
-                            "data": json.dumps({
-                                "type": "on_audio_stream",
-                                "content": base64.b64encode(chunk).decode("utf-8"),
-                                "timestamp": datetime.now().isoformat()
-                            })
-                        })
+                        await audio_event_queue.put(
+                            {
+                                "event": "message",
+                                "data": json.dumps(
+                                    {
+                                        "type": "on_audio_stream",
+                                        "content": base64.b64encode(chunk).decode(
+                                            "utf-8"
+                                        ),
+                                        "timestamp": datetime.now().isoformat(),
+                                    }
+                                ),
+                            }
+                        )
             except Exception as e:
                 logger.error(f"❌ [AUDIO_PIPE] Consumer Error: {e}")
 
-        audio_consumer_task = asyncio.create_task(audio_consumer()) if audio_session else None
+        audio_consumer_task = (
+            asyncio.create_task(audio_consumer()) if audio_session else None
+        )
 
         try:
             # Phase 21: Task Cancellation & Heartbeat Architecture
@@ -2119,15 +2546,15 @@ async def stream_chat(request: ChatRequest):
                 async for event in backend.chatbot.astream_events(
                     {"messages": [HumanMessage(content=request.message)]},
                     config=config,
-                    version="v2"
+                    version="v2",
                 ):
                     yield event
 
-            stream_task = asyncio.create_task(asyncio.Queue().put(None)) # Dummy
-            
-            # Implementation Note: EventSourceResponse handles the raw disconnect, 
+            # stream_task = asyncio.create_task(asyncio.Queue().put(None)) # Dummy
+
+            # Implementation Note: EventSourceResponse handles the raw disconnect,
             # but we must ensure the backend graph stops execution.
-            
+
             # Industry-Grade Heartbeat & Disconnect Monitor
             async def heartbeat():
                 while True:
@@ -2141,28 +2568,43 @@ async def stream_chat(request: ChatRequest):
                 async for event in backend.chatbot.astream_events(
                     {"messages": [HumanMessage(content=request.message)]},
                     config=config,
-                    version="v2"
+                    version="v2",
                 ):
                     # Standard Disconnect Check (Critical for Resource Protection)
                     if await request.is_disconnected():
-                        logger.warning(f"🔌 [SSE] Client disconnected for session {session_id}. Aborting stream.")
+                        logger.warning(
+                            f"🔌 [SSE] Client disconnected for session {session_id}. Aborting stream."
+                        )
                         break
 
                     kind = event["event"]
-                
+
                     # Only process events we care about
                     if kind == "on_chain_start":
                         name = event.get("name", "")
                         # Filter to only show meaningful chain names and block internal planning nodes
-                        internal_nodes = ["router_node", "reasoning_node", "reflection_node", "blueprint_node", "RunnableSequence", "RunnableLambda"]
-                        if name and name not in internal_nodes and not should_suppress(name):
+                        internal_nodes = [
+                            "router_node",
+                            "reasoning_node",
+                            "reflection_node",
+                            "blueprint_node",
+                            "RunnableSequence",
+                            "RunnableLambda",
+                        ]
+                        if (
+                            name
+                            and name not in internal_nodes
+                            and not should_suppress(name)
+                        ):
                             yield {
                                 "event": "message",
-                                "data": json.dumps({
-                                    "type": "on_chain_start",
-                                    "name": name,
-                                    "timestamp": datetime.now().isoformat()
-                                })
+                                "data": json.dumps(
+                                    {
+                                        "type": "on_chain_start",
+                                        "name": name,
+                                        "timestamp": datetime.now().isoformat(),
+                                    }
+                                ),
                             }
                     elif kind == "on_chat_model_stream":
                         chunk = event.get("data", {}).get("chunk")
@@ -2172,216 +2614,343 @@ async def stream_chat(request: ChatRequest):
                         if node_name == "router_node":
                             continue
 
-                        is_planning = (
-                            run_name in ["planning_llm", "reasoning_llm", "blueprint_llm", "router_llm"] or 
-                            node_name in ["router_node", "blueprint_node", "reasoning_node"]
-                        )
-                    
+                        is_planning = run_name in [
+                            "planning_llm",
+                            "reasoning_llm",
+                            "blueprint_llm",
+                            "router_llm",
+                        ] or node_name in [
+                            "router_node",
+                            "blueprint_node",
+                            "reasoning_node",
+                        ]
+
                         if chunk:
                             reasoning = ""
                             content = ""
-                            if hasattr(chunk, 'additional_kwargs'):
-                                reasoning = chunk.additional_kwargs.get("reasoning_content", "")
-                            if hasattr(chunk, 'content'):
+                            if hasattr(chunk, "additional_kwargs"):
+                                reasoning = chunk.additional_kwargs.get(
+                                    "reasoning_content", ""
+                                )
+                            if hasattr(chunk, "content"):
                                 content = chunk.content
 
                         # 1. STATEFUL TAG PARSING
                         if content:
                             # Handle both <think> and think> patterns
                             reasoning_trigger = None
-                            if "<think>" in content: reasoning_trigger = "<think>"
-                            elif "think>" in content: reasoning_trigger = "think>"
+                            if "<think>" in content:
+                                reasoning_trigger = "<think>"
+                            elif "think>" in content:
+                                reasoning_trigger = "think>"
 
                             if reasoning_trigger:
                                 parts = content.split(reasoning_trigger)
                                 pre = parts[0]
                                 post = parts[1] if len(parts) > 1 else ""
-                                
+
                                 if pre and not in_thinking_state:
                                     # Yield pre-think content to chat
                                     if not should_suppress(pre):
-                                        yield {"event": "message", "data": json.dumps({"type": "on_chat_model_stream", "content": pre, "timestamp": datetime.now().isoformat()})}
-                                
+                                        yield {
+                                            "event": "message",
+                                            "data": json.dumps(
+                                                {
+                                                    "type": "on_chat_model_stream",
+                                                    "content": pre,
+                                                    "timestamp": datetime.now().isoformat(),
+                                                }
+                                            ),
+                                        }
+
                                 in_thinking_state = True
                                 content = post
-                            
+
                             if "</think>" in content and in_thinking_state:
                                 parts = content.split("</think>")
                                 thought_chunk = parts[0]
                                 remainder = parts[1] if len(parts) > 1 else ""
-                                
+
                                 if thought_chunk:
                                     # Yield final thought
-                                    yield {"event": "message", "data": json.dumps({"type": "on_thought_stream", "content": thought_chunk, "timestamp": datetime.now().isoformat()})}
-                                
+                                    yield {
+                                        "event": "message",
+                                        "data": json.dumps(
+                                            {
+                                                "type": "on_thought_stream",
+                                                "content": thought_chunk,
+                                                "timestamp": datetime.now().isoformat(),
+                                            }
+                                        ),
+                                    }
+
                                 in_thinking_state = False
                                 content = remainder
 
                         # 2. ROUTING & SUPPRESSION (SILENCE PROTOCOL)
                         is_executor = node_name == "executor_node"
-                        
+
                         # Phase 20 Optimization: Always yield reasoning content to thought stream
                         if reasoning:
-                            yield {"event": "message", "data": json.dumps({"type": "on_thought_stream", "content": reasoning, "timestamp": datetime.now().isoformat()})}
-                        
+                            yield {
+                                "event": "message",
+                                "data": json.dumps(
+                                    {
+                                        "type": "on_thought_stream",
+                                        "content": reasoning,
+                                        "timestamp": datetime.now().isoformat(),
+                                    }
+                                ),
+                            }
+
                         # Route content based on state
                         if content:
                             if in_thinking_state:
                                 # Thoughts always go to thought stream regardless of node
-                                yield {"event": "message", "data": json.dumps({"type": "on_thought_stream", "content": content, "timestamp": datetime.now().isoformat()})}
+                                yield {
+                                    "event": "message",
+                                    "data": json.dumps(
+                                        {
+                                            "type": "on_thought_stream",
+                                            "content": content,
+                                            "timestamp": datetime.now().isoformat(),
+                                        }
+                                    ),
+                                }
                             else:
                                 # Regular chat content
                                 # Check for tool calls
-                                has_tool_call = hasattr(chunk, 'tool_call_chunks') and bool(chunk.tool_call_chunks)
-                                has_accum_tool_call = hasattr(chunk, 'tool_calls') and bool(chunk.tool_calls)
-                                
+                                has_tool_call = hasattr(
+                                    chunk, "tool_call_chunks"
+                                ) and bool(chunk.tool_call_chunks)
+                                has_accum_tool_call = hasattr(
+                                    chunk, "tool_calls"
+                                ) and bool(chunk.tool_calls)
+
                                 if not (has_tool_call or has_accum_tool_call):
                                     # Only allow tokens to reach the chat if they originate from the executor
                                     if is_executor:
                                         # BEAST MODE: Implement response prefix sanitization
                                         # We buffer the start of the response to strip jailbreak markers and refusals
-                                        if not hasattr(event_generator, "_prefix_buffer"):
+                                        if not hasattr(
+                                            event_generator, "_prefix_buffer"
+                                        ):
                                             event_generator._prefix_buffer = ""
                                             event_generator._prefix_sent = False
-                                        
+
                                         if not event_generator._prefix_sent:
                                             event_generator._prefix_buffer += content
                                             # Buffer up to 256 chars to catch long refusal blocks or multiple jailbreak markers
-                                            if len(event_generator._prefix_buffer) >= 256 or any(term in content for term in ["\n\n", ". ", "? ", "! "]):
-                                                clean_prefix = SovereignSanitizer.clean_text(event_generator._prefix_buffer)
+                                            if len(
+                                                event_generator._prefix_buffer
+                                            ) >= 256 or any(
+                                                term in content
+                                                for term in ["\n\n", ". ", "? ", "! "]
+                                            ):
+                                                clean_prefix = (
+                                                    SovereignSanitizer.clean_text(
+                                                        event_generator._prefix_buffer
+                                                    )
+                                                )
                                                 if clean_prefix:
-                                                    yield {"event": "message", "data": json.dumps({"type": "on_chat_model_stream", "content": clean_prefix, "timestamp": datetime.now().isoformat()})}
+                                                    yield {
+                                                        "event": "message",
+                                                        "data": json.dumps(
+                                                            {
+                                                                "type": "on_chat_model_stream",
+                                                                "content": clean_prefix,
+                                                                "timestamp": datetime.now().isoformat(),
+                                                            }
+                                                        ),
+                                                    }
                                                 event_generator._prefix_sent = True
                                                 event_generator._prefix_buffer = ""
-                                            continue # Keep buffering until we have enough to clean or reach a sentence end
-                                        
+                                            continue  # Keep buffering until we have enough to clean or reach a sentence end
+
                                         # Post-prefix content: direct pass-through unless it's an interior refusal flag
                                         if not should_suppress(content):
                                             # Handle VibeVoice buffering (PERSISTENT SESSION)
                                             if audio_session:
                                                 text_buffer += content
                                                 # Use splitter from the processor instance
-                                                processor = backend.REGISTRY.get("vibevoice_processor")
-                                                if processor and hasattr(processor, 'splitter'):
-                                                    frags = processor.splitter.split(text_buffer)
+                                                processor = backend.REGISTRY.get(
+                                                    "vibevoice_processor"
+                                                )
+                                                if processor and hasattr(
+                                                    processor, "splitter"
+                                                ):
+                                                    frags = processor.splitter.split(
+                                                        text_buffer
+                                                    )
                                                     if frags:
                                                         for f in frags:
                                                             if f.strip():
-                                                                await audio_session.send(f)
+                                                                await (
+                                                                    audio_session.send(
+                                                                        f
+                                                                    )
+                                                                )
                                                         # Strip spoken fragments from buffer
                                                         last_frag = frags[-1]
                                                         # Safe replacement ensuring we only cut from the start
                                                         # Actually better to use split/join or finding index
-                                                        # Simplified: 
-                                                        idx = text_buffer.rfind(last_frag)
+                                                        # Simplified:
+                                                        idx = text_buffer.rfind(
+                                                            last_frag
+                                                        )
                                                         if idx != -1:
-                                                             text_buffer = text_buffer[idx + len(last_frag):]
-                                            
-                                            yield {"event": "message", "data": json.dumps({"type": "on_chat_model_stream", "content": content, "timestamp": datetime.now().isoformat()})}
+                                                            text_buffer = text_buffer[
+                                                                idx + len(last_frag) :
+                                                            ]
+
+                                            yield {
+                                                "event": "message",
+                                                "data": json.dumps(
+                                                    {
+                                                        "type": "on_chat_model_stream",
+                                                        "content": content,
+                                                        "timestamp": datetime.now().isoformat(),
+                                                    }
+                                                ),
+                                            }
                                     elif not is_executor:
                                         # Redirect any non-executor content to thought stream (Planning/Reasoning)
                                         # This restores visibility for internal thinking processes
-                                        yield {"event": "message", "data": json.dumps({"type": "on_thought_stream", "content": content, "timestamp": datetime.now().isoformat()})}
+                                        yield {
+                                            "event": "message",
+                                            "data": json.dumps(
+                                                {
+                                                    "type": "on_thought_stream",
+                                                    "content": content,
+                                                    "timestamp": datetime.now().isoformat(),
+                                                }
+                                            ),
+                                        }
 
                         # Periodically flush audio events
                         while not audio_event_queue.empty():
-                             yield await audio_event_queue.get()
-                             
+                            yield await audio_event_queue.get()
+
                     elif kind == "on_chat_model_end":
                         output = event.get("data", {}).get("output")
                         metadata = event.get("metadata", {})
-                        tags = event.get("tags", []) or metadata.get("tags", [])
+                        # tags = event.get("tags", []) or metadata.get("tags", [])
                         run_name = event.get("name", "")
                         node_name = metadata.get("langgraph_node", "")
-                        
+
                         # STRICT PLANNING DETECTION
-                        is_planning = (
-                            run_name in ["planning_llm", "reasoning_llm", "blueprint_llm", "router_llm"] or 
-                            node_name in ["router_node", "blueprint_node", "reasoning_node"]
-                        )
-                        
+                        is_planning = run_name in [
+                            "planning_llm",
+                            "reasoning_llm",
+                            "blueprint_llm",
+                            "router_llm",
+                        ] or node_name in [
+                            "router_node",
+                            "blueprint_node",
+                            "reasoning_node",
+                        ]
+
                         # SILENCE PROTOCOLS: Router and Planner events stay in logs, not SSE
                         # Use logger.debug for internal telemetry to keep console clean
                         if is_planning:
-                            logger.debug(f"📡 [INTERNAL] Node: {node_name} | Run: {run_name} | Planning: True")
+                            logger.debug(
+                                f"📡 [INTERNAL] Node: {node_name} | Run: {run_name} | Planning: True"
+                            )
                             if node_name == "router_node":
                                 continue
                         else:
-                            logger.info(f"📡 [SSE] Kind: {kind} | Node: {node_name} | Run: {run_name}")
-                        
+                            logger.info(
+                                f"📡 [SSE] Kind: {kind} | Node: {node_name} | Run: {run_name}"
+                            )
+
                         # BLOCK ALL ROUTER OUTPUT (Strict isolation)
                         if node_name == "router_node":
                             continue
 
                         # Final TTS for any remaining text (only if not planning)
                         if not is_planning and audio_session and text_buffer.strip():
-                            await audio_session.send(text_buffer.strip(), end_of_turn=True)
+                            await audio_session.send(
+                                text_buffer.strip(), end_of_turn=True
+                            )
                             text_buffer = ""
 
-                        if output and hasattr(output, 'content'):
+                        if output and hasattr(output, "content"):
                             # Apply global suppression
                             if should_suppress(output.content):
-                                logger.debug(f"🚫 [FILTER] Suppressed model end content: {str(output.content)[:20]}...")
+                                logger.debug(
+                                    f"🚫 [FILTER] Suppressed model end content: {str(output.content)[:20]}..."
+                                )
                                 continue
 
                             # --- SANITIZE FINAL CONTENT ---
-                            clean_content = SovereignSanitizer.clean_text(str(output.content))
+                            clean_content = SovereignSanitizer.clean_text(
+                                str(output.content)
+                            )
                             # --- ---------------------- ---
 
                             # SILENCE PROTOCOL: Don't yield internal planning output at all
                             if is_planning:
-                                logger.debug(f"🤫 [SILENCE] Blocked yield for planning node: {node_name}")
+                                logger.debug(
+                                    f"🤫 [SILENCE] Blocked yield for planning node: {node_name}"
+                                )
                                 continue
 
                             event_type = "on_chat_model_end"
                             data_payload = {
                                 "type": event_type,
                                 "content": clean_content,
-                                "timestamp": datetime.now().isoformat()
+                                "timestamp": datetime.now().isoformat(),
                             }
-                            logger.info(f"📤 [DEEP_DEBUG] Yielding End: {event_type} | Content: {str(clean_content)[:100]}...")
+                            logger.info(
+                                f"📤 [DEEP_DEBUG] Yielding End: {event_type} | Content: {str(clean_content)[:100]}..."
+                            )
                             # Reset state for next potentially concurrent model run in the same stream (unlikely but safe)
-                            in_thinking_state = False 
-                            
-                            yield {
-                                "event": "message",
-                                "data": json.dumps(data_payload)
-                            }
+                            in_thinking_state = False
+
+                            yield {"event": "message", "data": json.dumps(data_payload)}
                     elif kind == "on_tool_start":
                         yield {
                             "event": "message",
-                            "data": json.dumps({
-                                "type": "on_tool_start",
-                                "name": event.get("name", "tool"),
-                                "timestamp": datetime.now().isoformat()
-                            })
+                            "data": json.dumps(
+                                {
+                                    "type": "on_tool_start",
+                                    "name": event.get("name", "tool"),
+                                    "timestamp": datetime.now().isoformat(),
+                                }
+                            ),
                         }
                     elif kind == "on_tool_end":
                         output = event.get("data", {}).get("output")
                         output_str = ""
                         if output:
-                            if hasattr(output, 'content'):
+                            if hasattr(output, "content"):
                                 output_str = output.content
                             elif isinstance(output, str):
                                 output_str = output
                             else:
                                 try:
                                     output_str = json.dumps(output)
-                                except:
+                                except Exception:
                                     output_str = str(output)
                         yield {
                             "event": "message",
-                            "data": json.dumps({
-                                "type": "on_tool_end",
-                                "name": event.get("name", "tool"),
-                                "output": output_str,
-                                "timestamp": datetime.now().isoformat()
-                            })
+                            "data": json.dumps(
+                                {
+                                    "type": "on_tool_end",
+                                    "name": event.get("name", "tool"),
+                                    "output": output_str,
+                                    "timestamp": datetime.now().isoformat(),
+                                }
+                            ),
                         }
                     else:
                         # NEW CATCH-ALL: Log any unhandled events to the console
-                        if "model" not in kind and "chain" not in kind: # Skip noisy model tokens and chain transitions
-                            print(f"👻 [UNHANDLED] Event kind: {kind}, Name: {event.get('name')}")
+                        if (
+                            "model" not in kind and "chain" not in kind
+                        ):  # Skip noisy model tokens and chain transitions
+                            print(
+                                f"👻 [UNHANDLED] Event kind: {kind}, Name: {event.get('name')}"
+                            )
 
             # Cleanup
             global in_flight_requests
@@ -2392,139 +2961,167 @@ async def stream_chat(request: ChatRequest):
             # Wait for consumer to empty the queue
             if audio_session:
                 # Give a small grace period for final chunks to arrive
-                await asyncio.sleep(0.5) 
+                await asyncio.sleep(0.5)
                 # Flush remaining events
                 while not audio_event_queue.empty():
                     yield await audio_event_queue.get()
-            
+
             # --------------------------
-            
+
             # Teardown persistent session
             if audio_session:
                 await audio_session.__aexit__(None, None, None)
-                if audio_consumer_task: audio_consumer_task.cancel()
+                if audio_consumer_task:
+                    audio_consumer_task.cancel()
                 logger.info(f"🎙️ [TTS] Persistent Session Closed for {session_id}")
 
             yield {
                 "event": "message",
-                "data": json.dumps({"type": "stream_complete", "status": "complete", "session_id": session_id})
+                "data": json.dumps(
+                    {
+                        "type": "stream_complete",
+                        "status": "complete",
+                        "session_id": session_id,
+                    }
+                ),
             }
-            
+
         except Exception as e:
             import traceback
+
             error_msg = f"❌ SSE Error: {e}"
             logger.error(error_msg)
             logger.error(traceback.format_exc())
             # Cleanup on error
             if audio_session:
-                 await audio_session.__aexit__(None, None, None)
-            
+                await audio_session.__aexit__(None, None, None)
+
             yield {
                 "event": "message",
-                "data": json.dumps({
-                    "type": "error",
-                    "content": str(e) or "Unknown SSE Internal Error",
-                    "timestamp": datetime.now().isoformat()
-                })
+                "data": json.dumps(
+                    {
+                        "type": "error",
+                        "content": str(e) or "Unknown SSE Internal Error",
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                ),
             }
 
     return EventSourceResponse(event_generator())
 
+
 @app.post("/rag/upload")
 async def upload_file(
-    file: UploadFile = File(...), 
-    collection_name: str = Form("security_docs")
+    file: UploadFile = File(...), collection_name: str = Form("security_docs")
 ):
     """Process and index a file or image for RAG."""
     # Ephemeral Storage: Files are ingested into RAG and then vanish from the user view
     temp_dir = ".temp_uploads"
     os.makedirs(temp_dir, exist_ok=True)
     file_path = os.path.join(temp_dir, file.filename)
-    
+
     # Industrial Grade: 100MB Limit
     MAX_SIZE = 100 * 1024 * 1024
-    
+
     try:
         # Stream file to disk to keep memory footprint low
         with open(file_path, "wb") as buffer:
             size = 0
             while True:
-                chunk = await file.read(1024 * 1024) # 1MB chunks
+                chunk = await file.read(1024 * 1024)  # 1MB chunks
                 if not chunk:
                     break
                 size += len(chunk)
                 if size > MAX_SIZE:
-                    raise HTTPException(status_code=413, detail="File too large (max 100MB)")
+                    raise HTTPException(
+                        status_code=413, detail="File too large (max 100MB)"
+                    )
                 buffer.write(chunk)
-        
+
         # Type detection
         ext = os.path.splitext(file.filename)[1].lower()
-        is_image = ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.jfif']
-        is_audio = ext in ['.mp3', '.wav', '.flac', '.m4a', '.ogg']
-        
+        is_image = ext in [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".jfif"]
+        is_audio = ext in [".mp3", ".wav", ".flac", ".m4a", ".ogg"]
+
         if is_image and backend.REGISTRY.get("image_processor"):
             logger.info(f"🖼️ Analyzing image for security: {file.filename}")
-            analysis = await asyncio.to_thread(backend.REGISTRY["image_processor"].security_analysis, file_path)
-            
-            if not analysis.get("success", True): # defaulting true if key missing to be safe, or check implementation
-                 # If image processor follows same pattern, we should check success. 
-                 # Assuming it returns a dict. If it fails, we should handle it.
-                 # Let's verify image_processor code first? 
-                 # Actually, checking if "analysis_report" exists is safer.
-                 pass
+            analysis = await asyncio.to_thread(
+                backend.REGISTRY["image_processor"].security_analysis, file_path
+            )
 
-            report = analysis.get("analysis_report") or analysis.get("error") or "Analysis failed"
-            
+            if not analysis.get(
+                "success", True
+            ):  # defaulting true if key missing to be safe, or check implementation
+                # If image processor follows same pattern, we should check success.
+                # Assuming it returns a dict. If it fails, we should handle it.
+                # Let's verify image_processor code first?
+                # Actually, checking if "analysis_report" exists is safer.
+                pass
+
+            report = (
+                analysis.get("analysis_report")
+                or analysis.get("error")
+                or "Analysis failed"
+            )
+
             # Add analysis to vector store as text documents
             if backend.REGISTRY.get("vector_store"):
                 doc = Document(
                     page_content=report,
-                    metadata={"source": file.filename, "type": "image_analysis"}
+                    metadata={"source": file.filename, "type": "image_analysis"},
                 )
                 await backend.REGISTRY["vector_store"].add_langchain_documents(
-                    collection_name=collection_name,
-                    documents=[doc]
+                    collection_name=collection_name, documents=[doc]
                 )
             return {
                 "success": True,
                 "type": "image",
                 "analysis": report,
-                "filename": file.filename
+                "filename": file.filename,
             }
 
         if is_audio and backend.REGISTRY.get("audio_processor"):
             logger.info(f"🎙️ Transcribing audio for security: {file.filename}")
-            analysis = await backend.REGISTRY["audio_processor"].transcribe_and_analyze(file_path)
-            
+            analysis = await backend.REGISTRY["audio_processor"].transcribe_and_analyze(
+                file_path
+            )
+
             if not analysis.get("success", False):
-                 raise HTTPException(status_code=422, detail=f"Audio processing failed: {analysis.get('error', 'Unknown error')}")
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Audio processing failed: {analysis.get('error', 'Unknown error')}",
+                )
 
             # Add analysis to vector store
             if backend.REGISTRY.get("vector_store"):
                 doc = Document(
-                    page_content=analysis.get("transcription_report", "No transcription available."),
-                    metadata={"source": file.filename, "type": "voice_intel", "model": analysis.get("model", "unknown")}
+                    page_content=analysis.get(
+                        "transcription_report", "No transcription available."
+                    ),
+                    metadata={
+                        "source": file.filename,
+                        "type": "voice_intel",
+                        "model": analysis.get("model", "unknown"),
+                    },
                 )
                 await backend.REGISTRY["vector_store"].add_langchain_documents(
-                    collection_name=collection_name,
-                    documents=[doc]
+                    collection_name=collection_name, documents=[doc]
                 )
             return {
                 "success": True,
                 "type": "audio",
                 "analysis": analysis.get("transcription_report", ""),
-                "filename": file.filename
+                "filename": file.filename,
             }
 
         if not backend.REGISTRY.get("file_uploader"):
             raise HTTPException(status_code=503, detail="RAG system not initialized")
-            
+
         # Process via fully async industrial uploader
         result = await backend.REGISTRY["file_uploader"].process_existing_file(
-            file_path, 
-            collection_name
+            file_path, collection_name
         )
-        
+
         # EPHEMERAL CLEANUP: Delete the physical file after RAG ingestion
         # This honors the "in-memory only" requirement by removing the disk footprint
         try:
@@ -2532,106 +3129,115 @@ async def upload_file(
                 os.remove(file_path)
         except Exception as cleanup_error:
             logger.warning(f"Failed to cleanup temp file {file_path}: {cleanup_error}")
-        
+
         if result.get("success"):
             return {
-                "success": True, 
+                "success": True,
                 "type": "file",
-                "filename": file.filename, 
-                "chunks_added": result.get("result", {}).get("documents_added", 0)
+                "filename": file.filename,
+                "chunks_added": result.get("result", {}).get("documents_added", 0),
             }
         else:
             error_detail = result.get("error", "Processing failed")
             logger.error(f"❌ [RAG] Processing Error: {error_detail}")
-            return {
-                "success": False,
-                "error": error_detail,
-                "filename": file.filename
-            }
-            
-            
+            return {"success": False, "error": error_detail, "filename": file.filename}
+
     except Exception as e:
         import traceback
+
         tb = traceback.format_exc()
-        logger.critical(f"❌ [RAG] Critical Exception in upload_file: {e}\n{tb}", exc_info=True)
+        logger.critical(
+            f"❌ [RAG] Critical Exception in upload_file: {e}\n{tb}", exc_info=True
+        )
         # Check backend registry state for debugging
         try:
             reg_status = {k: "Active" for k in backend.REGISTRY.keys()}
             logger.info(f"🔍 [RAG] Backend Registry State: {reg_status}")
-        except:
+        except Exception:
             logger.error("Could not inspect backend registry")
-            
+
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
+
 
 @app.post("/rag/upload/folder")
 async def upload_folder(request: FolderIndexRequest):
     """Process a local folder path for RAG."""
     if not backend.REGISTRY.get("folder_processor"):
         raise HTTPException(status_code=503, detail="Folder processor not initialized")
-        
+
     try:
         logger.info(f"📁 Indexing folder: {request.folder_path}")
-        result = await backend.REGISTRY["folder_processor"].aprocess_folder(request.folder_path, request.collection_name)
+        result = await backend.REGISTRY["folder_processor"].aprocess_folder(
+            request.folder_path, request.collection_name
+        )
         return result
     except Exception as e:
         logger.error(f"Folder processing failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/system/folder/summary")
 async def get_folder_summary(request: FolderIndexRequest):
     """Get metadata summary of a local folder for preview."""
     if not backend.REGISTRY.get("folder_processor"):
         raise HTTPException(status_code=503, detail="Folder processor not initialized")
-        
+
     try:
         logger.info(f"📁 Analyzing folder for summary: {request.folder_path}")
-        summary = backend.REGISTRY["folder_processor"].create_folder_summary(request.folder_path)
+        summary = backend.REGISTRY["folder_processor"].create_folder_summary(
+            request.folder_path
+        )
         return {"success": True, "summary": summary}
     except Exception as e:
         logger.error(f"Folder summary failed: {e}")
         return {"success": False, "error": str(e)}
 
+
 @app.post("/system/browse")
 async def browse_folder():
     """Trigger a native system folder selection dialog via a stable subprocess."""
     try:
-        import sys
         import subprocess
-        
+        import sys
+
         script_path = os.path.abspath("dialog_worker.py")
         logger.info(f"🎬 [BROWSE] Launching worker: {script_path}")
-        
+
         # Use asyncio.to_thread with standard subprocess.run for best Windows stability
         def _run_worker():
             return subprocess.run(
                 [sys.executable, script_path],
                 capture_output=True,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
         result = await asyncio.to_thread(_run_worker)
         path = result.stdout.strip()
         err_out = result.stderr.strip()
-        
+
         if result.returncode == 0 and path:
             logger.info(f"📂 [BROWSE] Folder selected: {path}")
             return {"success": True, "path": path}
         else:
-            logger.warning(f"⚠️ [BROWSE] No selection. Exit code: {result.returncode}. Stderr: {err_out}")
+            logger.warning(
+                f"⚠️ [BROWSE] No selection. Exit code: {result.returncode}. Stderr: {err_out}"
+            )
             return {"success": False, "error": f"Dialog closed or failed: {err_out}"}
-            
+
     except Exception as e:
         logger.critical(f"❌ [BROWSE] Critical Error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/system/tools")
 async def get_tools():
     """Returns the full industrial-grade tool manifest, categorized and metadata-rich."""
     from tools import get_omni_manifest
+
     try:
         manifest = await get_omni_manifest()
         return manifest
@@ -2642,17 +3248,18 @@ async def get_tools():
         return {
             "status": "Degraded",
             "total_capability_count": len(reg_tools),
-            "mission_areas": {}
+            "mission_areas": {},
         }
+
 
 @app.get("/system/documentation/tools")
 async def get_documentation_tools():
     """Returns detailed documentation for all tools from internal and MCP caches."""
     internal_cache = os.path.join("tools", ".internal_tool_cache.json")
     mcp_cache = os.path.join("mcp_servers", ".mcp_tool_cache.json")
-    
+
     all_tools = []
-    
+
     # 1. Load Internal Tools
     try:
         if os.path.exists(internal_cache):
@@ -2682,12 +3289,21 @@ async def get_documentation_tools():
     if all_tools:
         # 3. Inject Synthetic Popularity Metrics (Mission-Critical Discovery)
         popular_tools = {
-            "nmap": 98, "shodan": 95, "metasploit": 92, "sqlmap": 90,
-            "browser_automation": 88, "file_analyzer": 85, "rag_query": 96,
-            "system_shell": 94, "process_manager": 82, "network_scanner": 89,
-            "cve_lookup": 87, "whois_lookup": 75, "subdomain_enum": 83
+            "nmap": 98,
+            "shodan": 95,
+            "metasploit": 92,
+            "sqlmap": 90,
+            "browser_automation": 88,
+            "file_analyzer": 85,
+            "rag_query": 96,
+            "system_shell": 94,
+            "process_manager": 82,
+            "network_scanner": 89,
+            "cve_lookup": 87,
+            "whois_lookup": 75,
+            "subdomain_enum": 83,
         }
-        
+
         for tool in all_tools:
             name_lower = tool.get("name", "").lower()
             # Default popularity score based on category and name length (tactical baseline)
@@ -2700,8 +3316,9 @@ async def get_documentation_tools():
         # Sort tools by name for consistent UI display (Default behavior)
         all_tools.sort(key=lambda x: x.get("name", ""))
         return {"success": True, "tools": all_tools}
-    
+
     return {"success": False, "error": "No tool caches found"}
+
 
 @app.get("/system/documentation/features")
 async def get_documentation_features():
@@ -2717,30 +3334,35 @@ async def get_documentation_features():
         logger.error(f"Failed to fetch documentation features: {e}")
         return {"success": False, "error": str(e)}
 
+
 @app.get("/system/documentation/refresh")
 async def refresh_documentation_tools():
     """Manually triggers a full tool discovery and cache refresh."""
     from tools import get_all_tools
+
     try:
         # Force a full refresh of internal and MCP caches
         refreshed_tools = await get_all_tools(force_refresh=True)
         return {
-            "success": True, 
-            "message": "Arsenal synchronized successfully", 
-            "tool_count": len(refreshed_tools)
+            "success": True,
+            "message": "Arsenal synchronized successfully",
+            "tool_count": len(refreshed_tools),
         }
     except Exception as e:
         logger.error(f"Failed to refresh tool documentation: {e}")
         return {"success": False, "error": str(e)}
 
+
 @app.get("/system/tools/stats")
 async def get_tool_stats_api():
     """Returns real-time statistics on the categorized tool arsenal."""
     from tools import get_tool_stats
+
     try:
         return await get_tool_stats()
     except Exception as e:
         return {"error": str(e)}
+
 
 @app.post("/rag/query")
 async def query_rag(request: RAGQueryRequest):
@@ -2748,22 +3370,22 @@ async def query_rag(request: RAGQueryRequest):
     # Note: await_system_ready is already defined/imported in api.py
     if not backend.REGISTRY.get("rag_chain"):
         raise HTTPException(status_code=503, detail="RAG chain not initialized")
-        
+
     try:
         result = await backend.REGISTRY["rag_chain"].query_with_sources(
-            collection_name=request.collection_name,
-            query=request.query,
-            k=request.k
+            collection_name=request.collection_name, query=request.query, k=request.k
         )
         return {
             "success": True,
             "answer": result.get("answer", ""),
-            "sources": result.get("sources", [])
+            "sources": result.get("sources", []),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 # --- File Management ---
+
 
 @app.get("/system/files")
 async def list_generated_files():
@@ -2771,22 +3393,25 @@ async def list_generated_files():
     outputs_dir = "asset_inventory"
     if not os.path.exists(outputs_dir):
         return {"files": []}
-    
+
     files = []
     for f in os.listdir(outputs_dir):
         path = os.path.join(outputs_dir, f)
         if os.path.isfile(path):
             stats = os.stat(path)
-            files.append({
-                "name": f,
-                "size": stats.st_size,
-                "modified": datetime.fromtimestamp(stats.st_mtime).isoformat(),
-                "type": os.path.splitext(f)[1].lower()
-            })
-    
+            files.append(
+                {
+                    "name": f,
+                    "size": stats.st_size,
+                    "modified": datetime.fromtimestamp(stats.st_mtime).isoformat(),
+                    "type": os.path.splitext(f)[1].lower(),
+                }
+            )
+
     # Sort by modified time (newest first)
     files.sort(key=lambda x: x["modified"], reverse=True)
     return {"files": files}
+
 
 @app.get("/system/files/preview/{filename}")
 async def get_file_preview(filename: str):
@@ -2794,27 +3419,27 @@ async def get_file_preview(filename: str):
     file_path = os.path.join("asset_inventory", filename)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
-    
+
     file_size = os.path.getsize(file_path)
     mime_type, _ = mimetypes.guess_type(file_path)
     mime_type = mime_type or "application/octet-stream"
-    
+
     result = {
         "name": filename,
         "size": file_size,
         "mime_type": mime_type,
         "content_text": None,
         "hex_dump": None,
-        "is_binary": True
+        "is_binary": True,
     }
 
     # 1. Forensic Hex Dump (Industrial Standard)
     try:
-        with open(file_path, 'rb') as f:
-            chunk = f.read(2048) # Read first 2KB for forensic analysis
+        with open(file_path, "rb") as f:
+            chunk = f.read(2048)  # Read first 2KB for forensic analysis
             hex_rows = []
             for i in range(0, len(chunk), 16):
-                row = chunk[i:i+16]
+                row = chunk[i : i + 16]
                 hex_part = " ".join(f"{b:02x}" for b in row)
                 ascii_part = "".join(chr(b) if 32 <= b <= 126 else "." for b in row)
                 hex_rows.append(f"{i:08x}  {hex_part:<48}  |{ascii_part}|")
@@ -2823,32 +3448,134 @@ async def get_file_preview(filename: str):
         result["hex_dump"] = f"HEX_FAULT: {str(e)}"
 
     # 2. Text Extraction (if applicable)
-    is_text = any(mime_type.startswith(t) for t in ["text/", "application/json", "application/javascript", "application/xml", "application/x-sh", "application/x-python", "application/x-perl", "application/x-ruby", "application/x-yaml", "application/x-httpd-php", "application/x-tcl", "application/x-tex"])
-    text_extensions = ['py', 'md', 'js', 'jsx', 'ts', 'tsx', 'yaml', 'yml', 'conf', 'log', 'sh', 'sql', 'txt', 'env', 'json', 'xml', 'dockerfile', 'makefile', 'toml', 'ini', 'csv', 'tsv', 'jsonl', 'r', 'php', 'rb', 'java', 'go', 'rs', 'c', 'cc', 'cpp', 'h', 'cs', 'lua', 'pl', 'swift', 'kt', 'dart', 'scala', 'gradle', 'bat', 'ps1', 'cmd', 'bash', 'vbs', 'properties', 'config', 'htaccess', 'tf', 'hcl', 'tfvars', 'sol', 'asm', 's', 'pcre', 'regex', 'rules', 'yara', 'err', 'out', 'stats', 'diag', 'event', 'history']
-    if is_text or filename.split('.')[-1].lower() in text_extensions or filename.lower() in ['dockerfile', 'makefile', 'license', 'readme', 'procfile', 'gemfile', 'package.json', 'dockerignore', 'gitignore']:
+    is_text = any(
+        mime_type.startswith(t)
+        for t in [
+            "text/",
+            "application/json",
+            "application/javascript",
+            "application/xml",
+            "application/x-sh",
+            "application/x-python",
+            "application/x-perl",
+            "application/x-ruby",
+            "application/x-yaml",
+            "application/x-httpd-php",
+            "application/x-tcl",
+            "application/x-tex",
+        ]
+    )
+    text_extensions = [
+        "py",
+        "md",
+        "js",
+        "jsx",
+        "ts",
+        "tsx",
+        "yaml",
+        "yml",
+        "conf",
+        "log",
+        "sh",
+        "sql",
+        "txt",
+        "env",
+        "json",
+        "xml",
+        "dockerfile",
+        "makefile",
+        "toml",
+        "ini",
+        "csv",
+        "tsv",
+        "jsonl",
+        "r",
+        "php",
+        "rb",
+        "java",
+        "go",
+        "rs",
+        "c",
+        "cc",
+        "cpp",
+        "h",
+        "cs",
+        "lua",
+        "pl",
+        "swift",
+        "kt",
+        "dart",
+        "scala",
+        "gradle",
+        "bat",
+        "ps1",
+        "cmd",
+        "bash",
+        "vbs",
+        "properties",
+        "config",
+        "htaccess",
+        "tf",
+        "hcl",
+        "tfvars",
+        "sol",
+        "asm",
+        "s",
+        "pcre",
+        "regex",
+        "rules",
+        "yara",
+        "err",
+        "out",
+        "stats",
+        "diag",
+        "event",
+        "history",
+    ]
+    if (
+        is_text
+        or filename.split(".")[-1].lower() in text_extensions
+        or filename.lower()
+        in [
+            "dockerfile",
+            "makefile",
+            "license",
+            "readme",
+            "procfile",
+            "gemfile",
+            "package.json",
+            "dockerignore",
+            "gitignore",
+        ]
+    ):
         try:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                result["content_text"] = f.read(10000) # First 10k chars
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                result["content_text"] = f.read(10000)  # First 10k chars
                 result["is_binary"] = False
-        except:
+        except Exception:
             pass
-            
+
     return result
+
 
 @app.get("/system/internet/preview")
 async def get_internet_preview(url: str):
     """Fetch and generate a forensic preview for any URL on the internet."""
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=15.0, verify=False) as client:
+        async with httpx.AsyncClient(
+            follow_redirects=True, timeout=15.0, verify=False
+        ) as client:
             # 1. Get headers for mime-type and size
             try:
                 head_resp = await client.head(url)
-                mime_type = head_resp.headers.get("content-type", "application/octet-stream").split(';')[0]
+                mime_type = head_resp.headers.get(
+                    "content-type", "application/octet-stream"
+                ).split(";")[0]
                 file_size = int(head_resp.headers.get("content-length", 0))
-            except:
+            except Exception:
                 mime_type = "application/octet-stream"
                 file_size = 0
-            
+
             # 2. Fetch first chunk
             async with client.stream("GET", url) as response:
                 chunk = b""
@@ -2856,56 +3583,167 @@ async def get_internet_preview(url: str):
                     chunk += data
                     if len(chunk) >= 4096:
                         break
-                
-                is_image_ext = any(url.split('?')[0].lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.jfif', '.avif', '.apng', '.pjpeg', '.pjp'])
+
+                is_image_ext = any(
+                    url.split("?")[0].lower().endswith(ext)
+                    for ext in [
+                        ".jpg",
+                        ".jpeg",
+                        ".png",
+                        ".gif",
+                        ".webp",
+                        ".svg",
+                        ".jfif",
+                        ".avif",
+                        ".apng",
+                        ".pjpeg",
+                        ".pjp",
+                    ]
+                )
                 result = {
-                    "name": url.split('/')[-1] or "internet_asset",
+                    "name": url.split("/")[-1] or "internet_asset",
                     "size": file_size or len(chunk),
                     "mime_type": mime_type,
                     "content_text": None,
                     "hex_dump": None,
                     "is_binary": True,
-                    "preview": url if (any(mime_type.startswith(t) for t in ["image/", "audio/", "video/"]) or is_image_ext) else None,
-                    "source_url": url
+                    "preview": url
+                    if (
+                        any(
+                            mime_type.startswith(t)
+                            for t in ["image/", "audio/", "video/"]
+                        )
+                        or is_image_ext
+                    )
+                    else None,
+                    "source_url": url,
                 }
 
                 # Hex dump logic
                 hex_rows = []
                 for i in range(0, len(chunk), 16):
-                    row = chunk[i:i+16]
+                    row = chunk[i : i + 16]
                     hex_part = " ".join(f"{b:02x}" for b in row)
                     ascii_part = "".join(chr(b) if 32 <= b <= 126 else "." for b in row)
                     hex_rows.append(f"{i:08x}  {hex_part:<48}  |{ascii_part}|")
                 result["hex_dump"] = "\n".join(hex_rows)
 
                 # Text extraction (limited)
-                is_text = any(mime_type.startswith(t) for t in ["text/", "application/json", "application/javascript", "application/xml", "application/x-sh", "application/x-python", "application/x-perl", "application/x-ruby", "application/x-yaml", "application/x-httpd-php", "application/x-tcl", "application/x-tex"])
-                text_extensions = ['py', 'md', 'js', 'jsx', 'ts', 'tsx', 'yaml', 'yml', 'conf', 'log', 'sh', 'sql', 'txt', 'env', 'json', 'xml', 'dockerfile', 'makefile', 'toml', 'ini', 'csv', 'tsv', 'jsonl', 'r', 'php', 'rb', 'java', 'go', 'rs', 'c', 'cc', 'cpp', 'h', 'cs', 'lua', 'pl', 'swift', 'kt', 'dart', 'scala', 'gradle', 'bat', 'ps1', 'cmd', 'bash', 'vbs', 'properties', 'config', 'htaccess', 'tf', 'hcl', 'tfvars', 'sol', 'asm', 's', 'pcre', 'regex', 'rules', 'yara', 'err', 'out', 'stats', 'diag', 'event', 'history']
-                if is_text or url.split('?')[0].split('.')[-1].lower() in text_extensions:
+                is_text = any(
+                    mime_type.startswith(t)
+                    for t in [
+                        "text/",
+                        "application/json",
+                        "application/javascript",
+                        "application/xml",
+                        "application/x-sh",
+                        "application/x-python",
+                        "application/x-perl",
+                        "application/x-ruby",
+                        "application/x-yaml",
+                        "application/x-httpd-php",
+                        "application/x-tcl",
+                        "application/x-tex",
+                    ]
+                )
+                text_extensions = [
+                    "py",
+                    "md",
+                    "js",
+                    "jsx",
+                    "ts",
+                    "tsx",
+                    "yaml",
+                    "yml",
+                    "conf",
+                    "log",
+                    "sh",
+                    "sql",
+                    "txt",
+                    "env",
+                    "json",
+                    "xml",
+                    "dockerfile",
+                    "makefile",
+                    "toml",
+                    "ini",
+                    "csv",
+                    "tsv",
+                    "jsonl",
+                    "r",
+                    "php",
+                    "rb",
+                    "java",
+                    "go",
+                    "rs",
+                    "c",
+                    "cc",
+                    "cpp",
+                    "h",
+                    "cs",
+                    "lua",
+                    "pl",
+                    "swift",
+                    "kt",
+                    "dart",
+                    "scala",
+                    "gradle",
+                    "bat",
+                    "ps1",
+                    "cmd",
+                    "bash",
+                    "vbs",
+                    "properties",
+                    "config",
+                    "htaccess",
+                    "tf",
+                    "hcl",
+                    "tfvars",
+                    "sol",
+                    "asm",
+                    "s",
+                    "pcre",
+                    "regex",
+                    "rules",
+                    "yara",
+                    "err",
+                    "out",
+                    "stats",
+                    "diag",
+                    "event",
+                    "history",
+                ]
+                if (
+                    is_text
+                    or url.split("?")[0].split(".")[-1].lower() in text_extensions
+                ):
                     try:
-                        result["content_text"] = chunk[:10000].decode('utf-8', errors='ignore')
+                        result["content_text"] = chunk[:10000].decode(
+                            "utf-8", errors="ignore"
+                        )
                         result["is_binary"] = False
-                    except:
+                    except Exception:
                         pass
-                
+
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/system/files/download/{filename}")
 async def download_file(filename: str):
     """Download a file from the outputs directory."""
     from fastapi.responses import FileResponse
-    from myth_utils.paths import get_app_data_path
+
     file_path = os.path.join(get_app_data_path("asset_inventory"), filename)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path, filename=filename)
 
+
 @app.delete("/system/files/{filename}")
 async def delete_file(filename: str):
     """Delete a file from the outputs directory."""
-    from myth_utils.paths import get_app_data_path
     file_path = os.path.join(get_app_data_path("asset_inventory"), filename)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
@@ -2913,10 +3751,10 @@ async def delete_file(filename: str):
     asyncio.create_task(trigger_telemetry_update())
     return {"success": True, "message": f"File {filename} deleted"}
 
+
 @app.patch("/system/files/{filename}")
 async def rename_file(filename: str, new_name: str = Body(..., embed=True)):
     """Rename a file in the outputs directory."""
-    from myth_utils.paths import get_app_data_path
     inventory_base = get_app_data_path("asset_inventory")
     old_path = os.path.join(inventory_base, filename)
     new_path = os.path.join(inventory_base, new_name)
@@ -2931,24 +3769,28 @@ async def rename_file(filename: str, new_name: str = Body(..., embed=True)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/test")
 async def test_endpoint():
     return {"status": "ok", "message": "Backend is reactive"}
 
+
 if __name__ == "__main__":
-    import uvicorn
     import sys
-    
+
+    import uvicorn
+
     # Industrial Hook: Auto-Provision Browsers (In-Process)
     try:
         # Check if we need to install
         # We assume if we can import sync_playwright, we are good? No, binaries are separate.
         # We blindly try install chromium. It is idempotent.
-        if getattr(sys, 'frozen', False):
+        if getattr(sys, "frozen", False):
             # Only auto-install in frozen mode where user expects "it just works"
             from playwright.__main__ import main as playwright_cli
+
             logger.info("🌐 [INIT] Verifying browser binaries (Chromium)...")
-            
+
             old_argv = sys.argv
             sys.argv = ["playwright", "install", "chromium"]
             try:
@@ -2963,5 +3805,5 @@ if __name__ == "__main__":
     except Exception as e:
         logger.warning(f"⚠️ [INIT] Browser auto-provisioning failed: {e}")
 
-    # In desktop mode, we typically launch the API on a local port like 8000 or {{INFRA_PORT_BACKEND}}
-    uvicorn.run(app, host="127.0.0.1", port={{INFRA_PORT_BACKEND}})
+    # In desktop mode, we typically launch the API on a local port like 8000 or 8890
+    uvicorn.run(app, host="127.0.0.1", port=8890)

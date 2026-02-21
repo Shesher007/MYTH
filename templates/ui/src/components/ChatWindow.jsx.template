@@ -1,0 +1,1082 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Send, Loader2, FileUp, ChevronDown, ChevronRight, Terminal, Eye, Volume2, VolumeX, Copy, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import NeuralCore from './NeuralCore';
+import FilePreview from './FilePreview';
+import FileIcon from './FileIcon';
+
+const CopyButton = ({ content }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(content);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <button
+            onClick={handleCopy}
+            className="copy-btn p-1.5 rounded-md bg-white/5 border border-white/10 hover:border-teal-500/50 hover:bg-teal-500/10 text-slate-400 hover:text-teal-400 transition-all active:scale-95 group/copy"
+            title="Copy Tactical Output"
+        >
+            {copied ? (
+                <Check size={12} className="text-teal-400" />
+            ) : (
+                <Copy size={12} className="group-hover/copy:scale-110 transition-transform" />
+            )}
+        </button>
+    );
+};
+
+const CyberDecorator = ({ children, telemetry }) => {
+    return (
+        <div className="cyber-container group/cyber my-6">
+            <div className="cyber-telemetry">
+                <div className="w-1.5 h-1.5 rounded-full bg-teal-500/40 animate-pulse"></div>
+                <span className="cyber-telemetry-text">{telemetry || 'Tactical_Dump // 0x88'}</span>
+                <div className="flex-1"></div>
+                <div className="cyber-telemetry-text opacity-30">CORE_INTEL</div>
+            </div>
+
+            <div className="cyber-corner top-0 left-0 border-t border-l"></div>
+            <div className="cyber-corner top-0 right-0 border-t border-r"></div>
+            <div className="cyber-corner bottom-0 left-0 border-b border-l"></div>
+            <div className="cyber-corner bottom-0 right-0 border-b border-r"></div>
+
+            <div className="cyber-scanline"></div>
+
+            {children}
+        </div>
+    );
+};
+
+const MarkdownCode = ({ node: _node, inline, className, children, ...props }) => {
+    const match = /language-(\w+)/.exec(className || '');
+    const content = String(children).replace(/\n$/, '');
+
+    if (inline) {
+        return <code className={className} {...props}>{children}</code>;
+    }
+
+    return (
+        <CyberDecorator telemetry={`Source_Output // ${match ? match[1].toUpperCase() : 'RAW'}`}>
+            <div className="relative">
+                <div className="absolute top-2 right-2 z-20 opacity-0 group-hover/cyber:opacity-100 transition-opacity">
+                    <CopyButton content={content} />
+                </div>
+                <pre className={`cyber-pre custom-scrollbar ${className}`} {...props}>
+                    <code className={className}>{children}</code>
+                </pre>
+            </div>
+        </CyberDecorator>
+    );
+};
+
+const MessageItem = React.memo(({ msg, idx, isLast, isProcessing, handlePreviewClick, CopyButton, ReactMarkdown, remarkGfm, MarkdownCode, FilePreview, Terminal }) => {
+    return (
+        <motion.div
+            key={`msg-${idx}`}
+            initial={{ opacity: 0, x: msg.role === 'user' ? 10 : -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className={`message ${msg.role} group px-4 mb-10 relative`}
+        >
+            <div className={`flex-1 w-full ${msg.role === 'user' ? 'ml-auto' : ''}`}>
+                <div className={`flex items-center justify-between mb-1 px-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className="flex items-center gap-2">
+                        <span className={`text-[9px] font-mono font-black uppercase tracking-widest ${msg.role === 'user' ? 'text-teal-400' : 'text-blue-400'}`}>
+                            {msg.role === 'user' ? '► TX_DATA' : '◄ RX_STREAM'}
+                        </span>
+                        <div className={`w-1 h-1 rounded-full ${msg.role === 'user' ? 'bg-teal-500' : 'bg-blue-500'} animate-pulse`}></div>
+                    </div>
+
+                    <div className={`flex items-center gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                        <span className="text-[8px] font-mono text-slate-600 uppercase tracking-widest opacity-50">
+                            ID: {idx}_{msg.timestamp?.slice(-6) || 'RX'}
+                        </span>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            {msg.role !== 'user' && <CopyButton content={msg.content} />}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="message-content !p-6 !m-0 !rounded-none relative">
+                    {msg.role === 'assistant' && (
+                        <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none overflow-hidden">
+                            <div className="absolute top-0 right-0 w-full h-[1px] bg-white/10"></div>
+                            <div className="absolute top-0 right-0 w-[1px] h-full bg-white/10"></div>
+                            <div className="absolute top-[6px] right-[6px] w-2 h-2 border-t border-r border-blue-400/30"></div>
+                        </div>
+                    )}
+
+                    {msg.role === 'user' && msg.attachments && msg.attachments.length > 0 && (
+                        <div className="message-attachments mb-6 grid grid-cols-2 gap-3">
+                            {msg.attachments.map((item, aIdx) => (
+                                <FilePreview
+                                    key={`attr-${idx}-${aIdx}`}
+                                    file={item}
+                                    onClick={() => handlePreviewClick(item)}
+                                    className="w-full h-24 glass-card !rounded-xl !border-white/5 hover:border-teal-500/30 transition-all shadow-xl"
+                                />
+                            ))}
+                        </div>
+                    )}
+                    <div className="markdown-content prose prose-invert prose-sm max-w-none">
+                        {msg.role === 'assistant' ? (
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    code: MarkdownCode
+                                }}
+                            >
+                                {msg.content || ''}
+                            </ReactMarkdown>
+                        ) : (
+                            <div className="whitespace-pre-wrap font-bold text-slate-100 text-[13px] leading-relaxed tracking-wide italic border-l-2 border-teal-500/20 pl-4">{msg.content}</div>
+                        )}
+
+                        {isProcessing && isLast && !msg.content && (
+                            <div className="flex items-center gap-4 py-2">
+                                <div className="flex gap-1.5">
+                                    <div className="w-1 h-3 bg-teal-500/60 animate-[pulse_1s_infinite]"></div>
+                                    <div className="w-1 h-3 bg-teal-500/40 animate-[pulse_1s_infinite_0.2s]"></div>
+                                    <div className="w-1 h-3 bg-teal-500/20 animate-[pulse_1s_infinite_0.4s]"></div>
+                                </div>
+                                <span className="text-teal-400/70 font-mono text-[11px] font-black uppercase tracking-[0.3em] animate-pulse">
+                                    Intercepting_Stream...
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex items-center justify-between mt-6 pt-3 border-t border-white/[0.03]">
+                        <div className="flex items-center gap-4">
+                            {msg.role === 'user' && (
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <CopyButton content={msg.content} />
+                                </div>
+                            )}
+                            <div className="flex items-center gap-3">
+                                <Terminal size={10} className="text-slate-700" />
+                                <span className="text-[8px] font-mono text-slate-600 uppercase tracking-[0.2em] font-black">auth_key:verified_node_88</span>
+                            </div>
+                        </div>
+                        <div className="px-2 py-0.5 rounded bg-black/40 border border-white/5 text-[8px] text-slate-500 font-mono font-black uppercase tracking-[0.25em]">
+                            {new Date(msg.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
+}, (prev, next) => {
+    return prev.msg.content === next.msg.content &&
+        prev.isLast === next.isLast &&
+        prev.isProcessing === next.isProcessing &&
+        prev.msg.is_finalized === next.msg.is_finalized;
+});
+
+const ToolResult = ({ name, content, onPreviewFile }) => {
+    const [isExpanded, setIsExpanded] = React.useState(false);
+    const [isLoadingPreview, setIsLoadingPreview] = React.useState(false);
+
+    // Parse content for intelligent summaries
+    let summary = name;
+    let badge = "System Execute";
+    let isSuccess = true;
+
+    const isForensicMatch = typeof content === 'string' && content.includes('[PREVIEWABLE_IN_UI: READY]');
+
+    const handleForensicPreview = async () => {
+        if (!isForensicMatch) return;
+
+        // Extract URL from content (heuristic)
+        const urlMatch = content.match(/FORENSIC_REPORT:\s*(https?:\/\/[^\s\n]+)/);
+        if (!urlMatch) return;
+
+        const url = urlMatch[1];
+        setIsLoadingPreview(true);
+
+        try {
+            const response = await fetch(`${API_BASE}/system/internet/preview?url=${encodeURIComponent(url)}`);
+            const data = await response.json();
+
+            onPreviewFile({
+                name: data.name,
+                type: 'internet_asset',
+                size: (data.size / 1024).toFixed(1) + ' KB',
+                preview: data.preview,
+                contentSnippet: data.content_text,
+                hex_dump: data.hex_dump,
+                mime_type: data.mime_type,
+                is_binary: data.is_binary,
+                source_url: data.source_url
+            });
+        } catch (err) {
+            console.error("Internet forensics fail:", err);
+            alert("Forensic capture failed. Target might be blocking automated inspection.");
+        } finally {
+            setIsLoadingPreview(false);
+        }
+    };
+
+    try {
+        const data = typeof content === 'string' ? JSON.parse(content) : content;
+
+        // 1. File Creation / Editing Tools
+        if (data.file_path || (data.tool_name && data.tool_name.includes('file'))) {
+            const fname = data.file_path ? data.file_path.split(/[/\\]/).pop() : "File";
+            summary = `${name}: ${fname}`;
+            badge = "File System";
+        }
+        // 2. Generic "status" check
+        if (data.status) {
+            isSuccess = data.status !== 'error' && data.status !== 'failed';
+            summary = `${name} [${data.status.toUpperCase()}]`;
+
+            // Catch specific file tools logic
+            if (data.name) { // often return includes 'name' of file
+                summary = `${name}: ${data.name}`;
+            }
+        }
+    } catch {
+        // Not JSON, stick to default
+    }
+
+    return (
+        <div className={`tool-result-card border-l-2 ${isSuccess ? 'border-teal-500/50' : 'border-red-500/50'} bg-black/30 backdrop-blur-sm overflow-hidden group/tool my-2 rounded-r-md`}>
+            <div
+                className="tool-result-header flex items-center justify-between p-2.5 hover:bg-white/[0.02] transition-colors cursor-pointer"
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <div className="flex items-center gap-3 overflow-hidden">
+                    <div className={`p-1.5 rounded-md ring-1 transition-all flex-shrink-0 ${isSuccess ? 'bg-teal-500/10 ring-teal-500/20 text-teal-500 group-hover/tool:ring-teal-500/40' : 'bg-red-500/10 ring-red-500/20 text-red-500 group-hover/tool:ring-red-500/40'}`}>
+                        {name.includes('file') || name.includes('asset') || badge === "File System" ? (
+                            <FileIcon name={summary.split(': ').pop() || 'file'} size={12} />
+                        ) : name.includes('search') ? (
+                            <Eye size={12} />
+                        ) : (
+                            <Terminal size={12} />
+                        )}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                        <span className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 truncate ${isSuccess ? 'text-slate-400 group-hover/tool:text-teal-400' : 'text-red-400'}`}>
+                            {badge}
+                        </span>
+                        <span className="text-xs font-mono text-white/90 truncate pr-4">{summary}</span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="hidden sm:block text-[9px] font-mono text-slate-600 px-2 py-0.5 border border-white/5 rounded lowercase">
+                        {isSuccess ? 'process:ok' : 'process:err'}
+                    </div>
+                    {isExpanded ? <ChevronDown size={14} className="text-slate-600" /> : <ChevronRight size={14} className="text-slate-600" />}
+                </div>
+            </div>
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                    >
+                        <div className="p-1 bg-white/5 relative group/tool-content">
+                            <CyberDecorator telemetry={`Industrial_Result // ${name.toUpperCase()}`}>
+                                <div className="relative">
+                                    <div className="absolute top-2 right-2 z-20 opacity-0 group-hover/cyber:opacity-100 transition-opacity">
+                                        <CopyButton content={content} />
+                                    </div>
+                                    <pre className="tool-result-pre cyber-pre custom-scrollbar !bg-transparent !text-[#14b8a6]/90 selection:bg-teal-500/30">
+                                        {content}
+                                    </pre>
+                                    {isForensicMatch && (
+                                        <div className="absolute bottom-4 right-4 z-20">
+                                            <button
+                                                onClick={handleForensicPreview}
+                                                disabled={isLoadingPreview}
+                                                className="px-4 py-2 bg-teal-500/10 border border-teal-500/30 rounded text-teal-400 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-teal-500/20 transition-all flex items-center gap-2"
+                                            >
+                                                {isLoadingPreview ? <Loader2 size={12} className="animate-spin" /> : <Eye size={12} />}
+                                                {isLoadingPreview ? 'Capturing_Forensics...' : 'Deep Forensic Ingest'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </CyberDecorator>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
+const ChatWindow = ({
+    messages,
+    isProcessing,
+    currentStatus,
+    activeNode,
+    activeModel,
+    usedTools,
+    onSendMessage,
+    onStopGeneration,
+    thoughts,
+    thinkingStartTime,
+    onUploadFile: _onUploadFile,
+    uploadFileWithProgress,
+    onIndexFolder: _onIndexFolder,
+    browseFolder,
+    getFolderSummary,
+    architectureMode,
+    onSwitchArchitecture,
+    speakingMode,
+    setSpeakingMode,
+    onPreviewFile
+}) => {
+    const [input, setInput] = useState('');
+    const [showUploadMenu, setShowUploadMenu] = useState(false);
+    const [stagedFiles, setStagedFiles] = useState([]);
+    const messagesEndRef = useRef(null);
+    const scrollContainerRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const imageInputRef = useRef(null);
+    const menuRef = useRef(null);
+    const inputRef = useRef(null);
+    const audioInputRef = useRef(null);
+    const [isDragOver, setIsDragOver] = useState(false);
+
+    // Recording state
+    const [isRecording, setIsRecording] = useState(false);
+    const [mediaRecorder, setMediaRecorder] = useState(null);
+    const [recordingDuration, setRecordingDuration] = useState(0);
+    const timerRef = useRef(null);
+
+    // Derive isMultiLLM from architectureMode prop
+    const isMultiLLM = architectureMode === 'multi';
+
+
+    const scrollToBottom = useCallback(() => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+                top: scrollContainerRef.current.scrollHeight,
+                behavior: "smooth"
+            });
+        }
+    }, []);
+
+    const lastMessageCount = useRef(messages.length);
+
+    // Smart auto-scroll logic
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+        const isNewMessage = messages.length > lastMessageCount.current;
+
+        if (isAtBottom || isNewMessage) {
+            scrollToBottom();
+        }
+
+        lastMessageCount.current = messages.length;
+    }, [messages, thoughts]);
+
+
+
+    // Cleanup object URLs on unmount
+    useEffect(() => {
+        return () => {
+            stagedFiles.forEach(item => {
+                if (item.preview) URL.revokeObjectURL(item.preview);
+            });
+        };
+    }, []);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setShowUploadMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        // Block send if any file is still uploading
+        const isUploading = stagedFiles.some(f => f.status === 'uploading' || f.status === 'parsing');
+        if (isUploading) {
+            alert("Please wait for files to finish uploading.");
+            return;
+        }
+
+        // ULTRA UPGRADE: Block send if any file failed to upload
+        const hasFailedUploads = stagedFiles.some(f => f.status === 'error');
+        if (hasFailedUploads) {
+            alert("Upload failure detected. Remove failed items to proceed.");
+            return;
+        }
+
+        if ((input.trim() || stagedFiles.length > 0) && !isProcessing) {
+            onSendMessage(input, stagedFiles);
+            setInput('');
+            setStagedFiles([]);
+        }
+    };
+
+    const processFile = async (file) => {
+        if (!file) return;
+
+        const isImage = file.type.startsWith('image/') || file.name.match(/\.(jpg|jpeg|png|gif|webp|svg|jfif|avif|apng|pjpeg|pjp|ico|bmp|heif)$/i);
+        const isAudio = file.type.startsWith('audio/') || file.name.match(/\.(wav|mp3|ogg|flac|m4a|aac|opus|wma)$/i);
+        // Create object URL for images AND audio for preview playback
+        const preview = (isImage || isAudio) ? URL.createObjectURL(file) : null;
+        const fileId = Math.random().toString(36).substring(7);
+
+        let contentSnippet = null;
+        // Sniff text/code content
+        if (!isImage && (file.size < 1024 * 512)) {
+            try {
+                const text = await file.slice(0, 5000).text();
+                contentSnippet = text;
+            } catch (err) { console.warn('Sniff err:', err); }
+        }
+
+        // 1. Stage immediately with 'pending'/'uploading' state
+        setStagedFiles(prev => [...prev, {
+            type: 'file',
+            name: file.name,
+            size: (file.size / 1024).toFixed(1) + ' KB',
+            content: file,
+            preview,
+            contentSnippet,
+            id: fileId,
+            status: 'uploading',
+            progress: 0,
+            error: null
+        }]);
+
+        // 2. Trigger Upload Immediately
+        try {
+            const result = await uploadFileWithProgress(file, (percent) => {
+                setStagedFiles(current => current.map(f => {
+                    if (f.id === fileId) {
+                        return { ...f, progress: percent, status: percent === 100 ? 'parsing' : 'uploading' };
+                    }
+                    return f;
+                }));
+            });
+
+            // 3. Update Success State
+            if (result.success) {
+                setStagedFiles(current => current.map(f => {
+                    if (f.id === fileId) {
+                        return {
+                            ...f,
+                            status: 'success',
+                            analysis: result.analysis,
+                            progress: 100
+                        };
+                    }
+                    return f;
+                }));
+            } else {
+                setStagedFiles(current => current.map(f => {
+                    if (f.id === fileId) {
+                        return {
+                            ...f,
+                            status: 'error',
+                            error: result.error || "Upload failed",
+                            progress: 0
+                        };
+                    }
+                    return f;
+                }));
+            }
+
+        } catch {
+            // 4. Update Error State
+            setStagedFiles(current => current.map(f => {
+                if (f.id === fileId) {
+                    return { ...f, status: 'error', error: err.message || "Upload failed" };
+                }
+                return f;
+            }));
+        }
+    };
+
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            setShowUploadMenu(false);
+            files.forEach(file => processFile(file));
+            e.target.value = '';
+        }
+    };
+
+    const handlePaste = (e) => {
+        const items = e.clipboardData.items;
+        let hasFile = false;
+
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].kind === 'file') {
+                const file = items[i].getAsFile();
+                processFile(file);
+                hasFile = true;
+            }
+        }
+
+        if (hasFile) e.preventDefault();
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setIsDragOver(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragOver(false);
+        const files = Array.from(e.dataTransfer.files);
+        files.forEach(file => processFile(file));
+    };
+
+    const handlePreviewClick = useCallback((file) => {
+        onPreviewFile(file);
+    }, [onPreviewFile]);
+
+    const removeStagedFile = (id) => {
+        setStagedFiles(prev => {
+            const item = prev.find(f => f.id === id);
+            if (item?.preview) URL.revokeObjectURL(item.preview);
+            return prev.filter(f => f.id !== id);
+        });
+    };
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream);
+            const chunks = [];
+
+            recorder.ondataavailable = (e) => chunks.push(e.data);
+            recorder.onstop = async () => {
+                const audioBlob = new Blob(chunks, { type: recorder.mimeType });
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 }); // Optimize for Mistral (16kHz is standard)
+
+                try {
+                    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                    const samples = audioBuffer.getChannelData(0); // Mono capture
+
+                    // Industrial WAV Encoder (Library-less)
+                    const encodeWAV = (samples, sampleRate) => {
+                        const buffer = new ArrayBuffer(44 + samples.length * 2);
+                        const view = new DataView(buffer);
+                        const writeString = (view, offset, string) => {
+                            for (let i = 0; i < string.length; i++) {
+                                view.setUint8(offset + i, string.charCodeAt(i));
+                            }
+                        };
+                        writeString(view, 0, 'RIFF');
+                        view.setUint32(4, 32 + samples.length * 2, true);
+                        writeString(view, 8, 'WAVE');
+                        writeString(view, 12, 'fmt ');
+                        view.setUint32(16, 16, true);
+                        view.setUint16(20, 1, true); // PCM
+                        view.setUint16(22, 1, true); // Mono
+                        view.setUint32(24, sampleRate, true);
+                        view.setUint32(28, sampleRate * 2, true); // Byte rate
+                        view.setUint16(32, 2, true); // Block align
+                        view.setUint16(34, 16, true); // Bits per sample
+                        writeString(view, 36, 'data');
+                        view.setUint32(40, samples.length * 2, true);
+
+                        let offset = 44;
+                        for (let i = 0; i < samples.length; i++, offset += 2) {
+                            let s = Math.max(-1, Math.min(1, samples[i]));
+                            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+                        }
+                        return buffer;
+                    };
+
+                    const wavBuffer = encodeWAV(samples, audioBuffer.sampleRate);
+                    const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
+                    const file = new File([wavBlob], `voice_intel_${Date.now()}.wav`, { type: 'audio/wav' });
+
+                    processFile(file);
+                } catch {
+                    console.error("⚠️ [AUDIO] Transcoding failure:", e);
+                    // Critical Fallback: Send original blob but warning is likely to follow from backend
+                    const file = new File([audioBlob], `voice_intel_${Date.now()}.wav`, { type: 'audio/wav' });
+                    processFile(file);
+                } finally {
+                    audioCtx.close();
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            };
+
+            recorder.start();
+            setMediaRecorder(recorder);
+            setIsRecording(true);
+            setRecordingDuration(0);
+
+            timerRef.current = setInterval(() => {
+                setRecordingDuration(prev => prev + 1);
+            }, 1000);
+
+        } catch {
+            console.error('Recording initialization failure:', err);
+            alert('Could not access microphone for industrial voice capture.');
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            setIsRecording(false);
+            if (timerRef.current) clearInterval(timerRef.current);
+        }
+    };
+
+    const formatDuration = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const handleFolderIndex = async () => {
+        setShowUploadMenu(false);
+        const path = await browseFolder();
+        if (path) {
+            const folderId = Math.random().toString(36).substring(7);
+
+            // 1. Stage immediately with 'parsing' state (Indexing)
+            setStagedFiles(prev => [...prev, {
+                type: 'folder',
+                name: path.split(/[/\\]/).pop() || path,
+                content: path,
+                preview: null,
+                status: 'parsing',
+                progress: 0,
+                id: folderId
+            }]);
+
+            try {
+                // Artificial delay to allow UI to show 'PARSING...' state
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                // 2. Fetch summary (acts as our processing step)
+                const summary = await getFolderSummary(path);
+
+                // Handle null summary (API failure)
+                if (!summary) {
+                    setStagedFiles(current => current.map(f => {
+                        if (f.id === folderId) {
+                            return { ...f, status: 'error', error: "Summary fetch failed" };
+                        }
+                        return f;
+                    }));
+                    return;
+                }
+
+                setStagedFiles(current => current.map(f => {
+                    if (f.id === folderId) {
+                        return {
+                            ...f,
+                            status: 'success',
+                            summary: summary,
+                            size: summary?.size_human || 'DIR',
+                            progress: 100
+                        };
+                    }
+                    return f;
+                }));
+            } catch {
+                setStagedFiles(current => current.map(f => {
+                    if (f.id === folderId) {
+                        return { ...f, status: 'error', error: "Indexing failed" };
+                    }
+                    return f;
+                }));
+            }
+        }
+    };
+
+    return (
+        <div
+            className="chat-container h-full flex flex-col relative"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            {isDragOver && (
+                <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center border-2 border-dashed border-teal-500 rounded-lg m-4">
+                    <div className="text-center">
+                        <FileUp size={48} className="mx-auto text-teal-500 mb-4 animate-bounce" />
+                        <h3 className="text-xl font-bold text-white mb-2">Drop Files to Upload</h3>
+                        <p className="text-slate-400">Release to analyze with RAG Core</p>
+                    </div>
+                </div>
+            )}
+            <div className="chat-messages flex-1 custom-scrollbar" ref={scrollContainerRef}>
+                <AnimatePresence mode="wait">
+                    {messages.length === 0 ? (
+                        <motion.div
+                            key="empty-state"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="chat-empty-state-wrapper"
+                        >
+                            <div className="chat-empty-state flex flex-col items-center justify-center h-full">
+                                {/* Fully cleared for Mission Backdrop Dominance */}
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <div className="messages-list">
+                            {messages.map((msg, idx) => {
+                                if (msg.role === 'tool') {
+                                    return <ToolResult key={`tool-${idx}`} name={msg.name} content={msg.content} onPreviewFile={onPreviewFile} />;
+                                }
+                                return (
+                                    <MessageItem
+                                        key={`msg-${idx}`}
+                                        msg={msg}
+                                        idx={idx}
+                                        isLast={idx === messages.length - 1}
+                                        isProcessing={isProcessing}
+                                        handlePreviewClick={handlePreviewClick}
+                                        CopyButton={CopyButton}
+                                        ReactMarkdown={ReactMarkdown}
+                                        remarkGfm={remarkGfm}
+                                        MarkdownCode={MarkdownCode}
+                                        FilePreview={FilePreview}
+                                        Terminal={Terminal}
+                                    />
+                                );
+                            })}
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Neural Core Reasoning Display (Relocated below messages) */}
+                <div className="inline-thinking-zone">
+                    <NeuralCore
+                        thoughts={thoughts}
+                        isProcessing={isProcessing}
+                        startTime={thinkingStartTime}
+                        currentStatus={currentStatus}
+                        activeNode={activeNode}
+                        activeModel={activeModel}
+                        usedTools={usedTools}
+                        architectureMode={architectureMode}
+                    />
+                </div>
+
+                {/* Status Indicator (Only if not thinking and NOT in normal mode) */}
+                {isProcessing && !thoughts && architectureMode !== 'normal' && (
+                    <div className="flex justify-center my-6">
+                        <div className="status-badge online flex items-center gap-2 px-3 py-1.5 rounded-full">
+                            <Loader2 size={12} className="animate-spin" />
+                            <span className="text-[9px] font-mono uppercase tracking-[0.2em]">{currentStatus}</span>
+                        </div>
+                    </div>
+                )}
+
+                <div ref={messagesEndRef} className="h-2" />
+            </div>
+
+            <div className="chat-input-area border-t border-white/5 bg-black/60 backdrop-blur-3xl p-2 md:p-4 flex justify-center">
+                <div className="w-full max-w-4xl relative interaction-zone top-zone">
+                    <div className="absolute -top-12 left-0 flex items-center gap-2 md:gap-4 pointer-events-none max-w-full overflow-x-auto scrollbar-hide pr-4 mask-fade-right">
+                        {/* Module 1: Version ID */}
+                        <div className="flex items-center gap-2 md:gap-6 px-3 md:px-5 py-2 glass-card !rounded-t-lg !rounded-b-none border-b-0 shadow-[0_-5px_15px_rgba(20,184,166,0.1)] hud-accent-border pointer-events-auto flex-shrink-0">
+                            <div className="flex gap-2 items-center">
+                                <div className="w-2 h-2 rounded-sm hud-accent-bg animate-[pulse_1.5s_infinite]"></div>
+                                <div className="w-1.5 h-1.5 rounded-sm hud-accent-bg opacity-40 animate-[pulse_1.5s_infinite_0.5s]"></div>
+                                <div className="w-1 h-1 rounded-sm hud-accent-bg opacity-20 animate-[pulse_1.5s_infinite_1s]"></div>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-mono font-black hud-accent uppercase tracking-[0.2em] leading-none mb-1 telemetry-label-text whitespace-nowrap">Command_Interface_v1.0</span>
+                                <div className="flex gap-1 hidden md:flex">
+                                    {[...Array(10)].map((_, i) => (
+                                        <div key={i} className={`w-1 h-1 ${i < 6 ? 'hud-accent-bg opacity-30' : 'bg-white/5'} rounded-full`}></div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Module 2: Architecture Switcher */}
+                        <div className={`flex items-center px-5 py-2 glass-card !rounded-t-lg !rounded-b-none border-b-0 shadow-[0_-5px_15px_rgba(20,184,166,0.1)] transition-all duration-500 pointer-events-auto ${isMultiLLM ? 'border-amber-500/50 shadow-amber-500/20' : 'hud-accent-border shadow-teal-500/10'}`}>
+                            <button
+                                type="button"
+                                onClick={() => onSwitchArchitecture && onSwitchArchitecture(isMultiLLM ? 'normal' : 'multi')}
+                                className="flex items-center gap-4 group/arch"
+
+                            >
+                                <div className={`p-1 rounded-md transition-all duration-500 ${isMultiLLM ? 'bg-amber-500/20 text-amber-400' : 'bg-teal-500/10 text-teal-400'}`}>
+                                    <Brain size={11} className={isMultiLLM ? 'animate-pulse' : ''} />
+                                </div>
+                                <div className="flex flex-col items-start leading-[0.8]">
+                                    <span className="text-[6px] font-mono opacity-50 mb-0.5 tracking-[0.2em] font-black uppercase telemetry-label-text">Switch_Architecture</span>
+
+                                    <span className={`text-[10px] font-black uppercase tracking-[0.1em] transition-colors duration-500 ${isMultiLLM ? 'text-amber-400 text-glow-amber' : 'text-teal-400'}`}>
+                                        {isMultiLLM ? 'Killchain_Matrix' : 'Solo_Strike'}
+                                    </span>
+                                    <span className="text-[5px] font-mono opacity-25 tracking-widest mt-0.5 telemetry-label-text">
+                                        NODE_COUNT: {isMultiLLM ? 'DISTRIBUTED' : '01_CORE'}
+                                    </span>
+                                </div>
+                                <div className="relative flex items-center justify-center ml-2">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${isMultiLLM ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,1)]' : 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,1)]'} transition-all duration-500`}></div>
+                                    <div className={`absolute inset-0 w-1.5 h-1.5 rounded-full animate-ping opacity-40 ${isMultiLLM ? 'bg-amber-500' : 'bg-teal-500'}`}></div>
+                                </div>
+
+
+                            </button>
+                        </div>
+
+                        {/* Module 3: Speaking Mode Toggle */}
+                        <div className={`flex items-center px-5 py-2 glass-card !rounded-t-lg !rounded-b-none border-b-0 shadow-[0_-5px_15px_rgba(20,184,166,0.1)] transition-all duration-500 pointer-events-auto ${speakingMode ? 'border-purple-500/50 shadow-purple-500/20' : 'hud-accent-border shadow-teal-500/10'}`}>
+                            <button
+                                type="button"
+                                onClick={() => setSpeakingMode(!speakingMode)}
+                                className="flex items-center gap-4 group/speak"
+                            >
+                                <div className={`p-1 rounded-md transition-all duration-500 ${speakingMode ? 'bg-purple-500/20 text-purple-400' : 'bg-teal-500/10 text-teal-400'}`}>
+                                    {speakingMode ? <Volume2 size={11} className="animate-pulse" /> : <VolumeX size={11} />}
+                                </div>
+                                <div className="flex flex-col items-start leading-[0.8]">
+                                    <span className="text-[6px] font-mono opacity-50 mb-0.5 tracking-[0.2em] font-black uppercase telemetry-label-text">Voice_Uplink</span>
+                                    <span className={`text-[10px] font-black uppercase tracking-[0.1em] transition-colors duration-500 ${speakingMode ? 'text-purple-400' : 'text-slate-500'}`}>
+                                        {speakingMode ? 'Speaking' : 'Silent'}
+                                    </span>
+                                    <span className="text-[5px] font-mono opacity-25 tracking-widest mt-0.5 telemetry-label-text">
+                                        VIBEVOICE: {speakingMode ? 'ACTIVE' : 'STANDBY'}
+                                    </span>
+                                </div>
+                                <div className="relative flex items-center justify-center ml-2">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${speakingMode ? 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,1)]' : 'bg-slate-600'} transition-all duration-500`}></div>
+                                    {speakingMode && <div className="absolute inset-0 w-1.5 h-1.5 rounded-full animate-ping opacity-40 bg-purple-500"></div>}
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* RAG Menu */}
+                    <AnimatePresence>
+                        {showUploadMenu && (
+                            <motion.div
+                                ref={menuRef}
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="rag-action-menu"
+                            >
+                                <div className="rag-menu-header">RAG Core Ingestion</div>
+                                <button onClick={() => fileInputRef.current?.click()} className="rag-menu-item">
+                                    <FileUp size={14} className="text-cyan-400" />
+                                    <span>Upload Document</span>
+                                </button>
+                                <button onClick={() => imageInputRef.current?.click()} className="rag-menu-item">
+                                    <ImageIcon size={14} className="text-purple-400" />
+                                    <span>Analyze Image</span>
+                                </button>
+                                <button onClick={() => audioInputRef.current?.click()} className="rag-menu-item">
+                                    <Music size={14} className="text-pink-400" />
+                                    <span>Analyze Voice Log</span>
+                                </button>
+                                <button onClick={handleFolderIndex} className="rag-menu-item">
+                                    <FolderUp size={14} className="text-amber-400" />
+                                    <span>Index Local Folder</span>
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <form onSubmit={handleSubmit} className="input-terminal flex-col items-stretch">
+                        {stagedFiles.length > 0 && (
+                            <div className="staged-attachments-bar flex flex-wrap gap-2 p-2">
+                                {stagedFiles.map((item) => (
+                                    <div key={item.id} className="relative group animate-in fade-in zoom-in duration-300">
+                                        <FilePreview
+                                            file={item}
+                                            onClick={() => handlePreviewClick(item)}
+                                            onRemove={() => removeStagedFile(item.id)}
+                                            className="w-48 h-12" // Horizontal card dimensions
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-3 w-full">
+                            <input
+                                type="file"
+                                id="chat-file-upload-input"
+                                name="chat-file-upload"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept=".pdf,.txt,.docx,.md,.csv,.py,.js,.json"
+                                multiple
+                            />
+                            <input
+                                type="file"
+                                id="chat-image-upload-input"
+                                name="chat-image-upload"
+                                ref={imageInputRef}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept="image/*"
+                                multiple
+                            />
+                            <input
+                                type="file"
+                                id="chat-audio-upload-input"
+                                name="chat-audio-upload"
+                                ref={audioInputRef}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept="audio/*"
+                                multiple
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() => setShowUploadMenu(!showUploadMenu)}
+                                disabled={isProcessing}
+                                className={`flex items-center justify-center upload-btn ${showUploadMenu ? 'active' : ''}`}
+                                title="RAG Actions"
+                            >
+                                {showUploadMenu ? <X size={18} /> : <Plus size={18} />}
+                            </button>
+
+                            <input
+                                ref={inputRef}
+                                id="chat-message-input"
+                                name="chat-message"
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="Execute Command_Link..."
+                                autoComplete="off"
+                                onPaste={handlePaste}
+                            />
+
+                            {/* Realtime Voice Hub - Enhanced */}
+                            <div className="flex items-center gap-1 px-1">
+                                <button
+                                    type="button"
+                                    onClick={isRecording ? stopRecording : startRecording}
+                                    disabled={isProcessing}
+                                    className={`
+                                            flex items-center justify-center p-2 rounded-lg transition-all duration-300 border relative group/voice
+                                            ${isRecording
+                                            ? 'bg-red-500/20 border-red-500/50 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                                            : 'bg-teal-500/5 border-teal-500/20 text-teal-400/80 hover:bg-teal-500/10 hover:border-teal-500/50 hover:text-teal-400 hover:shadow-[0_0_10px_rgba(20,184,166,0.2)]'}
+                                        `}
+                                    title={isRecording ? "Terminate Voice Stream" : "Initialize Voice Capture"}
+                                >
+                                    <Mic size={18} className={`relative z-10 ${isRecording ? 'animate-pulse' : ''}`} />
+                                    {isRecording && (
+                                        <div className="absolute inset-0 bg-red-500/10 rounded-lg animate-ping"></div>
+                                    )}
+                                </button>
+
+                                <AnimatePresence>
+                                    {isRecording && (
+                                        <motion.div
+                                            initial={{ opacity: 0, width: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, width: 'auto', scale: 1 }}
+                                            exit={{ opacity: 0, width: 0, scale: 0.9 }}
+                                            className="overflow-hidden flex items-center ml-2"
+                                        >
+                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-black/80 border border-red-500/30 rounded-md backdrop-blur-md shadow-lg">
+                                                <div className="flex gap-0.5 items-center h-3">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <motion.div
+                                                            key={i}
+                                                            className="w-0.5 bg-red-500 rounded-full"
+                                                            animate={{ height: [4, 12, 4] }}
+                                                            transition={{
+                                                                repeat: Infinity,
+                                                                duration: 0.8,
+                                                                delay: i * 0.1,
+                                                                ease: "easeInOut"
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <span className="text-[10px] font-mono font-black text-red-400 whitespace-nowrap tracking-wider">
+                                                    REC {formatDuration(recordingDuration)}
+                                                </span>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                            {isProcessing ? (
+                                <div className="flex items-center gap-1.5 ml-2 py-1 px-2 border-l border-white/10">
+                                    <button
+                                        type="button"
+                                        onClick={() => onStopGeneration()}
+                                        className="flex items-center justify-center stop-btn group/stop relative"
+                                        title="Stop Generation"
+                                    >
+                                        <X size={18} className="relative z-10" />
+                                        <div className="absolute inset-0 bg-red-500/20 opacity-0 group-hover/stop:opacity-100 transition-opacity blur-md"></div>
+                                    </button>
+                                </div>
+
+
+                            ) : (
+                                <div className="flex items-center gap-1.5 ml-2 py-1 px-2 border-l border-white/10">
+                                    <button
+                                        type="submit"
+                                        disabled={(!input.trim() && stagedFiles.length === 0) || stagedFiles.some(f => f.status === 'uploading' || f.status === 'parsing')}
+                                        className="flex items-center justify-center send-btn group/send relative text-teal-400 hover:text-teal-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        title="Execute Command"
+                                    >
+                                        <Send size={18} className="relative z-10" />
+                                    </button>
+                                </div>
+                            )}
+
+
+                        </div>
+
+                        {/* HUD Corner Brackets */}
+                        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 hud-accent-border opacity-40 -translate-x-1 -translate-y-1 transition-colors duration-500"></div>
+                        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 hud-accent-border opacity-20 translate-x-1 -translate-y-1 transition-colors duration-500"></div>
+                        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 hud-accent-border opacity-20 -translate-x-1 translate-y-1 transition-colors duration-500"></div>
+                        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 hud-accent-border opacity-40 translate-x-1 translate-y-1 transition-colors duration-500"></div>
+                    </form>
+                    <div className="flex items-center justify-between mt-2 px-2">
+                        <div className="text-[9px] text-slate-600 uppercase tracking-[0.2em] font-black italic">
+                            Node: <span className="hud-accent opacity-50 transition-colors duration-500">auth_relay_secure</span>
+                        </div>
+                        <div className="text-[9px] text-slate-600 uppercase tracking-[0.2em] font-black">
+                            {{NAME}} System // <span className={`hud-accent text-glow transition-colors duration-500`}>FULL_ACCESS_MODE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div >
+    );
+};
+
+export default React.memo(ChatWindow);

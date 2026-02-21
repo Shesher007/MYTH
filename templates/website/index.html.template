@@ -3,10 +3,11 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" href="/icon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{NAME}} | Autonomous Sovereign Agent</title>
-  <meta name="description" content="Deploy the Titan Edition. 672+ tactical tools orchestrated by a sovereign local AI. No cloud. No leaks." />
+  <meta name="description" content="{{DESCRIPTION}}" />
 </head>
 
 <body>

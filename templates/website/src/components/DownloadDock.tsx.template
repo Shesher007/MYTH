@@ -1,0 +1,148 @@
+import { useState, useEffect } from "react"
+import { Apple, Monitor, Terminal, Globe } from "lucide-react"
+import { cn } from "../lib/utils"
+// @ts-ignore
+import { CONFIG } from "../config"
+
+type OS = "Windows" | "macOS" | "Linux" | "Other"
+
+interface DownloadItem {
+    label: string
+    tag: string
+    color: string
+    href?: string
+}
+
+interface DownloadGroup {
+    os: OS
+    icon: React.ElementType
+    primary: boolean
+    items: DownloadItem[]
+}
+
+export default function DownloadDock() {
+    const [os, setOs] = useState<OS>("Windows")
+
+    useEffect(() => {
+        const platform = window.navigator.platform.toLowerCase()
+        if (platform.includes("mac")) setOs("macOS")
+        else if (platform.includes("linux")) setOs("Linux")
+        else if (platform.includes("win")) setOs("Windows")
+        else setOs("Other")
+    }, [])
+
+    const downloads: DownloadGroup[] = [
+        {
+            os: "Windows",
+            icon: Monitor,
+            primary: true,
+            items: [
+                {
+                    label: "Standard Installer",
+                    tag: `v${CONFIG.appVersion}`,
+                    color: "bg-blue-500/20 text-blue-500",
+                    href: `${CONFIG.releaseUrl}/${CONFIG.downloads.windows.nsis}`
+                },
+                {
+                    label: "Portable Bundle",
+                    tag: "COMING SOON",
+                    color: "bg-yellow-500/20 text-yellow-500"
+                },
+            ]
+        },
+        {
+            os: "macOS",
+            icon: Apple,
+            primary: false,
+            items: [
+                {
+                    label: "Universal Binary",
+                    tag: `v${CONFIG.appVersion}`,
+                    color: "bg-blue-500/20 text-blue-500",
+                    href: `${CONFIG.releaseUrl}/${CONFIG.downloads.macos.dmg}`
+                },
+            ]
+        },
+        {
+            os: "Linux",
+            icon: Terminal,
+            primary: false,
+            items: [
+                {
+                    label: "AppImage (Universal)",
+                    tag: `v${CONFIG.appVersion}`,
+                    color: "bg-green-500/20 text-green-500",
+                    href: `${CONFIG.releaseUrl}/${CONFIG.downloads.linux.appimage}`
+                },
+                {
+                    label: "Debian / Ubuntu / Kali",
+                    tag: ".DEB",
+                    color: "bg-blue-500/20 text-blue-500",
+                    href: `${CONFIG.releaseUrl}/${CONFIG.downloads.linux.deb}`
+                },
+                {
+                    label: "Red Hat / Fedora",
+                    tag: ".RPM",
+                    color: "bg-red-500/20 text-red-500",
+                    href: `${CONFIG.releaseUrl}/${CONFIG.downloads.linux.rpm}`
+                },
+            ]
+        },
+        {
+            os: "Other",
+            icon: Globe,
+            primary: false,
+            items: [
+                { label: "Source Code", tag: "TAR.GZ", color: "bg-purple-500/20 text-purple-500", href: CONFIG.downloads.linux.tarball ? `${CONFIG.releaseUrl}/${CONFIG.downloads.linux.tarball}` : CONFIG.repoUrl },
+            ]
+        }
+    ]
+
+    return (
+        <section id="downloads" className="py-24 bg-black/40">
+            <div className="container px-6">
+                <div className="text-center mb-16">
+                    <span className="text-accent font-medium tracking-wider uppercase text-sm">{{SHORT_DESCRIPTION}}</span>
+                    <h2 className="text-3xl md:text-5xl font-bold mt-2">
+                        Native. <span className="text-primary">Universal.</span> Strike-Ready.
+                    </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {downloads.map((item) => (
+                        <div
+                            key={item.os}
+                            className={cn(
+                                "glass-panel rounded-xl p-6 transition-all duration-300",
+                                os === item.os ? "border-primary/50 bg-primary/5 shadow-[0_0_30px_-5px_var(--primary)]" : "opacity-60 hover:opacity-100"
+                            )}
+                        >
+                            <div className="flex items-center gap-3 mb-6">
+                                <item.icon className={cn("h-6 w-6", os === item.os ? "text-primary" : "text-muted-foreground")} />
+                                <h3 className="text-xl font-semibold">{item.os}</h3>
+                            </div>
+
+                            <div className="space-y-3">
+                                {item.items.map((dl) => (
+                                    <a
+                                        key={dl.label}
+                                        href={dl.href || "#"}
+                                        className={cn(
+                                            "flex items-center justify-between p-3 rounded-lg bg-background/50 border border-white/5 transition-colors",
+                                            dl.href ? "hover:bg-white/5 cursor-pointer" : "cursor-default opacity-80"
+                                        )}
+                                    >
+                                        <span className="text-sm font-medium">{dl.label}</span>
+                                        <span className={cn("text-[10px] px-1.5 py-0.5 rounded font-mono font-bold", dl.color)}>
+                                            {dl.tag}
+                                        </span>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    )
+}

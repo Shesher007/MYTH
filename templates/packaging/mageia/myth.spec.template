@@ -7,7 +7,7 @@ Summary:        {{SHORT_DESCRIPTION}}
 License:        Proprietary
 Group:          Networking/Other
 URL:            {{REPO_URL}}
-Source0:        {{REPO_URL}}/releases/download/v%{version}/myth_%{version}_amd64.deb
+Source0:        {{REPO_URL}}/releases/download/v%{version}/{{NAME_LOWER}}_%{version}_amd64.deb
 
 BuildRequires:  binutils
 BuildRequires:  tar

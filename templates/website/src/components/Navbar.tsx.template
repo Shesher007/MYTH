@@ -1,0 +1,134 @@
+import { useState, useEffect } from "react"
+import { Menu, X, Zap, Terminal as TerminalIcon } from "lucide-react"
+import { cn } from "../lib/utils"
+import { motion, AnimatePresence } from "framer-motion"
+import MagneticButton from "./ui/MagneticButton"
+
+interface NavbarProps {
+    onToggleTerminal?: () => void
+}
+
+export default function Navbar({ onToggleTerminal }: NavbarProps) {
+    const [isScrolled, setIsScrolled] = useState(false)
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20)
+        }
+        window.addEventListener("scroll", handleScroll)
+        return () => window.removeEventListener("scroll", handleScroll)
+    }, [])
+
+    const navLinks = [
+        { name: "Capabilities", href: "#capabilities" },
+        { name: "Dashboard", href: "#titan-viz" },
+        { name: "Downloads", href: "#downloads" },
+    ]
+
+    return (
+        <nav
+            className={cn(
+                "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
+                isScrolled
+                    ? "bg-black/40 backdrop-blur-md border-white/10 py-4"
+                    : "bg-transparent border-transparent py-6"
+            )}
+        >
+            <a href="#content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-white px-4 py-2 rounded-lg z-[60]">
+                Skip to content
+            </a>
+            <div className="container mx-auto px-6 flex items-center justify-between">
+                <a href="#" className="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                    <span className="text-cyan-400">⌬</span>
+                    <span>{{NAME}}</span>
+                </a>
+
+                {/* Desktop Nav */}
+                <div className="hidden md:flex items-center gap-8">
+                    {navLinks.map((link) => (
+                        <MagneticButton key={link.name} strength={15}>
+                            <a
+                                href={link.href}
+                                className="group relative text-sm font-medium text-muted-foreground hover:text-cyan-400 transition-colors block px-4 py-2"
+                            >
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-cyan-500 font-mono">[</span>
+                                {link.name}
+                                <span className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-cyan-500 font-mono">]</span>
+                            </a>
+                        </MagneticButton>
+                    ))}
+                </div>
+
+                {/* Desktop CTA */}
+                <div className="hidden md:flex items-center gap-4">
+                    <MagneticButton strength={25}>
+                        <button
+                            onClick={onToggleTerminal}
+                            className="flex items-center gap-2 bg-black/50 hover:bg-cyan-950/30 text-cyan-400 border border-cyan-800/50 hover:border-cyan-500 px-6 py-2.5 rounded-lg text-sm font-mono font-bold transition-all shadow-[0_0_10px_rgba(6,182,212,0.1)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] group"
+                        >
+                            <span className="relative flex h-2 w-2 mr-1">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                            </span>
+                            SYSTEM CONSOLE
+                            <TerminalIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </MagneticButton>
+                </div>
+
+                {/* Mobile Menu Button */}
+                <button
+                    className="md:hidden text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                >
+                    {isMobileMenuOpen ? <X /> : <Menu />}
+                </button>
+            </div>
+
+            {/* Mobile Menu */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="absolute top-full left-0 right-0 bg-black/95 border-b border-white/10 p-6 md:hidden backdrop-blur-xl"
+                    >
+                        <div className="flex flex-col gap-6">
+                            {navLinks.map((link) => (
+                                <a
+                                    key={link.name}
+                                    href={link.href}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="text-lg font-medium text-muted-foreground hover:text-white"
+                                >
+                                    {link.name}
+                                </a>
+                            ))}
+                            {onToggleTerminal && (
+                                <button
+                                    onClick={() => {
+                                        onToggleTerminal()
+                                        setIsMobileMenuOpen(false)
+                                    }}
+                                    className="text-lg font-medium text-muted-foreground hover:text-white flex items-center gap-2"
+                                >
+                                    Open Terminal <TerminalIcon className="w-4 h-4" />
+                                </button>
+                            )}
+                            <a
+                                href="#downloads"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="btn w-full justify-center bg-primary text-white py-3 rounded-lg font-semibold flex items-center gap-2"
+                            >
+                                Deploy Agent <Zap className="w-4 h-4" />
+                            </a>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </nav>
+    )
+}

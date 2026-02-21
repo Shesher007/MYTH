@@ -1,0 +1,51 @@
+import asyncio
+import base64
+import hashlib
+import json
+import logging
+import mimetypes
+import os
+import shutil
+import socket
+import subprocess
+import sys
+import time
+import uuid
+import warnings
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import httpx
+import psutil
+import tldextract
+from fastapi import (
+    Body,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
+from fastapi.middleware.cors import CORSMiddleware
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, SystemMessage
+from pydantic import BaseModel
+from sse_starlette.sse import EventSourceResponse
+from langchain_core.documents import Document
+from starlette.websockets import WebSocketState
+
+# --- Windows Compatibility ---
+if sys.platform == 'win32':
+    # Industry Grade: Selector loop is required for high-performance networking on Windows
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+# Import core agent components from backend.py
+import backend
+from backend import initialize_system_async
+from config_loader import agent_config
+from {{CODENAME}}_utils.paths import get_app_data_path, is_frozen
+from {{CODENAME}}_utils.sanitizer import SovereignSanitizer
+
+# Industry Grade: Suppress noisy third-party SyntaxWarnings (e.g., from ropper)
+warnings.filterwarnings("ignore", category=SyntaxWarning)

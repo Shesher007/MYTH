@@ -1,11 +1,9 @@
-import json
-import asyncio
-import os
-import platform
 import ctypes
-from datetime import datetime
-from myth_config import load_dotenv
+import platform
+
 from langchain_core.tools import tool
+
+from myth_config import load_dotenv
 from tools.utilities.report import format_industrial_result
 
 load_dotenv()
@@ -13,6 +11,7 @@ load_dotenv()
 # ==============================================================================
 # 🧼 Anti-EDR Unhooking & Stub Integrity Tools
 # ==============================================================================
+
 
 @tool
 async def ntdll_hook_cleaner() -> str:
@@ -22,11 +21,8 @@ async def ntdll_hook_cleaner() -> str:
     try:
         is_windows = platform.system() == "Windows"
         if not is_windows:
-             return format_industrial_result("ntdll_hook_cleaner", "Incompatible")
+            return format_industrial_result("ntdll_hook_cleaner", "Incompatible")
 
-        system_root = os.environ.get('SystemRoot', 'C:\\Windows')
-        ntdll_path = os.path.join(system_root, 'System32', 'ntdll.dll')
-        
         # Generative C++ Logic for NTDLL Unhooking
         cpp_code = """
 #include <windows.h>
@@ -59,10 +55,13 @@ int main() {
             confidence=1.0,
             impact="HIGH",
             raw_data={"cpp_source": cpp_code},
-            summary=f"C++ source code for Universal NTDLL Unhooking generated. Ready for compilation."
+            summary="C++ source code for Universal NTDLL Unhooking generated. Ready for compilation.",
         )
     except Exception as e:
-        return format_industrial_result("ntdll_hook_cleaner", "Execution Error", error=str(e))
+        return format_industrial_result(
+            "ntdll_hook_cleaner", "Execution Error", error=str(e)
+        )
+
 
 @tool
 async def stub_integrity_checker() -> str:
@@ -73,28 +72,38 @@ async def stub_integrity_checker() -> str:
     try:
         is_windows = platform.system() == "Windows"
         if not is_windows:
-             return format_industrial_result("stub_integrity_checker", "Incompatible")
+            return format_industrial_result("stub_integrity_checker", "Incompatible")
 
         findings = []
-        stubs = ["NtCreateThreadEx", "NtWriteVirtualMemory", "NtProtectVirtualMemory", "NtOpenProcess"]
-        
+        stubs = [
+            "NtCreateThreadEx",
+            "NtWriteVirtualMemory",
+            "NtProtectVirtualMemory",
+            "NtOpenProcess",
+        ]
+
         kernel32 = ctypes.windll.kernel32
         ntdll = ctypes.windll.ntdll
-        
+
         for stub_name in stubs:
             addr = kernel32.GetProcAddress(ntdll._handle, stub_name.encode())
-            if not addr: continue
-            
+            if not addr:
+                continue
+
             buffer = (ctypes.c_ubyte * 5)()
-            kernel32.ReadProcessMemory(kernel32.GetCurrentProcess(), addr, buffer, 5, None)
+            kernel32.ReadProcessMemory(
+                kernel32.GetCurrentProcess(), addr, buffer, 5, None
+            )
             is_hooked = buffer[0] == 0xE9 or (buffer[0] == 0x48 and buffer[1] == 0xB8)
-            
-            findings.append({
-                "api": stub_name,
-                "address": hex(addr),
-                "hook_detected": is_hooked,
-                "first_bytes": [hex(b) for b in list(buffer)]
-            })
+
+            findings.append(
+                {
+                    "api": stub_name,
+                    "address": hex(addr),
+                    "hook_detected": is_hooked,
+                    "first_bytes": [hex(b) for b in list(buffer)],
+                }
+            )
 
         return format_industrial_result(
             "stub_integrity_checker",
@@ -102,10 +111,11 @@ async def stub_integrity_checker() -> str:
             confidence=1.0,
             impact="LOW",
             raw_data={"stubs": findings},
-            summary=f"Memory audit finished. Found {len([f for f in findings if f['hook_detected']])} active hooks."
+            summary=f"Memory audit finished. Found {len([f for f in findings if f['hook_detected']])} active hooks.",
         )
     except Exception as e:
         return format_industrial_result("stub_integrity_checker", "Error", error=str(e))
+
 
 @tool
 async def call_stack_spoofing_generator(target_module: str = "ntdll.dll") -> str:
@@ -127,10 +137,13 @@ async def call_stack_spoofing_generator(target_module: str = "ntdll.dll") -> str
             confidence=1.0,
             impact="HIGH",
             raw_data={"stub": assembly_stub},
-            summary=f"Call Stack Spoofing logic for {target_module} generated."
+            summary=f"Call Stack Spoofing logic for {target_module} generated.",
         )
     except Exception as e:
-        return format_industrial_result("call_stack_spoofing_generator", "Error", error=str(e))
+        return format_industrial_result(
+            "call_stack_spoofing_generator", "Error", error=str(e)
+        )
+
 
 @tool
 async def hardware_breakpoint_detector() -> str:
@@ -140,19 +153,26 @@ async def hardware_breakpoint_detector() -> str:
     try:
         is_windows = platform.system() == "Windows"
         if not is_windows:
-             return format_industrial_result("hardware_breakpoint_detector", "Incompatible")
+            return format_industrial_result(
+                "hardware_breakpoint_detector", "Incompatible"
+            )
 
         # Functional Logic: GetThreadContext check
         # In a real environment, we'd call GetThreadContext(GetCurrentThread(), &ctx)
         # where ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS
-        
+
         return format_industrial_result(
             "hardware_breakpoint_detector",
             "Hardware Audit Finalized",
             confidence=1.0,
             impact="HIGH",
-            raw_data={"registers": ["DR0", "DR1", "DR2", "DR3", "DR6", "DR7"], "method": "GetThreadContext_Probing"},
-            summary="Hardware breakpoint detection routine weaponized. CPU debug register state analysis finalized."
+            raw_data={
+                "registers": ["DR0", "DR1", "DR2", "DR3", "DR6", "DR7"],
+                "method": "GetThreadContext_Probing",
+            },
+            summary="Hardware breakpoint detection routine weaponized. CPU debug register state analysis finalized.",
         )
     except Exception as e:
-        return format_industrial_result("hardware_breakpoint_detector", "Error", error=str(e))
+        return format_industrial_result(
+            "hardware_breakpoint_detector", "Error", error=str(e)
+        )

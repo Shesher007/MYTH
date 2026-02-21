@@ -1,14 +1,62 @@
-// MYTH Desktop — Product Activation Screen (Feature 9)
-// Full-screen activation form shown before main app loads.
+// MYTH Desktop — Hardened Product Activation Screen (v2.0)
+// Industrial-grade UI with hardware fingerprinting and cyber-aesthetic chassis.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { invoke } from '@tauri-apps/api/core';
+
+const CyberBackground = () => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Deep Field */}
+        <div className="absolute inset-0 bg-[#020205]" />
+
+        {/* Core Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[120px] animate-pulse" />
+
+        {/* Industrial Grid */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: `linear-gradient(rgba(20, 184, 166, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(20, 184, 166, 0.5) 1px, transparent 1px)`,
+            backgroundSize: '40px 40px'
+        }} />
+
+        {/* Binary Rain / Telemetry Pulse (Subtle) */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
+
+        {/* Scanning Beam */}
+        <motion.div
+            animate={{ translateY: ['-100%', '200%'] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            className="absolute top-0 left-0 right-0 h-[300px] bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent skew-y-12 pointer-events-none"
+        />
+    </div>
+);
+
+const HUDCorner = ({ className }) => (
+    <div className={`absolute w-4 h-4 border-cyan-500/40 pointer-events-none ${className}`} />
+);
 
 export default function ActivationScreen({ onActivate }) {
     const [key, setKey] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [machineId, setMachineId] = useState('FETCHING...');
+
+    useEffect(() => {
+        // Fetch machine ID on mount for hardware binding awareness
+        const fetchId = async () => {
+            try {
+                const id = await invoke('get_machine_id');
+                // Mask the ID for security/aesthetic: XXXX-...-XXXX
+                const masked = id.length > 12 ? `${id.slice(0, 6)}...${id.slice(-6)}` : id;
+                setMachineId(masked.toUpperCase());
+            } catch (err) {
+                console.error("Failed to fetch hardware ID:", err);
+                setMachineId("UNKNOWN_HWID");
+            }
+        };
+        fetchId();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -22,127 +70,184 @@ export default function ActivationScreen({ onActivate }) {
             if (result.success) {
                 setSuccess(true);
             } else {
-                setError(result.error || 'Invalid activation key');
+                setError(result.error || 'INVALID ACTIVATION SIGNATURE');
             }
-        } catch (err) {
-            setError('Server unreachable. Please check your internet connection.');
+        } catch {
+            setError('NEURAL LINK FAILURE: SERVICE UNREACHABLE');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-[#06060a] flex items-center justify-center z-[9999] overflow-hidden">
-            {/* Animated background */}
-            <div className="absolute inset-0">
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute inset-0" style={{
-                    backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)',
-                    backgroundSize: '40px 40px'
-                }} />
-            </div>
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] font-sans selection:bg-cyan-500/30">
+            <CyberBackground />
 
             <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="relative w-full max-w-md mx-4"
+                initial={{ opacity: 0, scale: 0.9, rotateX: 20 }}
+                animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="relative w-full max-w-lg mx-4"
+                style={{ perspective: '1000px' }}
             >
-                {/* Card */}
-                <div className="bg-gray-900/70 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-8 shadow-2xl">
-                    {/* Logo */}
-                    <div className="text-center mb-8">
-                        <div className="text-5xl mb-3">⌬</div>
-                        <h1 className="text-2xl font-bold text-white tracking-tight">MYTH</h1>
-                        <p className="text-gray-500 text-sm mt-1">MYTH Tools Platform</p>
-                    </div>
+                {/* Industrial Chassis */}
+                <div className="relative bg-[#0a0a0f]/80 backdrop-blur-2xl border border-white/5 p-1 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+                    {/* Inner Notched Border */}
+                    <div className="absolute inset-0 border border-cyan-500/10 rounded-2xl pointer-events-none" />
 
-                    {/* Activation heading */}
-                    <div className="text-center mb-6">
-                        <h2 className="text-lg font-semibold text-gray-200">Product Activation</h2>
-                        <p className="text-gray-500 text-xs mt-1">Enter your activation key to continue</p>
-                    </div>
+                    {/* HUD Decorative Elements */}
+                    <HUDCorner className="top-0 left-0 border-t border-l" />
+                    <HUDCorner className="top-0 right-0 border-t border-r" />
+                    <HUDCorner className="bottom-0 left-0 border-b border-l" />
+                    <HUDCorner className="bottom-0 right-0 border-b border-r" />
 
-                    <AnimatePresence mode="wait">
-                        {success ? (
+                    <div className="relative p-10">
+                        {/* Header Section */}
+                        <div className="text-center mb-10">
                             <motion.div
-                                key="success"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="text-center py-6"
+                                animate={{ opacity: [0.4, 1, 0.4] }}
+                                transition={{ duration: 4, repeat: Infinity }}
+                                className="inline-block text-5xl mb-4 text-cyan-500 drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]"
                             >
-                                <div className="text-4xl mb-3">✓</div>
-                                <p className="text-emerald-400 font-medium">License Activated Successfully</p>
-                                <p className="text-gray-500 text-xs mt-2">Initializing MYTH...</p>
-                                <div className="mt-4 w-32 h-1 bg-gray-800 rounded-full overflow-hidden mx-auto">
-                                    <div className="h-full bg-emerald-500 rounded-full animate-[grow_1s_ease-out_forwards]"
-                                        style={{ animation: 'grow 1s ease-out forwards' }} />
-                                </div>
+                                ⌬
                             </motion.div>
-                        ) : (
-                            <motion.form key="form" onSubmit={handleSubmit}>
-                                {/* Key input */}
-                                <div className="mb-4">
-                                    <input
-                                        type="text"
-                                        value={key}
-                                        onChange={(e) => {
-                                            setKey(e.target.value.toUpperCase());
-                                            setError(null);
-                                        }}
-                                        placeholder="XXXX-XXXX-XXXX-XXXX"
-                                        className="w-full px-4 py-3 bg-gray-800/60 border border-gray-600/40 rounded-lg text-white text-center tracking-widest font-mono text-lg placeholder:text-gray-600 placeholder:tracking-wider focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
-                                        disabled={loading}
-                                        autoFocus
-                                        spellCheck={false}
-                                    />
-                                </div>
+                            <h1 className="text-3xl font-black text-white tracking-widest uppercase">
+                                MYTH<span className="text-cyan-500">.CORE</span>
+                            </h1>
+                            <div className="flex items-center justify-center gap-2 mt-2">
+                                <span className="w-1 h-1 bg-cyan-500 rounded-full animate-pulse" />
+                                <p className="text-cyan-500/60 font-mono text-[10px] tracking-[0.3em] uppercase">Tactical Neural Interface</p>
+                                <span className="w-1 h-1 bg-cyan-500 rounded-full animate-pulse" />
+                            </div>
+                        </div>
 
-                                {/* Error message */}
-                                <AnimatePresence>
-                                    {error && (
-                                        <motion.div
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            exit={{ opacity: 0, height: 0 }}
-                                            className="mb-4 px-3 py-2 bg-red-950/30 border border-red-500/20 rounded-lg"
-                                        >
-                                            <p className="text-red-400 text-xs text-center">{error}</p>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                        {/* Status Label */}
+                        <div className="flex items-center justify-between mb-8 px-1">
+                            <div className="flex flex-col">
+                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-tighter">System Status</span>
+                                <span className="text-xs font-mono text-cyan-400 font-bold">LOCKED_MODE</span>
+                            </div>
+                            <div className="text-right flex flex-col items-end">
+                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-tighter">Hardware ID</span>
+                                <span className="text-xs font-mono text-gray-400">{machineId}</span>
+                            </div>
+                        </div>
 
-                                {/* Submit button */}
-                                <button
-                                    type="submit"
-                                    disabled={!key.trim() || loading}
-                                    className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-700 disabled:text-gray-500 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                        <AnimatePresence mode="wait">
+                            {success ? (
+                                <motion.div
+                                    key="success"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-center py-8"
                                 >
-                                    {loading ? (
-                                        <>
-                                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                            </svg>
-                                            Verifying...
-                                        </>
-                                    ) : (
-                                        'Activate License'
-                                    )}
-                                </button>
-                            </motion.form>
-                        )}
-                    </AnimatePresence>
+                                    <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <motion.div
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="text-2xl text-emerald-500"
+                                        >
+                                            ✓
+                                        </motion.div>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white mb-2">NEURAL LINK VERIFIED</h3>
+                                    <p className="text-gray-500 text-sm">Synchronizing core modules...</p>
 
-                    {/* Footer */}
-                    <div className="mt-6 pt-4 border-t border-gray-800/50">
-                        <p className="text-gray-600 text-[10px] text-center">
-                            This license is bound to your hardware. Contact support for reactivation.
+                                    <div className="mt-8 relative h-1 bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: '100%' }}
+                                            transition={{ duration: 1.5 }}
+                                            className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-emerald-500"
+                                        />
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.form
+                                    key="form"
+                                    onSubmit={handleSubmit}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                >
+                                    <div className="space-y-6">
+                                        {/* Input Chassis */}
+                                        <div className="relative group">
+                                            <div className="absolute -inset-0.5 bg-cyan-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
+                                            <div className="relative flex items-center">
+                                                <input
+                                                    type="text"
+                                                    value={key}
+                                                    onChange={(e) => {
+                                                        setKey(e.target.value.toUpperCase());
+                                                        setError(null);
+                                                    }}
+                                                    placeholder="MYTH-XXXX-XXXX-XXXX-XXXX"
+                                                    className="w-full h-14 px-6 bg-[#050508] border border-white/10 rounded-xl text-white text-center tracking-[0.2em] font-mono text-lg placeholder:text-gray-700 placeholder:tracking-normal focus:outline-none focus:border-cyan-500/50 transition-all"
+                                                    disabled={loading}
+                                                    autoFocus
+                                                    spellCheck={false}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Error Alert */}
+                                        <AnimatePresence>
+                                            {error && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.95 }}
+                                                    className="p-3 bg-red-500/5 border border-red-500/20 rounded-lg flex items-center gap-3"
+                                                >
+                                                    <span className="text-red-500 font-bold text-xs font-mono">[!]</span>
+                                                    <p className="text-red-400 text-[10px] font-bold uppercase tracking-wider">{error}</p>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {/* Action Button */}
+                                        <button
+                                            type="submit"
+                                            disabled={!key.trim() || loading}
+                                            className="relative w-full h-14 overflow-hidden group disabled:opacity-50"
+                                        >
+                                            <div className="absolute inset-0 bg-cyan-600 transition-transform duration-300 group-hover:scale-105" />
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+
+                                            <span className="relative flex items-center justify-center gap-3 text-white font-black text-sm uppercase tracking-[0.2em]">
+                                                {loading ? (
+                                                    <>
+                                                        <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                                        VERIFYING_KEY
+                                                    </>
+                                                ) : (
+                                                    'INITIALIZE_CORE'
+                                                )}
+                                            </span>
+                                        </button>
+                                    </div>
+                                </motion.form>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Industrial Footer */}
+                        <div className="mt-10 flex items-center justify-between opacity-30">
+                            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-cyan-500/30" />
+                            <span className="mx-4 text-[7px] font-mono text-cyan-500 tracking-[0.4em] uppercase">Hardware_Lock_Active</span>
+                            <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-cyan-500/30" />
+                        </div>
+
+                        <p className="mt-4 text-[8px] text-center text-gray-600 uppercase tracking-widest font-medium">
+                            Authorized personnel only. All access attempts are logged and monitored.
                         </p>
                     </div>
                 </div>
             </motion.div>
+
+            {/* Version Badge (Bottom Right) */}
+            <div className="fixed bottom-6 right-6 font-mono text-[9px] text-gray-600 tracking-tighter">
+                BUILD_SIG: <span className="text-gray-400">0xmyth_v1.1.6</span>
+            </div>
         </div>
     );
 }

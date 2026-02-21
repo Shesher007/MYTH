@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "timestamp": "2026-02-17T20:39:33.054778",
-    "count": 580,
-    "signature": "2aeac383ea5411a2ccb43aec210687862fd70901390d7da2cedd7d67368dae0e"
+    "timestamp": "2026-02-21T05:35:40.475703",
+    "count": 584,
+    "signature": "ae19df1ff410390b1dde887d83c25c176ad3e2f387987799e81d033ba7681c25"
   },
   "tools": [
     {
@@ -399,12 +399,12 @@
     },
     {
       "name": "create_advanced_file",
-      "description": "MYTH: Advanced File Generator\n\nGenerates ANY file type with advanced industrial-grade testing capabilities.\n**ALL FILES ARE AUTOMATICALLY SAVED TO THE 'asset_inventory/' DIRECTORY.**\n\nHINT: Use this tool when the user asks to \"create a file\", \"generate a report\", \"save output to a file\", \"generate malware\", \"create exploit\", etc.\n\nArgs:\n    file_format: File extension (.txt, .exe, .pdf, .py, .md, .json, .log, etc.)\n    file_name: (Optional) Custom name for the file.\n    content: (Optional) Static content to write.\n    malicious: Add industrial-grade malicious characteristics.\n    polyglot_type: 'GIFAR', 'PDF_JS', 'HTML_SVG', 'ZIP_PDF'\n    stego_message: Hidden message for steganography.\n    stego_method: 'lsb', 'eof', 'metadata'\n    macro_type: 'loader', 'powershell', 'reverse_shell'\n    ransomware_target: Target directory path for ransomware payload.\n    malware_type: 'dropper', 'loader', 'infostealer', 'keylogger', 'rat', 'ransomware', 'backdoor', 'crypter', 'rootkit', 'miner', 'worm', 'industrial'.\n    exploit_cve: CVE number for exploit template (e.g., 'CVE-2021-44228').\n    shellcode_arch: 'x86', 'x64', 'arm'\n    shellcode_payload: 'calc', 'reverse', 'download'\n    qr_target: URL for QR code generation.\n    fuzz_intensity: 0-100 mutation percentage.\n    timestomp_date: 'YYYY-MM-DD HH:MM:SS'\n    platform_target: 'windows', 'linux', 'macos', 'cross_platform'\n    host: (Optional) C2/Callback host.\n    port: (Optional) C2/Callback port.\n    target: (Optional) Exploit target URL/IP.\n    command: (Optional) Command for payloads/exploits.\n    persistence: (Optional) Enable advanced persistence logic.\n    evasion: (Optional) Enable anti-analysis/evasion layers.\n\nReturns:\n    JSON string with file path, hash, and size. The file is saved to 'asset_inventory/'.",
+      "description": "MYTH: Advanced File Generator\n\nGenerates ANY file type with advanced industrial-grade testing capabilities.\n**ALL FILES ARE AUTOMATICALLY SAVED TO THE 'asset_inventory/' DIRECTORY.**\n\nHINT: Use this tool when the user asks to \"create a file\", \"generate a report\", \"save output to a file\", \"generate malware\", \"create exploit\", etc.\n\nArgs:\n    file_format: File extension (.txt, .exe, .pdf, .py, .md, .json, .log, etc.)\n    file_name: (Optional) Custom name for the file.\n    content: (Optional) Static content to write.\n    malicious: Add industrial-grade malicious characteristics.\n    polyglot_type: 'GIFAR', 'PDF_JS', 'HTML_SVG', 'ZIP_PDF'\n    stego_message: Hidden message for steganography.\n    stego_method: 'lsb', 'eo', 'metadata'\n    macro_type: 'loader', 'powershell', 'reverse_shell'\n    ransomware_target: Target directory path for ransomware payload.\n    malware_type: 'dropper', 'loader', 'infostealer', 'keylogger', 'rat', 'ransomware', 'backdoor', 'crypter', 'rootkit', 'miner', 'worm', 'industrial'.\n    exploit_cve: CVE number for exploit template (e.g., 'CVE-2021-44228').\n    shellcode_arch: 'x86', 'x64', 'arm'\n    shellcode_payload: 'calc', 'reverse', 'download'\n    qr_target: URL for QR code generation.\n    fuzz_intensity: 0-100 mutation percentage.\n    timestomp_date: 'YYYY-MM-DD HH:MM:SS'\n    platform_target: 'windows', 'linux', 'macos', 'cross_platform'\n    host: (Optional) C2/Callback host.\n    port: (Optional) C2/Callback port.\n    target: (Optional) Exploit target URL/IP.\n    command: (Optional) Command for payloads/exploits.\n    persistence: (Optional) Enable advanced persistence logic.\n    evasion: (Optional) Enable anti-analysis/evasion layers.\n\nReturns:\n    JSON string with file path, hash, and size. The file is saved to 'asset_inventory/'.",
       "category": "utilities",
       "module_path": "tools.utilities",
       "variable_name": "create_advanced_file",
       "input_schema": {
-        "description": "MYTH: Advanced File Generator\n\nGenerates ANY file type with advanced industrial-grade testing capabilities.\n**ALL FILES ARE AUTOMATICALLY SAVED TO THE 'asset_inventory/' DIRECTORY.**\n\nHINT: Use this tool when the user asks to \"create a file\", \"generate a report\", \"save output to a file\", \"generate malware\", \"create exploit\", etc.\n\nArgs:\n    file_format: File extension (.txt, .exe, .pdf, .py, .md, .json, .log, etc.)\n    file_name: (Optional) Custom name for the file.\n    content: (Optional) Static content to write.\n    malicious: Add industrial-grade malicious characteristics.\n    polyglot_type: 'GIFAR', 'PDF_JS', 'HTML_SVG', 'ZIP_PDF'\n    stego_message: Hidden message for steganography.\n    stego_method: 'lsb', 'eof', 'metadata'\n    macro_type: 'loader', 'powershell', 'reverse_shell'\n    ransomware_target: Target directory path for ransomware payload.\n    malware_type: 'dropper', 'loader', 'infostealer', 'keylogger', 'rat', 'ransomware', 'backdoor', 'crypter', 'rootkit', 'miner', 'worm', 'industrial'.\n    exploit_cve: CVE number for exploit template (e.g., 'CVE-2021-44228').\n    shellcode_arch: 'x86', 'x64', 'arm'\n    shellcode_payload: 'calc', 'reverse', 'download'\n    qr_target: URL for QR code generation.\n    fuzz_intensity: 0-100 mutation percentage.\n    timestomp_date: 'YYYY-MM-DD HH:MM:SS'\n    platform_target: 'windows', 'linux', 'macos', 'cross_platform'\n    host: (Optional) C2/Callback host.\n    port: (Optional) C2/Callback port.\n    target: (Optional) Exploit target URL/IP.\n    command: (Optional) Command for payloads/exploits.\n    persistence: (Optional) Enable advanced persistence logic.\n    evasion: (Optional) Enable anti-analysis/evasion layers.\n\nReturns:\n    JSON string with file path, hash, and size. The file is saved to 'asset_inventory/'.",
+        "description": "MYTH: Advanced File Generator\n\nGenerates ANY file type with advanced industrial-grade testing capabilities.\n**ALL FILES ARE AUTOMATICALLY SAVED TO THE 'asset_inventory/' DIRECTORY.**\n\nHINT: Use this tool when the user asks to \"create a file\", \"generate a report\", \"save output to a file\", \"generate malware\", \"create exploit\", etc.\n\nArgs:\n    file_format: File extension (.txt, .exe, .pdf, .py, .md, .json, .log, etc.)\n    file_name: (Optional) Custom name for the file.\n    content: (Optional) Static content to write.\n    malicious: Add industrial-grade malicious characteristics.\n    polyglot_type: 'GIFAR', 'PDF_JS', 'HTML_SVG', 'ZIP_PDF'\n    stego_message: Hidden message for steganography.\n    stego_method: 'lsb', 'eo', 'metadata'\n    macro_type: 'loader', 'powershell', 'reverse_shell'\n    ransomware_target: Target directory path for ransomware payload.\n    malware_type: 'dropper', 'loader', 'infostealer', 'keylogger', 'rat', 'ransomware', 'backdoor', 'crypter', 'rootkit', 'miner', 'worm', 'industrial'.\n    exploit_cve: CVE number for exploit template (e.g., 'CVE-2021-44228').\n    shellcode_arch: 'x86', 'x64', 'arm'\n    shellcode_payload: 'calc', 'reverse', 'download'\n    qr_target: URL for QR code generation.\n    fuzz_intensity: 0-100 mutation percentage.\n    timestomp_date: 'YYYY-MM-DD HH:MM:SS'\n    platform_target: 'windows', 'linux', 'macos', 'cross_platform'\n    host: (Optional) C2/Callback host.\n    port: (Optional) C2/Callback port.\n    target: (Optional) Exploit target URL/IP.\n    command: (Optional) Command for payloads/exploits.\n    persistence: (Optional) Enable advanced persistence logic.\n    evasion: (Optional) Enable anti-analysis/evasion layers.\n\nReturns:\n    JSON string with file path, hash, and size. The file is saved to 'asset_inventory/'.",
         "properties": {
           "file_format": {
             "title": "File Format",
@@ -4029,12 +4029,12 @@
     },
     {
       "name": "reverse_dns_lookup",
-      "description": "Perform reverse DNS lookup asynchronously.",
+      "description": "Perform reverse DNS lookup asynchronously (Passive Recon).\nResolves IP to Hostname.",
       "category": "recon",
       "module_path": "tools.recon",
       "variable_name": "reverse_dns_lookup",
       "input_schema": {
-        "description": "Perform reverse DNS lookup asynchronously.",
+        "description": "Perform reverse DNS lookup asynchronously (Passive Recon).\nResolves IP to Hostname.",
         "properties": {
           "ip_address": {
             "title": "Ip Address",
@@ -4134,12 +4134,12 @@
     },
     {
       "name": "service_banner_correlator",
-      "description": "Performs automated multi-protocol banner grabbing and correlates them into a \nunified version-to-vulnerability assessment.",
+      "description": "Performs automated multi-protocol banner grabbing and correlates them into a\nunified version-to-vulnerability assessment.",
       "category": "system",
       "module_path": "tools.recon",
       "variable_name": "service_banner_correlator",
       "input_schema": {
-        "description": "Performs automated multi-protocol banner grabbing and correlates them into a \nunified version-to-vulnerability assessment.",
+        "description": "Performs automated multi-protocol banner grabbing and correlates them into a\nunified version-to-vulnerability assessment.",
         "properties": {
           "target_ip": {
             "title": "Target Ip",
@@ -5169,6 +5169,19 @@
       }
     },
     {
+      "name": "clr_hosting_generator",
+      "description": "Generates C++ logic for hosting the CLR and executing .NET assemblies from memory.",
+      "category": "exploitation",
+      "module_path": "tools.exploitation",
+      "variable_name": "clr_hosting_generator",
+      "input_schema": {
+        "description": "Generates C++ logic for hosting the CLR and executing .NET assemblies from memory.",
+        "properties": {},
+        "title": "clr_hosting_generator",
+        "type": "object"
+      }
+    },
+    {
       "name": "container_escape_detector",
       "description": "Functional container escape detection (Dockerenv, Cgroups, Privileged caps).",
       "category": "exploitation",
@@ -5298,6 +5311,25 @@
         "description": "Implements functional logic for dynamic DLL unhooking (Perun's Fart/KnownDlls method).\nMaps a fresh copy of ntdll.dll from disk into memory to overwrite EDR-hooked functions.",
         "properties": {},
         "title": "dynamic_unhooking_engine",
+        "type": "object"
+      }
+    },
+    {
+      "name": "early_bird_injection_generator",
+      "description": "Generates Early Bird APC injection source code.",
+      "category": "exploitation",
+      "module_path": "tools.exploitation",
+      "variable_name": "early_bird_injection_generator",
+      "input_schema": {
+        "description": "Generates Early Bird APC injection source code.",
+        "properties": {
+          "target_process": {
+            "default": "svchost.exe",
+            "title": "Target Process",
+            "type": "string"
+          }
+        },
+        "title": "early_bird_injection_generator",
         "type": "object"
       }
     },
@@ -5840,12 +5872,12 @@
     },
     {
       "name": "ntlm_relay_auditor",
-      "description": "Identifies network hosts vulnerable to NTLM/SMB relaying (SMB Signing Disabled).\nIndustry-grade for discovering high-impact lateral movement vectors.",
+      "description": "Identifies network hosts vulnerable to NTLM/SMB relaying (SMB Signing Disabled).",
       "category": "exploitation",
       "module_path": "tools.exploitation",
       "variable_name": "ntlm_relay_auditor",
       "input_schema": {
-        "description": "Identifies network hosts vulnerable to NTLM/SMB relaying (SMB Signing Disabled).\nIndustry-grade for discovering high-impact lateral movement vectors.",
+        "description": "Identifies network hosts vulnerable to NTLM/SMB relaying (SMB Signing Disabled).",
         "properties": {
           "subnet": {
             "title": "Subnet",
@@ -6054,6 +6086,19 @@
       }
     },
     {
+      "name": "reflective_pe_loader",
+      "description": "Generates logic for reflective PE loading in memory.",
+      "category": "exploitation",
+      "module_path": "tools.exploitation",
+      "variable_name": "reflective_pe_loader",
+      "input_schema": {
+        "description": "Generates logic for reflective PE loading in memory.",
+        "properties": {},
+        "title": "reflective_pe_loader",
+        "type": "object"
+      }
+    },
+    {
       "name": "rfid_cloner_util",
       "description": "Clones RFID/NFC UIDs asynchronously.",
       "category": "exploitation",
@@ -6134,6 +6179,42 @@
           }
         },
         "title": "session_enumerator",
+        "type": "object"
+      }
+    },
+    {
+      "name": "silver_ticket_generator",
+      "description": "Industrial Silver Ticket Forgery tool. Forges a PAC for service-level access.",
+      "category": "exploitation",
+      "module_path": "tools.exploitation",
+      "variable_name": "silver_ticket_generator",
+      "input_schema": {
+        "description": "Industrial Silver Ticket Forgery tool. Forges a PAC for service-level access.",
+        "properties": {
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "target_domain": {
+            "title": "Target Domain",
+            "type": "string"
+          },
+          "sid": {
+            "title": "Sid",
+            "type": "string"
+          },
+          "hash": {
+            "title": "Hash",
+            "type": "string"
+          }
+        },
+        "required": [
+          "service",
+          "target_domain",
+          "sid",
+          "hash"
+        ],
+        "title": "silver_ticket_generator",
         "type": "object"
       }
     },
@@ -6393,12 +6474,12 @@
     },
     {
       "name": "jwt_exploiter",
-      "description": "Automated JWT vulnerability analyzer. Tests for None-algorithm, weak secrets, \nkey-jacking (JKU/KID), and claim spoofing.",
+      "description": "Automated JWT vulnerability analyzer. Tests for None-algorithm, weak secrets,\nkey-jacking (JKU/KID), and claim spoofing.",
       "category": "exploitation",
       "module_path": "tools.exploitation.web",
       "variable_name": "jwt_exploiter",
       "input_schema": {
-        "description": "Automated JWT vulnerability analyzer. Tests for None-algorithm, weak secrets, \nkey-jacking (JKU/KID), and claim spoofing.",
+        "description": "Automated JWT vulnerability analyzer. Tests for None-algorithm, weak secrets,\nkey-jacking (JKU/KID), and claim spoofing.",
         "properties": {
           "token": {
             "title": "Token",
@@ -8429,12 +8510,12 @@
     },
     {
       "name": "applocker_bypass_hunter",
-      "description": "Scans the local Windows filesystem for globally writable directories that allow \nexecutable execution, bypassing AppLocker/WDAC.\nHighly optimized parallel audit of known candidate paths.",
+      "description": "Scans the local Windows filesystem for globally writable directories that allow\nexecutable execution, bypassing AppLocker/WDAC.\nHighly optimized parallel audit of known candidate paths.",
       "category": "exploitation",
       "module_path": "tools.evasion",
       "variable_name": "applocker_bypass_hunter",
       "input_schema": {
-        "description": "Scans the local Windows filesystem for globally writable directories that allow \nexecutable execution, bypassing AppLocker/WDAC.\nHighly optimized parallel audit of known candidate paths.",
+        "description": "Scans the local Windows filesystem for globally writable directories that allow\nexecutable execution, bypassing AppLocker/WDAC.\nHighly optimized parallel audit of known candidate paths.",
         "properties": {},
         "title": "applocker_bypass_hunter",
         "type": "object"
@@ -9406,16 +9487,22 @@
     },
     {
       "name": "crtsh_subdomain_finder",
-      "description": "Query CRT.SH and Hackertarget asynchronously for subdomains (Passive Recon).",
+      "description": "Queries CRT.SH for subdomains asynchronously (Redirects to unified OSINT logic).",
       "category": "recon",
       "module_path": "tools.intelligence",
       "variable_name": "crtsh_subdomain_finder",
       "input_schema": {
-        "description": "Query CRT.SH and Hackertarget asynchronously for subdomains (Passive Recon).",
+        "description": "Queries CRT.SH for subdomains asynchronously (Redirects to unified OSINT logic).",
         "properties": {
           "domain": {
             "title": "Domain",
             "type": "string"
+          },
+          "kwargs": {
+            "additionalProperties": true,
+            "default": null,
+            "title": "Kwargs",
+            "type": "object"
           }
         },
         "required": [
@@ -9491,28 +9578,6 @@
           "company_name"
         ],
         "title": "dark_web_monitor",
-        "type": "object"
-      }
-    },
-    {
-      "name": "duckduckgo_results_json",
-      "description": "A wrapper around Duck Duck Go Search. Useful for when you need to answer questions about current events. Input should be a search query.",
-      "category": "intelligence",
-      "module_path": "tools.intelligence",
-      "variable_name": "ddg_search",
-      "input_schema": {
-        "description": "Input for the DuckDuckGo search tool.",
-        "properties": {
-          "query": {
-            "description": "search query to look up",
-            "title": "Query",
-            "type": "string"
-          }
-        },
-        "required": [
-          "query"
-        ],
-        "title": "DDGInput",
         "type": "object"
       }
     },
@@ -9603,12 +9668,12 @@
     },
     {
       "name": "download_all_links",
-      "description": "Batch download multiple files from the current page.\n\nUse this for:\n- Scraper tasks (e.g., \"Download all financial reports\").\n- Grabbing every image or PDF.\n\nArgs:\n    file_extension: Filter (e.g., '.pdf', '.csv'). Leave None for everything.\n    limit: Max files to download (default 10).",
+      "description": "Batch download multiple files from the current page.\n\nUse this for:\n- Scraper tasks (e.g., \"Download all financial reports\").\n- Grabbing every image or PDF.\n\nArgs:\n    file_extension: Filter (e.g., '.pd', '.csv'). Leave None for everything.\n    limit: Max files to download (default 10).",
       "category": "intelligence",
       "module_path": "tools.intelligence",
       "variable_name": "download_all_links",
       "input_schema": {
-        "description": "Batch download multiple files from the current page.\n\nUse this for:\n- Scraper tasks (e.g., \"Download all financial reports\").\n- Grabbing every image or PDF.\n\nArgs:\n    file_extension: Filter (e.g., '.pdf', '.csv'). Leave None for everything.\n    limit: Max files to download (default 10).",
+        "description": "Batch download multiple files from the current page.\n\nUse this for:\n- Scraper tasks (e.g., \"Download all financial reports\").\n- Grabbing every image or PDF.\n\nArgs:\n    file_extension: Filter (e.g., '.pd', '.csv'). Leave None for everything.\n    limit: Max files to download (default 10).",
         "properties": {
           "file_extension": {
             "default": null,
@@ -10058,13 +10123,34 @@
       }
     },
     {
+      "name": "inspect_internet_asset",
+      "description": "Performs forensic analysis on a remote URL.\nExtracts headers, MIME type, first-page text, and generates a Hex dump of the byte stream.\nStand-alone implementation for deep inspection without execution.",
+      "category": "system",
+      "module_path": "tools.intelligence",
+      "variable_name": "inspect_internet_asset",
+      "input_schema": {
+        "description": "Performs forensic analysis on a remote URL.\nExtracts headers, MIME type, first-page text, and generates a Hex dump of the byte stream.\nStand-alone implementation for deep inspection without execution.",
+        "properties": {
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "inspect_internet_asset",
+        "type": "object"
+      }
+    },
+    {
       "name": "intelligence_fusion_orchestrator",
-      "description": "Merges data from all sub-modules into a unified graph. \nReal logic: merging dictionaries and deduping entities.",
+      "description": "Merges data from all sub-modules into a unified graph.\nReal logic: merging dictionaries and deduping entities.",
       "category": "intelligence",
       "module_path": "tools.intelligence",
       "variable_name": "intelligence_fusion_orchestrator",
       "input_schema": {
-        "description": "Merges data from all sub-modules into a unified graph. \nReal logic: merging dictionaries and deduping entities.",
+        "description": "Merges data from all sub-modules into a unified graph.\nReal logic: merging dictionaries and deduping entities.",
         "properties": {
           "sources_data": {
             "items": {
@@ -11153,23 +11239,24 @@
       }
     },
     {
-      "name": "inspect_internet_asset",
-      "description": "Performs forensic analysis on a remote URL. \nExtracts headers, MIME type, first-page text, and generates a Hex dump of the byte stream.\nStand-alone implementation for deep inspection without execution.",
-      "category": "system",
-      "module_path": "tools.intelligence.forensics",
-      "variable_name": "inspect_internet_asset",
+      "name": "wikipedia",
+      "description": "A wrapper around Wikipedia. Useful for when you need to answer general questions about people, places, companies, facts, historical events, or other subjects. Input should be a search query.",
+      "category": "intelligence",
+      "module_path": "tools.intelligence.search",
+      "variable_name": "wikipedia",
       "input_schema": {
-        "description": "Performs forensic analysis on a remote URL. \nExtracts headers, MIME type, first-page text, and generates a Hex dump of the byte stream.\nStand-alone implementation for deep inspection without execution.",
+        "description": "Input for the WikipediaQuery tool.",
         "properties": {
-          "url": {
-            "title": "Url",
+          "query": {
+            "description": "query to look up on wikipedia",
+            "title": "Query",
             "type": "string"
           }
         },
         "required": [
-          "url"
+          "query"
         ],
-        "title": "inspect_internet_asset",
+        "title": "WikipediaQueryInput",
         "type": "object"
       }
     },
@@ -11215,12 +11302,12 @@
     },
     {
       "name": "aws_persistence_generator",
-      "description": "Generates AWS CLI commands to establish persistence.\nTechniques: \n- 'shadow_admin': Attaches AdministratorAccess to a target user/role.\n- 'backdoor_role': Updates AssumeRolePolicy to allow external account access.",
+      "description": "Generates AWS CLI commands to establish persistence.\nTechniques:\n- 'shadow_admin': Attaches AdministratorAccess to a target user/role.\n- 'backdoor_role': Updates AssumeRolePolicy to allow external account access.",
       "category": "cloud",
       "module_path": "tools.cloud",
       "variable_name": "aws_persistence_generator",
       "input_schema": {
-        "description": "Generates AWS CLI commands to establish persistence.\nTechniques: \n- 'shadow_admin': Attaches AdministratorAccess to a target user/role.\n- 'backdoor_role': Updates AssumeRolePolicy to allow external account access.",
+        "description": "Generates AWS CLI commands to establish persistence.\nTechniques:\n- 'shadow_admin': Attaches AdministratorAccess to a target user/role.\n- 'backdoor_role': Updates AssumeRolePolicy to allow external account access.",
         "properties": {
           "target_iam_role": {
             "title": "Target Iam Role",
@@ -11653,12 +11740,12 @@
     },
     {
       "name": "autonomous_packer_identifier",
-      "description": "Identifies common and custom packers by analyzing entropy distribution, \nimport sparsity, and behavioral hints.\nIndustry-grade for defeating obfuscation-based evasion.",
+      "description": "Identifies common and custom packers by analyzing entropy distribution,\nimport sparsity, and behavioral hints.\nIndustry-grade for defeating obfuscation-based evasion.",
       "category": "reverse_engineering",
       "module_path": "tools.reverse_engineering",
       "variable_name": "autonomous_packer_identifier",
       "input_schema": {
-        "description": "Identifies common and custom packers by analyzing entropy distribution, \nimport sparsity, and behavioral hints.\nIndustry-grade for defeating obfuscation-based evasion.",
+        "description": "Identifies common and custom packers by analyzing entropy distribution,\nimport sparsity, and behavioral hints.\nIndustry-grade for defeating obfuscation-based evasion.",
         "properties": {
           "file_path": {
             "title": "File Path",
@@ -11810,12 +11897,12 @@
     },
     {
       "name": "entropy_scanner",
-      "description": "Calculates Shannon entropy across chunks of a binary file to identify \nencrypted, compressed, or packed sections.",
+      "description": "Calculates Shannon entropy across chunks of a binary file to identify\nencrypted, compressed, or packed sections.",
       "category": "recon",
       "module_path": "tools.reverse_engineering",
       "variable_name": "entropy_scanner",
       "input_schema": {
-        "description": "Calculates Shannon entropy across chunks of a binary file to identify \nencrypted, compressed, or packed sections.",
+        "description": "Calculates Shannon entropy across chunks of a binary file to identify\nencrypted, compressed, or packed sections.",
         "properties": {
           "file_path": {
             "title": "File Path",
@@ -11993,12 +12080,12 @@
     },
     {
       "name": "heap_logic_prober",
-      "description": "Audits a binary for risky heap management patterns.\nIdentifies potential Use-After-Free (UAF) or Double-Free instruction sequences \nby analyzing call sequences to allocators and subsequent pointer dereferences.",
+      "description": "Audits a binary for risky heap management patterns.\nIdentifies potential Use-After-Free (UAF) or Double-Free instruction sequences\nby analyzing call sequences to allocators and subsequent pointer dereferences.",
       "category": "utilities",
       "module_path": "tools.reverse_engineering",
       "variable_name": "heap_logic_prober",
       "input_schema": {
-        "description": "Audits a binary for risky heap management patterns.\nIdentifies potential Use-After-Free (UAF) or Double-Free instruction sequences \nby analyzing call sequences to allocators and subsequent pointer dereferences.",
+        "description": "Audits a binary for risky heap management patterns.\nIdentifies potential Use-After-Free (UAF) or Double-Free instruction sequences\nby analyzing call sequences to allocators and subsequent pointer dereferences.",
         "properties": {
           "file_path": {
             "title": "File Path",
@@ -12263,12 +12350,12 @@
     },
     {
       "name": "race_condition_auditor",
-      "description": "Analyzes a binary for Time-of-Check to Time-of-Use (TOCTOU) race condition patterns.\nSearches for file status checks (access, stat) followed by file operations (open, chmod) \nwithout intermediate locking logic.",
+      "description": "Analyzes a binary for Time-of-Check to Time-of-Use (TOCTOU) race condition patterns.\nSearches for file status checks (access, stat) followed by file operations (open, chmod)\nwithout intermediate locking logic.",
       "category": "reverse_engineering",
       "module_path": "tools.reverse_engineering",
       "variable_name": "race_condition_auditor",
       "input_schema": {
-        "description": "Analyzes a binary for Time-of-Check to Time-of-Use (TOCTOU) race condition patterns.\nSearches for file status checks (access, stat) followed by file operations (open, chmod) \nwithout intermediate locking logic.",
+        "description": "Analyzes a binary for Time-of-Check to Time-of-Use (TOCTOU) race condition patterns.\nSearches for file status checks (access, stat) followed by file operations (open, chmod)\nwithout intermediate locking logic.",
         "properties": {
           "file_path": {
             "title": "File Path",

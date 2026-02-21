@@ -1,38 +1,53 @@
-import subprocess
+import json
 import os
+import signal
+import socket
+import subprocess
 import sys
 import time
-import signal
-import webbrowser
-import json
-import socket
-import psutil
 import warnings
+import webbrowser
 from pathlib import Path
+
+import psutil
+
+from config_loader import agent_config
 
 # Industry Grade: Suppress noisy third-party SyntaxWarnings (e.g., from ropper)
 warnings.filterwarnings("ignore", category=SyntaxWarning)
-from config_loader import agent_config
 
-def scorch_earth_cleanup(ports=[8888, 8890, 5173] + list(range(8001, 8211))):
+
+def scorch_earth_cleanup(
+    ports=[
+        8890,
+        8890,
+    ]
+    + list(range(8001, 8211)),
+):
     """Industrial Grade: Deep-scans system for zombie backends and terminates them."""
-    print(f"🧹 [CLEANUP] Scouring system for legacy {agent_config.identity.name} infrastructure...")
+    print(
+        f"🧹 [CLEANUP] Scouring system for legacy {agent_config.identity.name} infrastructure..."
+    )
     current_pid = os.getpid()
     project_root = str(Path(__file__).parent.absolute()).lower()
-    
+
     # 1. Kill by Port Association
     try:
-        connections = psutil.net_connections(kind='inet')
+        connections = psutil.net_connections(kind="inet")
         for port in ports:
             for conn in connections:
                 if conn.laddr.port == port and conn.pid and conn.pid > 0:
                     try:
                         proc = psutil.Process(conn.pid)
-                        if proc.pid == current_pid: continue
-                        print(f"   🗑️  [CLEANUP] Terminating zombie on port {port} (PID: {proc.pid})...")
+                        if proc.pid == current_pid:
+                            continue
+                        print(
+                            f"   🗑️  [CLEANUP] Terminating zombie on port {port} (PID: {proc.pid})..."
+                        )
                         proc.kill()
                         proc.wait(timeout=3)
-                    except: pass
+                    except Exception:
+                        pass
     except (psutil.AccessDenied, psutil.NoSuchProcess):
         pass
 
@@ -44,42 +59,62 @@ def scorch_earth_cleanup(ports=[8888, 8890, 5173] + list(range(8001, 8211))):
         while curr.ppid() > 0:
             lineage.append(curr.ppid())
             curr = psutil.Process(curr.ppid())
-    except: pass
+    except Exception:
+        pass
 
-    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'cwd']):
+    for proc in psutil.process_iter(["pid", "name", "cmdline", "cwd"]):
         try:
             pinfo = proc.info
-            if not pinfo['cmdline'] or pinfo['pid'] in lineage: continue
-            
-            cmd_str = " ".join(pinfo['cmdline']).lower()
-            
+            if not pinfo["cmdline"] or pinfo["pid"] in lineage:
+                continue
+
+            cmd_str = " ".join(pinfo["cmdline"]).lower()
+
             # SURGICAL TARGETING: Only kill what matters for MYTH startup
-            is_backend = ("uvicorn" in cmd_str and "api:app" in cmd_str) or \
-                        ("python" in cmd_str and "api.py" in cmd_str)
+            is_backend = ("uvicorn" in cmd_str and "api:app" in cmd_str) or (
+                "python" in cmd_str and "api.py" in cmd_str
+            )
             is_mcp = "python" in cmd_str and "mcp_servers" in cmd_str
-            is_frontend = ("vite" in cmd_str and "dev" in cmd_str)
-            
+            is_frontend = "vite" in cmd_str and "dev" in cmd_str
+
             # Additional check: Is it in our directory?
-            is_in_project = pinfo['cwd'] and project_root in pinfo['cwd'].lower()
-            
+            is_in_project = pinfo["cwd"] and project_root in pinfo["cwd"].lower()
+
             # Robust Protection: Never kill the core shell or the agent runner itself
             # unless they are explicitly the backend server
-            is_protected_name = pinfo['name'].lower() in ["powershell.exe", "pwsh.exe", "cmd.exe", "conhost.exe", "antigravity.exe"]
-            
-            if (is_backend or is_frontend or is_mcp or (is_in_project and not is_protected_name)):
+            is_protected_name = pinfo["name"].lower() in [
+                "powershell.exe",
+                "pwsh.exe",
+                "cmd.exe",
+                "conhost.exe",
+                "antigravity.exe",
+            ]
+
+            if (
+                is_backend
+                or is_frontend
+                or is_mcp
+                or (is_in_project and not is_protected_name)
+            ):
                 try:
-                    print(f"   🗑️  [CLEANUP] Purging industrial ghost: {pinfo['name']} (PID: {pinfo['pid']})")
-                    p = psutil.Process(pinfo['pid'])
+                    print(
+                        f"   🗑️  [CLEANUP] Purging industrial ghost: {pinfo['name']} (PID: {pinfo['pid']})"
+                    )
+                    p = psutil.Process(pinfo["pid"])
                     p.kill()
                     # No wait here to keep the scan fast
-                except: pass
-        except: pass
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
 
 def kill_process_on_port(port):
     """Fallback: Standard netstat cleanup for port specific targets."""
     scorch_earth_cleanup([port])
 
-def wait_for_port(port, host="127.0.0.1", timeout=30):
+
+def wait_for_port(port=5173, host="127.0.0.1", timeout=30):
     """Wait for a port to become reachable."""
     start_time = time.time()
     while time.time() - start_time < timeout:
@@ -90,6 +125,7 @@ def wait_for_port(port, host="127.0.0.1", timeout=30):
             time.sleep(1)
     return False
 
+
 def run_myth_desktop():
     banner = f"""
     ⌬ {agent_config.identity.name} | {agent_config.identity.codename}
@@ -98,30 +134,33 @@ def run_myth_desktop():
     Region: {agent_config.runtime.region} | Node: {agent_config.runtime.node_id}
     """
     print(banner)
-    
+
     root_dir = Path(__file__).parent.absolute()
     ui_dir = root_dir / "ui"
-    
+
     # Check for uv venv
-    venv_python = root_dir / ".venv" / "Scripts" / "python.exe" if sys.platform == "win32" else root_dir / ".venv" / "bin" / "python"
-    
+    venv_python = (
+        root_dir / ".venv" / "Scripts" / "python.exe"
+        if sys.platform == "win32"
+        else root_dir / ".venv" / "bin" / "python"
+    )
+
     if not venv_python.exists():
         print(f"❌ Error: UV virtual environment not found at {venv_python}")
         print("Please ensure your environment is set up correctly.")
         return
 
     # 0. Port Cleanup & Audit Reset
-    print("🧹 [0/3] Cleaning industrial infrastructure (8888, 8890, 5173)...")
+    print("🧹 [0/3] Cleaning industrial infrastructure (8890, 8890, )...")
     scorch_earth_cleanup()
-    
+
     # Industrial Audit Reset (Aggressive Cleanup)
     prefix = agent_config.identity.name.lower()
     possible_audit_logs = [
         root_dir / f".{prefix}_audit.log",
-        root_dir / f".{prefix}_audit.log",
-        root_dir / f".{prefix.upper()}_audit.log"
+        root_dir / f".{prefix.upper()}_audit.log",
     ]
-    
+
     for audit_log in possible_audit_logs:
         if audit_log.exists():
             print(f"   🧹 [CLEANUP] Found audit log: {audit_log.name}")
@@ -129,18 +168,24 @@ def run_myth_desktop():
                 try:
                     # Open in write mode to clear it
                     with open(audit_log, "w") as f:
-                        pass 
-                    print(f"   ✅ [CLEANUP] Industrial Audit Log reset: {audit_log.name}")
+                        pass
+                    print(
+                        f"   ✅ [CLEANUP] Industrial Audit Log reset: {audit_log.name}"
+                    )
                     break
                 except Exception as e:
-                    print(f"   ⚠️ [CLEANUP] Attempt {attempt+1} failed to reset audit log {audit_log}: {e}")
+                    print(
+                        f"   ⚠️ [CLEANUP] Attempt {attempt + 1} failed to reset audit log {audit_log}: {e}"
+                    )
                     if attempt < 4:
                         time.sleep(1)
                     else:
-                        print(f"   ❌ [CLEANUP] Failed to reset audit log {audit_log} after multiple attempts.")
-    
+                        print(
+                            f"   ❌ [CLEANUP] Failed to reset audit log {audit_log} after multiple attempts."
+                        )
+
     # 0.1 Industrial System Log Reset
-    system_log = root_dir / f"{prefix}_system.log"
+    system_log = root_dir / "myth_system.log"
     if system_log.exists():
         try:
             # Open in write mode to clear it
@@ -148,8 +193,10 @@ def run_myth_desktop():
                 pass
             print(f"   ✅ [CLEANUP] Industrial System Log reset: {system_log.name}")
         except Exception as e:
-            print(f"   ⚠️ [CLEANUP] Could not reset system log: {e} (Likely in use by zombie process)")
-    
+            print(
+                f"   ⚠️ [CLEANUP] Could not reset system log: {e} (Likely in use by zombie process)"
+            )
+
     # Wait for port 8890 to be definitively free (prevents zombie interference)
     print("   ⏳ Waiting for port 8890 to be released...")
     for _ in range(5):
@@ -159,69 +206,92 @@ def run_myth_desktop():
         except (ConnectionRefusedError, socket.timeout, OSError):
             break  # Port is free
     print("   ✅ Port 8890 is clear.")
-    
+
     # Clear Python bytecode cache to prevent stale module loading
     print("   🗑️ Clearing bytecode cache...")
     import shutil
+
     for cache_dir in root_dir.rglob("__pycache__"):
         if ".venv" not in str(cache_dir):
             try:
                 shutil.rmtree(cache_dir)
-            except: pass
+            except Exception:
+                pass
 
     # 1. Start FastAPI Backend (Static Engine for absolute stability)
     print("🚀 [1/3] Starting FastAPI Engine (Persistence Lock: ON)...")
     api_cmd = [
-        str(venv_python), "-m", "uvicorn", "api:app", 
-        "--host", "127.0.0.1", 
-        "--port", "8890",
+        str(venv_python),
+        "-m",
+        "uvicorn",
+        "api:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8890",
         "--no-access-log",
     ]
 
     # Explicitly disable reload via environment to override any shell settings
     api_env = os.environ.copy()
     api_env["UVICORN_RELOAD"] = "0"
-    api_env["WATCHFILES_FORCE_NON_RECURSIVE"] = "true" # Extra shield for WatchFiles
+    api_env["WATCHFILES_FORCE_NON_RECURSIVE"] = "true"  # Extra shield for WatchFiles
 
     # Use CREATE_NEW_PROCESS_GROUP to isolate signals on Windows
     api_process = subprocess.Popen(
-        api_cmd, 
+        api_cmd,
         cwd=root_dir,
         env=api_env,
-        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+        if sys.platform == "win32"
+        else 0,
     )
-    
+
     # Wait for backend to be ready
     print("⏳ Waiting for backend to initialize (MCP tools, RAG, etc.)...")
-    import urllib.request
     import urllib.error
-    
+    import urllib.request
+
     # Give uvicorn time to spawn the server process before checking
     time.sleep(5)
-    
-    max_retries = 150 # 300 seconds total for serial MCP loading
+
+    max_retries = 150  # 300 seconds total for serial MCP loading
     retry_count = 0
-    print("   (Note: Initial connection might take a few seconds as the engine binds the port)", flush=True)
-    
+    print(
+        "   (Note: Initial connection might take a few seconds as the engine binds the port)",
+        flush=True,
+    )
+
     last_status_str = None
-    
+
     while retry_count < max_retries:
         try:
-            with urllib.request.urlopen("http://127.0.0.1:8890/health", timeout=40) as response:
+            with urllib.request.urlopen(
+                "http://127.0.0.1:8890/health", timeout=40
+            ) as response:
                 if response.getcode() == 200:
                     data = json.loads(response.read().decode())
-                    
+
                     # 1. Validate Identity (Must have BOOT_ID to ensure new code is running)
                     boot_id = data.get("boot_id")
                     if not boot_id:
                         # Check for explicit error response
                         if data.get("status") == "error":
-                            print(f"   ❌ Backend Health Error: {data.get('error')}" + " " * 20)
+                            print(
+                                f"   ❌ Backend Health Error: {data.get('error')}"
+                                + " " * 20
+                            )
                         elif retry_count % 3 == 0:
-                            print(f"   ⏳ Waiting for API verification (Boot ID missing)..." + " " * 10, end="\r")
+                            print(
+                                "   ⏳ Waiting for API verification (Boot ID missing)..."
+                                + " " * 10,
+                                end="\r",
+                            )
                             # DEBUG: Print the mystery JSON to see what we are getting
-                            print(f"\n   🔴 DEBUG: Received JSON without BOOT_ID: {json.dumps(data)}")
-                            
+                            print(
+                                f"\n   🔴 DEBUG: Received JSON without BOOT_ID: {json.dumps(data)}"
+                            )
+
                         retry_count += 1
                         time.sleep(2)
                         continue
@@ -232,32 +302,49 @@ def run_myth_desktop():
                     expected_boot_id = None
                     if log_file.exists():
                         try:
-                            with open(log_file, "r", encoding="utf-8", errors="ignore") as f:
+                            with open(
+                                log_file, "r", encoding="utf-8", errors="ignore"
+                            ) as f:
                                 # Quick scan from bottom for the latest ID
                                 lines = f.readlines()
                                 for line in reversed(lines):
                                     if "[BOOT_ID]" in line:
                                         parts = line.split("[BOOT_ID]")
                                         if len(parts) > 1:
-                                            expected_boot_id = parts[1].strip().split()[0]
+                                            expected_boot_id = (
+                                                parts[1].strip().split()[0]
+                                            )
                                             break
-                        except: pass
-                    
+                        except Exception:
+                            pass
+
                     if expected_boot_id and boot_id != expected_boot_id:
                         # Health check is returning a STALE BOOT_ID from an old backend!
                         # Rescue: If stuck for > 3 retries, try killing the specific stale process
                         if retry_count > 3:
-                            print(f"\n   💣 [RESCUE] Stale backend detected (ID: {boot_id}). Purging ghost...")
-                            for conn in psutil.net_connections(kind='inet'):
-                                if conn.laddr.port == 8890 and conn.pid != api_process.pid:
+                            print(
+                                f"\n   💣 [RESCUE] Stale backend detected (ID: {boot_id}). Purging ghost..."
+                            )
+                            for conn in psutil.net_connections(kind="inet"):
+                                if (
+                                    conn.laddr.port == 8890
+                                    and conn.pid != api_process.pid
+                                ):
                                     try:
                                         p = psutil.Process(conn.pid)
-                                        print(f"   🗑️  [RESCUE] Terminating ghost PID: {conn.pid}")
+                                        print(
+                                            f"   🗑️  [RESCUE] Terminating ghost PID: {conn.pid}"
+                                        )
                                         p.kill()
-                                    except: pass
-                            retry_count = 0 
+                                    except Exception:
+                                        pass
+                            retry_count = 0
                         else:
-                            print(f"   ⏳ Waiting for new backend (stale: {boot_id}, expected: {expected_boot_id})..." + " " * 10, end="\r")
+                            print(
+                                f"   ⏳ Waiting for new backend (stale: {boot_id}, expected: {expected_boot_id})..."
+                                + " " * 10,
+                                end="\r",
+                            )
                             retry_count += 1
                         time.sleep(2)
                         continue
@@ -267,45 +354,64 @@ def run_myth_desktop():
                     agent_ready = comp.get("agent") == "ACTIVE"
                     rag_ready = comp.get("rag") == "READY"
                     mcp_ready = comp.get("mcp") == "SECURE"
-                    
+
                     all_components_ready = agent_ready and rag_ready and mcp_ready
-                    
+
                     if data.get("ready") and all_components_ready:
                         # System is ready - no need for log file verification
                         # The health endpoint's ready=True + all_components_ready is authoritative
-                        print(f"\n✅ Backend Infrastructure: READY. [BOOT_ID: {boot_id}]")
+                        print(
+                            f"\n✅ Backend Infrastructure: READY. [BOOT_ID: {boot_id}]"
+                        )
                         break
                     else:
                         # Server is up but still loading tools
                         status_parts = []
-                        if not agent_ready: status_parts.append(f"Agent: {comp.get('agent', 'INIT')}")
-                        if not rag_ready: status_parts.append(f"RAG: {comp.get('rag', 'INIT')}")
-                        if not mcp_ready: status_parts.append(f"MCP: {comp.get('mcp', 'INIT')}")
-                        
-                        status_str = " | ".join(status_parts) if status_parts else "Finalizing Infrastructure..."
-                        
+                        if not agent_ready:
+                            status_parts.append(f"Agent: {comp.get('agent', 'INIT')}")
+                        if not rag_ready:
+                            status_parts.append(f"RAG: {comp.get('rag', 'INIT')}")
+                        if not mcp_ready:
+                            status_parts.append(f"MCP: {comp.get('mcp', 'INIT')}")
+
+                        status_str = (
+                            " | ".join(status_parts)
+                            if status_parts
+                            else "Finalizing Infrastructure..."
+                        )
+
                         # Only print if status changed to avoid overwriting backend logs
                         if status_str != last_status_str:
-                            print(f"   ⏳ Backend online. Status: [{status_str}]", flush=True)
+                            print(
+                                f"   ⏳ Backend online. Status: [{status_str}]",
+                                flush=True,
+                            )
                             last_status_str = status_str
         except urllib.error.URLError as e:
             # Server not listening yet
-            if isinstance(e.reason, ConnectionRefusedError) or "[WinError 10061]" in str(e.reason):
+            if isinstance(
+                e.reason, ConnectionRefusedError
+            ) or "[WinError 10061]" in str(e.reason):
                 if retry_count % 3 == 0:
-                    print(f"   ⏳ Waiting for backend to bind port 8890... ({retry_count * 2}s)", end="\r", flush=True)
+                    print(
+                        f"   ⏳ Waiting for backend to bind port 8890... ({retry_count * 2}s)",
+                        end="\r",
+                        flush=True,
+                    )
             else:
                 if retry_count % 5 == 0:
                     print(f"   ⚠️  Connection issue: {e.reason}")
-        except ConnectionResetError: pass
+        except ConnectionResetError:
+            pass
         except Exception as e:
             if retry_count % 5 == 0:
                 print(f"   Diagnostic: Health check error - {type(e).__name__}: {e}")
-        
+
         retry_count += 1
         time.sleep(2)
-    
-    print() # New line after the progress updates
-    
+
+    print()  # New line after the progress updates
+
     if retry_count >= max_retries:
         print("\n❌ Error: Backend failed to respond to health checks in 300s.")
         api_process.terminate()
@@ -315,28 +421,33 @@ def run_myth_desktop():
     print("🚀 [2/3] Starting React Dashboard (Vite)...")
     npm_cmd = "npm.cmd" if sys.platform == "win32" else "npm"
     ui_process = subprocess.Popen(
-        [npm_cmd, "run", "dev", "--", "--host", "127.0.0.1"], 
+        [npm_cmd, "run", "dev", "--", "--host", "127.0.0.1"],
         cwd=ui_dir,
-        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+        if sys.platform == "win32"
+        else 0,
     )
-    
+
     # Wait for Vite to be reachable
     print("⏳ Waiting for Vite interface to become reachable...", flush=True)
-    if wait_for_port(5173):
+    if wait_for_port():
         print("✅ Frontend Interface: READY.", flush=True)
     else:
-        print("⚠️  Frontend took too long to start, attempting browser launch anyway.", flush=True)
- 
+        print(
+            "⚠️  Frontend took too long to start, attempting browser launch anyway.",
+            flush=True,
+        )
+
     # 3. Open Browser
     print("🚀 [3/3] Launching System Interface...")
-    time.sleep(1) # Final settle
+    time.sleep(1)  # Final settle
     webbrowser.open("http://127.0.0.1:5173")
-    
+
     print("\n✅ SYSTEM ONLINE. Press Ctrl+C to terminate all services.\n")
-    
+
     # Flag to track shutdown status
     shutdown_flag = False
- 
+
     def handle_exit(sig, frame):
         nonlocal shutdown_flag
         if not shutdown_flag:
@@ -345,21 +456,21 @@ def run_myth_desktop():
         else:
             # Force exit if Ctrl+C is pressed again during shutdown
             sys.exit(0)
- 
+
     # Register the exit handler
     signal.signal(signal.SIGINT, handle_exit)
-    
+
     try:
         while not shutdown_flag:
             time.sleep(1)
-            
+
             # 1. Monitor Backend Process
             api_exit_code = api_process.poll()
             if api_exit_code is not None:
                 # If backend process exits, we check if it's a reload or a crash.
-                # Uvicorn with --reload often kills the parent and starts a new one, 
+                # Uvicorn with --reload often kills the parent and starts a new one,
                 # but WatchFiles inside the process usually keeps the PID alive or rebinds port 8890.
-                
+
                 # Check if port 8890 is still active or being rebound
                 if _check_port_listening(8890):
                     # Backend is still alive or reloading internally (PID might have changed)
@@ -367,27 +478,35 @@ def run_myth_desktop():
                     time.sleep(2)
                     continue
                 else:
-                    print(f"🔄 [ORCHESTRATOR] Backend service (PID {api_process.pid}) closed with code {api_exit_code}.")
-                    print("⚠️  [ORCHESTRATOR] Backend seems dead. Attempting manual restart...")
+                    print(
+                        f"🔄 [ORCHESTRATOR] Backend service (PID {api_process.pid}) closed with code {api_exit_code}."
+                    )
+                    print(
+                        "⚠️  [ORCHESTRATOR] Backend seems dead. Attempting manual restart..."
+                    )
                     api_process = subprocess.Popen(
-                        api_cmd, 
+                        api_cmd,
                         cwd=root_dir,
                         env=api_env,
-                        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+                        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+                        if sys.platform == "win32"
+                        else 0,
                     )
                     print("♻️ [ORCHESTRATOR] Backend restart initiated.")
-                
+
             # 2. Monitor Frontend Process
             if ui_process.poll() is not None:
                 print("⚠️  [ORCHESTRATOR] Frontend service stopped.")
                 if not shutdown_flag:
                     print("♻️  [ORCHESTRATOR] Restarting Frontend...")
                     ui_process = subprocess.Popen(
-                        [npm_cmd, "run", "dev", "--", "--host", "127.0.0.1"], 
+                        [npm_cmd, "run", "dev", "--", "--host", "127.0.0.1"],
                         cwd=ui_dir,
-                        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+                        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+                        if sys.platform == "win32"
+                        else 0,
                     )
-                
+
     except Exception as e:
         if not shutdown_flag:
             print(f"❌ [ORCHESTRATOR] Unexpected error in monitoring loop: {e}")
@@ -399,21 +518,35 @@ def run_myth_desktop():
             ui_process.terminate()
             # On Windows, terminate() might not be enough for process groups
             if sys.platform == "win32":
-                subprocess.run(f"taskkill /F /T /PID {api_process.pid}", shell=True, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                subprocess.run(f"taskkill /F /T /PID {ui_process.pid}", shell=True, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        except:
+                subprocess.run(
+                    f"taskkill /F /T /PID {api_process.pid}",
+                    shell=True,
+                    check=False,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                subprocess.run(
+                    f"taskkill /F /T /PID {ui_process.pid}",
+                    shell=True,
+                    check=False,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+        except Exception:
             pass
-        
+
         # Final port cleanup to ensure no orphaned listeners
         kill_process_on_port(8890)
-        kill_process_on_port(5173)
+        kill_process_on_port()
         print("✅ Services terminated. Session closed.")
+
 
 def _check_port_listening(port, host="127.0.0.1"):
     """Quick non-blocking check for port listener."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(0.5)
         return s.connect_ex((host, port)) == 0
+
 
 if __name__ == "__main__":
     run_myth_desktop()

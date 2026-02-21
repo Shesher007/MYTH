@@ -7,19 +7,21 @@ Uses the tools/__init__.py discovery system (get_all_tools) to:
 3. Verify no unhandled exception is raised (result content irrelevant)
 4. 10-second timeout per tool to prevent hangs
 """
-import sys
-import os
-import time
+
 import asyncio
+import os
+import sys
+import time
 import traceback
 from pathlib import Path
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from conftest import ResultTracker, Status, C
+ROOT = Path(__file__).parents[1].absolute()
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from conftest import C, ResultTracker, Status  # noqa: E402
 
 CONCURRENCY_LIMIT = 50  # Number of tools to test in parallel
-TOOL_TIMEOUT = 10       # seconds per tool invocation
+TOOL_TIMEOUT = 10  # seconds per tool invocation
 
 # Safe dummy arguments for common tool parameter names
 SAFE_ARGS = {
@@ -70,7 +72,7 @@ SAFE_ARGS = {
     "target_list": "",
     "custom_paths": [],
     "kwargs": {},
-    "key_hex": "00112233445566778899aabbccddeeff",
+    "key_hex": "00112233445566778899aabbccddeef",
     "accept": True,
     "click_selector": "button",
     "save_as": "downloaded.txt",
@@ -162,7 +164,9 @@ SAFE_ARGS = {
     "perPage": 1,
     "event": "COMMENT",
     "comments": [],
-    "wordlist_path": os.path.join(PROJECT_ROOT, "tests", "assets", "wordlist.txt"),
+    "wordlist_path": os.path.join(ROOT, "tests", "assets", "wordlist.txt")
+    if "ROOT" in globals()
+    else "tests/assets/wordlist.txt",
     "index": 0,
     "class_name": "TestClass",
     "ip_or_domain": "127.0.0.1",
@@ -218,7 +222,7 @@ SAFE_ARGS = {
     "min_confidence": 0.5,
     "arch": "x86",
     "os": "linux",
-    "format": "elf",
+    "format": "el",
     "bad_chars": b"",
     "encoder": "xor",
     "iterations": 1,
@@ -239,17 +243,6 @@ SAFE_ARGS = {
     "file_format": "txt",
     "file_specs": [{"name": "test", "content": "content"}],
     "mission_name": "test-mission",
-    "primary_endpoint": "http://primary.com",
-    "secondary_endpoint": "http://secondary.com",
-    "bash_command": "echo test",
-    "powershell_script": "Write-Host test",
-    "python_code": "print('test')",
-    "purpose": "testing",
-    "file_spec": {"name": "test", "len": 10},
-    "recommendations": ["update"],
-    "state_data": {},
-    "session_id": "test-session",
-    "commands": ["whoami"],
     "script_name": "http-title",
     "current_findings": [],
     "historical_context": {},
@@ -265,47 +258,29 @@ SAFE_ARGS = {
     "spectral_signature": {"sig": "nature"},
     "results_data": {},
     "targets": ["http://test.com"],
-    "wordlist": ["admin", "test"],
-    "webhook_url": "http://hook.com",
-    "payload": {},
-    "vulnerabilities": "test-vulns",
-    "target_info": "test-info",
-    "target_ip": "127.0.0.1",
-    "input_format": "json",
     "base_domain": "example.com",
     "target_host": "127.0.0.1",
     "target_port": 443,
     "target_os": "linux",
     "company_name": "TestCorp",
-    "company": "TestCorp",
     "full_name": "John Doe",
     "domain_or_term": "example.com",
     "threat_event": "Malicious login attempt",
     "objective": "Map target network surface",
     "sources_data": [{"source": "DNS", "data": {"ip": "127.0.0.1"}}],
     "high_level_goal": "Perform comprehensive target reconnaissance",
-    "cve_id": "CVE-2023-1234",
-    "source_selector": "#source",
     "target_selector": "#target",
     "sid": "S-1-5-21-123456789-123456789-123456789-500",
-    "krbtgt_hash": "0123456789abcdef0123456789abcdef",
+    "krbtgt_hash": "0123456789abcdef0123456789abcde",
     "diff_results": "binary mismatch at offset 0x400",
-    "binary_metadata_nexus": "{'arch': 'x64', 'format': 'ELF'}",
-    "host": "127.0.0.1",
     "ports": [80, 443],
     "code": "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
     "queries": ["vulnerability research", "exploits"],
     "subnet": "192.168.1.0/24",
-    "ciphertext": "AABAA ABBAA ABAAA ABAAA ABBAB",
-    "function_name": "main",
-    "address_or_ens": "vitalik.eth",
-    "network": "ethereum",
     "token_symbol": "ETH",
     "limit": 10,
     "offset": 0,
     "order": "desc",
-    "severity": "high",
-    "status": "active",
     "tags": ["test"],
     "description": "test description",
     "notes": "test notes",
@@ -319,20 +294,14 @@ SAFE_ARGS = {
     "permission": "admin",
     "role_name": "admin",
     "group_name": "admin",
-    "user_id": "test-user-id",
-    "resource_id": "test-resource-id",
-    "provider": "aws",
-    "region": "us-east-1",
     "zone": "us-east-1a",
     "bucket_name": "test-bucket",
     "object_key": "test-key",
-    "instance_id": "i-1234567890abcdef0",
     "volume_id": "vol-1234567890abcdef0",
     "snapshot_id": "snap-1234567890abcdef0",
     "vpc_id": "vpc-1234567890abcdef0",
     "subnet_id": "subnet-1234567890abcdef0",
     "security_group_id": "sg-1234567890abcdef0",
-    "arn": "arn:aws:iam::123456789012:user/test",
     "access_key": "AKIAIOSFODNN7EXAMPLE",
     "secret_key": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
     "session_token": "FwoGZXIvYXdzE...",
@@ -355,7 +324,7 @@ SAFE_ARGS = {
     "hashing": "sha256",
     "algorithm": "aes-256-cbc",
     "key_id": "test-key-id",
-    "iv": "00112233445566778899aabbccddeeff",
+    "iv": "00112233445566778899aabbccddeef",
     "salt": "test-salt",
     "nonce": "test-nonce",
     "tag": "test-tag",
@@ -380,8 +349,10 @@ try:
     dummy_bin = binary_dir / "dummy_payload.bin"
     if not dummy_bin.exists():
         with open(dummy_bin, "wb") as f:
-            f.write(b"\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00") # Minimal ELF header
-    
+            f.write(
+                b"\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            )  # Minimal ELF header
+
     SAFE_ARGS["file_path"] = str(dummy_bin.absolute())
     SAFE_ARGS["binary_path"] = str(dummy_bin.absolute())
     SAFE_ARGS["filename"] = str(dummy_bin.absolute())
@@ -392,11 +363,11 @@ except Exception:
 def _build_args_for_tool(tool_obj) -> dict:
     """Build safe invocation arguments based on tool's schema."""
     args = {}
-    
+
     # Try to extract schema from the tool
     schema = None
     try:
-        if hasattr(tool_obj, 'args_schema') and tool_obj.args_schema:
+        if hasattr(tool_obj, "args_schema") and tool_obj.args_schema:
             schema = tool_obj.args_schema
     except Exception:
         pass
@@ -409,59 +380,67 @@ def _build_args_for_tool(tool_obj) -> dict:
             for field_name, field_info in schema_fields.items():
                 # Check if field has a default
                 has_default = False
-                if hasattr(field_info, 'default'):
-                    has_default = (field_info.default is not None and field_info.default is not ...)
-                
-                if not has_default and hasattr(field_info, 'default_factory'):
+                if hasattr(field_info, "default"):
+                    has_default = (
+                        field_info.default is not None and field_info.default is not ...
+                    )
+
+                if not has_default and hasattr(field_info, "default_factory"):
                     has_default = field_info.default_factory is not None
-                
+
                 # Check if required (no default)
                 is_required = not has_default
-                
+
                 # Smart type detection
                 annotation = None
-                if hasattr(field_info, 'annotation'):
+                if hasattr(field_info, "annotation"):
                     annotation = field_info.annotation
-                elif hasattr(field_info, 'type_'):
+                elif hasattr(field_info, "type_"):
                     annotation = field_info.type_
-                
+
                 ann_str = str(annotation).lower() if annotation else ""
 
                 if field_name in SAFE_ARGS:
                     safe_val = SAFE_ARGS[field_name]
                     # Type correction based on annotation
-                    if 'dict' in ann_str and not isinstance(safe_val, dict):
-                         args[field_name] = {}
-                    elif ('list' in ann_str or 'sequence' in ann_str) and not isinstance(safe_val, (list, tuple)):
-                         args[field_name] = [safe_val] if safe_val else []
-                    elif 'bool' in ann_str and not isinstance(safe_val, bool):
-                         args[field_name] = True
-                    elif 'int' in ann_str and not isinstance(safe_val, int):
-                         try: args[field_name] = int(safe_val)
-                         except: args[field_name] = 1
-                    elif 'float' in ann_str and not isinstance(safe_val, float):
-                         try: args[field_name] = float(safe_val)
-                         except: args[field_name] = 1.0
-                    elif 'bytes' in ann_str and isinstance(safe_val, str):
-                         args[field_name] = safe_val.encode('utf-8')
-                    elif 'str' in ann_str and not isinstance(safe_val, str):
-                         args[field_name] = str(safe_val)
+                    if "dict" in ann_str and not isinstance(safe_val, dict):
+                        args[field_name] = {}
+                    elif (
+                        "list" in ann_str or "sequence" in ann_str
+                    ) and not isinstance(safe_val, (list, tuple)):
+                        args[field_name] = [safe_val] if safe_val else []
+                    elif "bool" in ann_str and not isinstance(safe_val, bool):
+                        args[field_name] = True
+                    elif "int" in ann_str and not isinstance(safe_val, int):
+                        try:
+                            args[field_name] = int(safe_val)
+                        except (ValueError, TypeError):  # Fix E722
+                            args[field_name] = 1
+                    elif "float" in ann_str and not isinstance(safe_val, float):
+                        try:
+                            args[field_name] = float(safe_val)
+                        except (ValueError, TypeError):  # Fix E722
+                            args[field_name] = 1.0
+                    elif "bytes" in ann_str and isinstance(safe_val, str):
+                        args[field_name] = safe_val.encode("utf-8")
+                    elif "str" in ann_str and not isinstance(safe_val, str):
+                        args[field_name] = str(safe_val)
                     else:
                         args[field_name] = safe_val
                 elif is_required:
                     # Attempt type-based fallback
-                    if 'int' in ann_str:
+                    if "int" in ann_str:
                         args[field_name] = 1
-                    elif 'float' in ann_str:
+                    elif "float" in ann_str:
                         args[field_name] = 1.0
-                    elif 'bool' in ann_str:
+                    elif "bool" in ann_str:
                         args[field_name] = False
-                    elif 'list' in ann_str or 'sequence' in ann_str:
+                    elif "list" in ann_str or "sequence" in ann_str:
                         args[field_name] = []
-                    elif 'dict' in ann_str:
+                    elif "dict" in ann_str:
                         args[field_name] = {}
-                    elif 'bytes' in ann_str:
-                        args[field_name] = b'test'
+                    elif "bytes" in ann_str:
+                        args[field_name] = b"test"
                     else:
                         args[field_name] = "test"
         except Exception:
@@ -469,23 +448,13 @@ def _build_args_for_tool(tool_obj) -> dict:
 
     return args
 
-class C:
-    # Basic colors
-    BLUE = "\033[94m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    RED = "\033[91m"
-    BOLD = "\033[1m"
-    DIM = "\033[2m"
-    END = "\033[0m"
-
     @staticmethod
     def header(text):
-        return f"\n{C.BOLD}{'='*70}\n  {text}\n{'='*70}{C.END}"
+        return f"\n{C.BOLD}{'=' * 70}\n  {text}\n{'=' * 70}{C.END}"
 
     @staticmethod
     def line():
-        return f"{C.DIM}{'-'*61}{C.END}"
+        return f"{C.DIM}{'-' * 61}{C.END}"
 
     @staticmethod
     def info(text):
@@ -503,6 +472,7 @@ class C:
     def warn(text):
         return f"{C.YELLOW}{text}{C.END}"
 
+
 async def _invoke_tool(tool_obj, args: dict, timeout: int):
     """Invoke a tool with timeout."""
     try:
@@ -515,20 +485,24 @@ async def _invoke_tool(tool_obj, args: dict, timeout: int):
                 result = await asyncio.wait_for(tool_obj.ainvoke({}), timeout=timeout)
             except Exception:
                 # Last resort for simple string tools
-                result = await asyncio.wait_for(tool_obj.ainvoke("test"), timeout=timeout)
+                result = await asyncio.wait_for(
+                    tool_obj.ainvoke("test"), timeout=timeout
+                )
         return result, None
     except asyncio.TimeoutError:
         return None, f"TIMEOUT after {timeout}s"
-    except Exception as e:
+    except Exception:
         return None, traceback.format_exc()
 
 
-async def _invoke_tool_wrapper(tool_obj, tracker: ResultTracker, semaphore: asyncio.Semaphore):
+async def _invoke_tool_wrapper(
+    tool_obj, tracker: ResultTracker, semaphore: asyncio.Semaphore
+):
     """Wrapper to run a single tool test with concurrency control."""
     async with semaphore:
-        tool_name = getattr(tool_obj, 'name', str(tool_obj))
+        tool_name = getattr(tool_obj, "name", str(tool_obj))
         args = _build_args_for_tool(tool_obj)
-        
+
         start = time.time()
         # Non-blocking invocation
         result, err = await _invoke_tool(tool_obj, args, TOOL_TIMEOUT)
@@ -537,16 +511,25 @@ async def _invoke_tool_wrapper(tool_obj, tracker: ResultTracker, semaphore: asyn
         if err is None:
             # Tool returned without crashing
             res_str = str(result) if result is not None else "None"
-            tracker.record(f"{tool_name}", Status.PASS, elapsed,
-                          detail=f"args={list(args.keys())} result={res_str[:100]}")
+            tracker.record(
+                f"{tool_name}",
+                Status.PASS,
+                elapsed,
+                detail=f"args={list(args.keys())} result={res_str[:100]}",
+            )
         elif "TIMEOUT" in str(err):
             # Timeout is a warning, not a hard failure
-            tracker.record(f"{tool_name}", Status.WARN, elapsed,
-                          error=f"Timed out after {TOOL_TIMEOUT}s (tool may be network-dependent)",
-                          detail=f"args={args}")
+            tracker.record(
+                f"{tool_name}",
+                Status.WARN,
+                elapsed,
+                error=f"Timed out after {TOOL_TIMEOUT}s (tool may be network-dependent)",
+                detail=f"args={args}",
+            )
         else:
-            tracker.record(f"{tool_name}", Status.FAIL, elapsed, error=err,
-                          detail=f"args={args}")
+            tracker.record(
+                f"{tool_name}", Status.FAIL, elapsed, error=err, detail=f"args={args}"
+            )
 
 
 async def run_async(tracker: ResultTracker):
@@ -557,11 +540,12 @@ async def run_async(tracker: ResultTracker):
     start_load = time.time()
     try:
         from tools import get_all_tools
+
         all_tools = await get_all_tools()
         load_time = (time.time() - start_load) * 1000
         tool_count = len(all_tools)
         print(f"  {C.ok(f'Loaded {tool_count} tools in {load_time:.0f}ms')}")
-        
+
         # User explicitly requested 672 tools
         EXPECTED_COUNT = 672
         if tool_count < EXPECTED_COUNT:
@@ -569,15 +553,17 @@ async def run_async(tracker: ResultTracker):
             print(f"  {C.fail(msg)}")
             tracker.record("Tool Count Validation", Status.FAIL, 0, error=msg)
         else:
-            print(f"  {C.ok(f'Tool count validation passed: {tool_count} >= {EXPECTED_COUNT}')}\n")
-            
-    except Exception as e:
+            print(
+                f"  {C.ok(f'Tool count validation passed: {tool_count} >= {EXPECTED_COUNT}')}\n"
+            )
+
+    except Exception:
         tracker.record("get_all_tools()", Status.FAIL, 0, error=traceback.format_exc())
         return
 
     # Initialize semaphore for concurrency control
     semaphore = asyncio.Semaphore(CONCURRENCY_LIMIT)
-    
+
     # Create tasks for all tools
     tasks = []
     for tool_obj in all_tools:
@@ -585,7 +571,7 @@ async def run_async(tracker: ResultTracker):
 
     # Run all tasks concurrently with a progress indicator
     print(f"  {C.info('Testing tools')} ", end="", flush=True)
-    
+
     # We use a custom gather with progress feedback
     tested_count = 0
     for future in asyncio.as_completed(tasks):
@@ -597,10 +583,10 @@ async def run_async(tracker: ResultTracker):
             print(f"[{tested_count}/{tool_count}]", end="", flush=True)
 
     print(f"\n  {C.info(f'Invoked {tested_count}/{tool_count} tools')}")
-    
+
     # Detailed export for verification
     tracker.export_errors("testing/test_errors.txt")
-    
+
     # Export full results summary for user verification
     with open("testing/full_tool_results.txt", "w", encoding="utf-8") as f:
         f.write(f"Full Tool Invocation Report - {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -609,8 +595,14 @@ async def run_async(tracker: ResultTracker):
         f.write("-" * 80 + "\n")
         for module in tracker.modules:
             for res in module.results:
-                status_str = "PASS" if res.status == Status.PASS else ("WARN" if res.status == Status.WARN else "FAIL")
-                f.write(f"[{status_str:4}] {res.name:<40} ({res.elapsed_ms:6.0f}ms) {res.detail}\n")
+                status_str = (
+                    "PASS"
+                    if res.status == Status.PASS
+                    else ("WARN" if res.status == Status.WARN else "FAIL")
+                )
+                f.write(
+                    f"[{status_str:4}] {res.name:<40} ({res.elapsed_ms:6.0f}ms) {res.detail}\n"
+                )
                 if res.error:
                     f.write(f"      ERROR: {str(res.error).splitlines()[0]}\n")
 

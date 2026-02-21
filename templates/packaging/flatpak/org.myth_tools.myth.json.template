@@ -1,5 +1,5 @@
 {
-    "app-id": "org.myth_tools.{{NAME_LOWER}}",
+    "app-id": "org.{{NAME_LOWER}}_tools.{{NAME_LOWER}}",
     "runtime": "org.gnome.Platform",
     "runtime-version": "45",
     "sdk": "org.gnome.Sdk",

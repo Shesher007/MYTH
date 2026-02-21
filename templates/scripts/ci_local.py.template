@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""
+{{NAME}} Local CI Runner — Developer Pre-Push Gate
+================================================
+Runs CI stages locally before pushing to remote. This is the fastest way
+to validate your changes without waiting for cloud CI.
+
+Usage:
+    python scripts/ci_local.py              # Run pre-push checks (validate + lint + test)
+    python scripts/ci_local.py --full       # Full pipeline including build
+    python scripts/ci_local.py --stage test # Run a specific stage only
+    python scripts/ci_local.py --list       # List all available stages
+
+Environment Variables:
+    {{NAME}}_CI_VERBOSE=1    Show full command output
+    {{NAME}}_CI_TARGET=...   Override target triple
+"""
+
+import argparse
+import os
+import subprocess
+import sys
+import time
+
+# Force UTF-8 on Windows
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        import io
+
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+ORCHESTRATOR = os.path.join(PROJECT_ROOT, "scripts", "ci_orchestrator.py")
+
+# ANSI
+BOLD = "\033[1m"
+CYAN = "\033[96m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RED = "\033[91m"
+DIM = "\033[2m"
+RESET = "\033[0m"
+
+
+def run_orchestrator(
+    stage: str,
+    *,
+    dry_run=False,
+    verbose=False,
+    target=None,
+    skip_sync=False,
+    full_test=False,
+):
+    """Invoke ci_orchestrator.py with the given stage."""
+    cmd = [sys.executable, ORCHESTRATOR, stage]
+    if dry_run:
+        cmd.append("--dry-run")
+    if verbose:
+        cmd.append("--verbose")
+    if skip_sync:
+        cmd.append("--skip-sync")
+    if target:
+        cmd.extend(["--target", target])
+    if full_test:
+        cmd.append("--full-test")
+
+    result = subprocess.run(cmd, cwd=PROJECT_ROOT)
+    return result.returncode == 0
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="{{NAME}} Local CI Runner — Developer Pre-Push Gate",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--stage",
+        type=str,
+        default=None,
+        help="Run a specific stage (e.g. validate, lint, test, build-backend)",
+    )
+    group.add_argument(
+        "--full",
+        action="store_true",
+        help="Run full pipeline (validate → lint → test → build)",
+    )
+    group.add_argument(
+        "--build",
+        action="store_true",
+        help="Run build stages only (build-backend → build-desktop)",
+    )
+    group.add_argument("--list", action="store_true", help="List all available stages")
+
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Print commands without executing"
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show full command output (or set {{NAME}}_CI_VERBOSE=1)",
+    )
+    parser.add_argument(
+        "--target",
+        default=None,
+        help="Override Rust target triple (or set {{NAME}}_CI_TARGET)",
+    )
+    parser.add_argument("--skip-sync", action="store_true", help="Skip uv sync")
+    parser.add_argument(
+        "--full-test",
+        action="store_true",
+        help="Run full test suite (including slow invocations)",
+    )
+
+    args = parser.parse_args()
+
+    # Env overrides
+    if os.environ.get("{{NAME}}_CI_VERBOSE") == "1":
+        args.verbose = True
+    if os.environ.get("{{NAME}}_CI_TARGET"):
+        args.target = args.target or os.environ["{{NAME}}_CI_TARGET"]
+
+    # Header
+    print(f"""
+{BOLD}{CYAN}
+ ┌─────────────────────────────────────────────────┐
+ │   ⌬  {{NAME}} LOCAL CI RUNNER                       │
+ │   Developer Pre-Push Gate                        │
+ └─────────────────────────────────────────────────┘{RESET}
+""")
+
+    if args.list:
+        print(f"  {BOLD}Individual Stages:{RESET}")
+        stages = [
+            "check-env",
+            "check-secrets",
+            "validate",
+            "lint",
+            "lint-python",
+            "lint-js",
+            "lint-rust",
+            "test",
+            "build-backend",
+            "build-desktop",
+            "build-docker",
+            "deploy-website",
+            "linux-packages",
+        ]
+        for s in stages:
+            print(f"    • {s}")
+        print(f"\n  {BOLD}Composites:{RESET}")
+        composites = {
+            "all / pre-push": "check-env → validate → lint → test",
+            "build-all": "build-backend → build-desktop → linux-packages",
+            "full": "check-env → validate → lint → test → build-backend → build-desktop",
+        }
+        for name, desc in composites.items():
+            print(f"    • {name}: {desc}")
+        return
+
+    start = time.time()
+
+    # Determine what to run
+    if args.stage:
+        composite = args.stage
+    elif args.full:
+        composite = "full"
+    elif args.build:
+        composite = "build-all"
+    else:
+        composite = "pre-push"
+
+    print(f"  {DIM}Running: {composite}{RESET}")
+    if args.dry_run:
+        print(f"  {YELLOW}⚠ DRY-RUN MODE — no commands will execute{RESET}")
+    print()
+
+    success = run_orchestrator(
+        composite,
+        dry_run=args.dry_run,
+        verbose=args.verbose,
+        target=args.target,
+        skip_sync=args.skip_sync,
+        full_test=args.full_test,
+    )
+
+    elapsed = time.time() - start
+
+    if success:
+        print(
+            f"\n  {GREEN}{BOLD}✔ Local CI passed in {elapsed:.1f}s — safe to push!{RESET}\n"
+        )
+    else:
+        print(
+            f"\n  {RED}{BOLD}✘ Local CI failed after {elapsed:.1f}s — fix issues before pushing{RESET}\n"
+        )
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

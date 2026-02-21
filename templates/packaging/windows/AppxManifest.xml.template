@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- {{NAME}} Desktop — MSIX/APPX Package Manifest -->
-<!-- Build: makeappx pack /d output/ /p MYTH_{{VERSION}}.msix -->
+<!-- Build: makeappx pack /d output/ /p {{NAME}}_{{VERSION}}.msix -->
 
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"

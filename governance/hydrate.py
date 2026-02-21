@@ -13,25 +13,27 @@ Usage:
     python scripts/hydrate_manifests.py --validate # Validate meta.json only (no file I/O)
 """
 
-import os
-import sys
-import json
-import re
 import argparse
-import datetime
-import yaml
 import base64
+import datetime
+import json
+import os
+import re
+import sys
+
+import yaml
 
 # MISSION CRITICAL: Force UTF-8 encoding for stdout/stderr on Windows to avoid UnicodeEncodeError with emojis
-if sys.platform == 'win32':
+if sys.platform == "win32":
     try:
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
     except AttributeError:
         # Fallback for older Python versions
         import io
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -47,9 +49,19 @@ PYPROJECT_PATH = os.path.join(PROJECT_ROOT, "pyproject.toml")
 
 # Universal discovery: Walk entire project but ignore noise
 EXCLUDE_DIRS = {
-    ".git", ".venv", "node_modules", "target", "build", 
-    "__pycache__", ".agent", ".mcp_cache", ".myth_term_state",
-    "venv", "env", "dist", "out"
+    ".git",
+    ".venv",
+    "node_modules",
+    "target",
+    "build",
+    "__pycache__",
+    ".agent",
+    ".mcp_cache",
+    ".myth_term_state",
+    "venv",
+    "env",
+    "dist",
+    "out",
 }
 
 
@@ -59,37 +71,41 @@ EXCLUDE_DIRS = {
 def load_metadata() -> dict:
     """Load metadata from identity.yaml (SSOT) and meta.json (Secondary)."""
     flat = {}
-    
+
     # 1. Load Root Identity (Primary SSOT)
     if os.path.exists(IDENTITY_PATH):
-        with open(IDENTITY_PATH, 'r', encoding='utf-8') as f:
+        with open(IDENTITY_PATH, "r", encoding="utf-8") as f:
             identity = yaml.safe_load(f) or {}
 
         # Industry-Grade Validation
         if os.path.exists(IDENTITY_SCHEMA_PATH):
             try:
                 import jsonschema
-                with open(IDENTITY_SCHEMA_PATH, 'r', encoding='utf-8') as sf:
+
+                with open(IDENTITY_SCHEMA_PATH, "r", encoding="utf-8") as sf:
                     schema = json.load(sf)
                 jsonschema.validate(instance=identity, schema=schema)
                 print("✅ Identity verified against schema.")
             except ImportError:
-                print("⚠️  Warning: 'jsonschema' not installed. Skipping deep validation.")
+                print(
+                    "⚠️  Warning: 'jsonschema' not installed. Skipping deep validation."
+                )
             except Exception as e:
                 print(f"❌ Identity Validation Error: {e}")
                 sys.exit(1)
 
-        # Flatten identity keys
+            # Flatten identity keys
             # --- Identity ---
             id_sect = identity.get("identity", {})
             flat["NAME"] = id_sect.get("name")
             flat["NAME_LOWER"] = id_sect.get("name", "").lower()
             flat["FULL_NAME"] = id_sect.get("full_name")
             flat["VERSION"] = id_sect.get("version")
+            flat["TOOL_COUNT"] = id_sect.get("tool_count")
             flat["CODENAME"] = id_sect.get("codename")
             flat["DESCRIPTION"] = id_sect.get("description")
             flat["SHORT_DESCRIPTION"] = id_sect.get("short_description")
-            
+
             # --- Organization ---
             org_sect = identity.get("organization", {})
             flat["ORG"] = org_sect.get("name")
@@ -98,18 +114,18 @@ def load_metadata() -> dict:
             flat["ORG_LOWER"] = org_sect.get("org_lower")
             flat["REVERSE_DOMAIN"] = org_sect.get("reverse_domain")
             flat["HOMEPAGE"] = org_sect.get("homepage")
-            
+
             # --- Author ---
             auth_sect = identity.get("author", {})
             flat["AUTHOR"] = auth_sect.get("name")
             flat["EMAIL"] = auth_sect.get("email")
-            
+
             # --- Repository ---
             repo_sect = identity.get("repository", {})
             flat["REPO_URL"] = repo_sect.get("url")
             flat["ISSUES_URL"] = repo_sect.get("issues_url")
             flat["LICENSE_URL"] = repo_sect.get("license_url")
-            
+
             # --- License ---
             lic_sect = identity.get("license", {})
             flat["LICENSE"] = lic_sect.get("spdx")
@@ -122,19 +138,43 @@ def load_metadata() -> dict:
             flat["BRANDING_SECONDARY"] = brand_sect.get("secondary_color")
             flat["BRANDING_ACCENT"] = brand_sect.get("accent_color")
             flat["BRANDING_BACKGROUND"] = brand_sect.get("background_color")
-            
+
+            # Helper to convert Hex to RGB (e.g. #7c3aed -> 124, 58, 237)
+            def hex_to_rgb(hex_color):
+                if not hex_color or not hex_color.startswith("#"):
+                    return ""
+                hex_color = hex_color.lstrip("#")
+                if len(hex_color) == 3:
+                    hex_color = "".join([c * 2 for c in hex_color])  # #F00 -> #FF0000
+                try:
+                    return f"{int(hex_color[0:2], 16)}, {int(hex_color[2:4], 16)}, {int(hex_color[4:6], 16)}"
+                except Exception:
+                    return ""
+
+            flat["BRANDING_PRIMARY_RGB"] = hex_to_rgb(flat["BRANDING_PRIMARY"])
+            flat["BRANDING_SECONDARY_RGB"] = hex_to_rgb(flat["BRANDING_SECONDARY"])
+            flat["BRANDING_ACCENT_RGB"] = hex_to_rgb(flat["BRANDING_ACCENT"])
+
+            # Helper for SLUGs (e.g. cyan-400) - For now we map hex to approximate tailwind names or just use the hex
+            # But the templates use {{BRANDING_ACCENT_SLUG}}
+            # We will use the raw hex for now or a placeholder if needed.
+            # Actually, TacticalCursor uses bg-{{BRANDING_ACCENT_SLUG}}. This implies a class name.
+            # If we want custom colors, we should use style={{...}} or arbitrary values bg-[#...]
+            # Updating templates to use arbitrary values might be better, but for now let's set SLUG to invalid and rely on valid RGB for others?
+            # Or we can patch TacticalCursor template to use style/arbitrary.
+            # For now, let's just make the RGB part work.
             # --- Ecosystem ---
             eco_sect = identity.get("ecosystem", {})
             flat["ECOSYSTEM_APPLE_BUNDLE"] = eco_sect.get("apple_bundle_id")
             flat["ECOSYSTEM_DOCKER_IMAGE"] = eco_sect.get("docker_image")
             flat["ECOSYSTEM_NPM_PACKAGE"] = eco_sect.get("npm_package")
-            
+
             # --- Social ---
             soc_sect = identity.get("social", {})
             flat["SOCIAL_DISCORD"] = soc_sect.get("discord")
             flat["SOCIAL_TWITTER"] = soc_sect.get("twitter")
             flat["SOCIAL_DOCS"] = soc_sect.get("documentation")
-            
+
             # --- Security ---
             sec_sect = identity.get("security", {})
             flat["SECURITY_PGP"] = sec_sect.get("pgp_fingerprint")
@@ -145,6 +185,8 @@ def load_metadata() -> dict:
             infra_sect = identity.get("infrastructure", {})
             flat["INFRA_PORT_BACKEND"] = infra_sect.get("backend_port")
             flat["INFRA_PORT_DEV"] = infra_sect.get("dev_server_port")
+            flat["PYTHON_VERSION"] = infra_sect.get("python_version")
+            flat["NODE_VERSION"] = infra_sect.get("node_version")
             flat["INFRA_TIMEOUT_SHORT"] = infra_sect.get("timeout_short")
             flat["INFRA_TIMEOUT_MEDIUM"] = infra_sect.get("timeout_medium")
             flat["INFRA_TIMEOUT_LONG"] = infra_sect.get("timeout_long")
@@ -165,7 +207,9 @@ def load_metadata() -> dict:
             flat["GOV_AUDIT_LOGGING"] = str(gov_sect.get("audit_logging")).lower()
             flat["GOV_COMPLIANCE"] = ", ".join(gov_sect.get("compliance_standards", []))
             flat["GOV_DISCLAIMER"] = gov_sect.get("legal_disclaimer")
-            
+            flat["LICENSE_SERVER_URL"] = gov_sect.get("license_server_url")
+            flat["VERIFICATION_PUB_KEY"] = gov_sect.get("verification_pub_key")
+
             # --- Release ---
             rel_sect = identity.get("release", {})
             flat["COPYRIGHT_YEAR"] = rel_sect.get("copyright_year")
@@ -177,11 +221,14 @@ def load_metadata() -> dict:
         try:
             # Clean possible whitespace/newlines from variable
             bundle_b64 = bundle_b64.strip()
-            decoded = base64.b64decode(bundle_b64).decode('utf-8')
+            decoded = base64.b64decode(bundle_b64).decode("utf-8")
             secrets_data = yaml.safe_load(decoded)
-            
+
             if secrets_data:
-                print("🔒 [GOVERNANCE] Decrypted Secret Bundle found in memory. Injecting...")
+                print(
+                    "🔒 [GOVERNANCE] Decrypted Secret Bundle found in memory. Injecting..."
+                )
+
                 # Flatten the bundle into the flat dictionary
                 # We prefix with SECRET_ to allow targeted injection
                 def _flatten_recursive(data, prefix="SECRET_"):
@@ -196,53 +243,57 @@ def load_metadata() -> dict:
                             flat[full_key] = str(v)
                         else:
                             flat[full_key] = str(v)
-                
+
                 _flatten_recursive(secrets_data)
-                
+
                 # Special Case: If the bundle is meant to OVERWRITE the final secrets.yaml,
                 # we can flag it to the engine.
                 flat["HAS_SECRETS_BUNDLE"] = "true"
-                flat["RAW_SECRETS_DATA"] = decoded # Store the full yaml string
+                flat["RAW_SECRETS_DATA"] = decoded  # Store the full yaml string
         except Exception as e:
             print(f"❌ [GOVERNANCE] Failed to decode secrets bundle: {e}")
 
     # 2. Load Packaging Meta (Secondary/Specific)
     if os.path.exists(META_PATH):
-        with open(META_PATH, 'r', encoding='utf-8') as f:
+        with open(META_PATH, "r", encoding="utf-8") as f:
             meta = json.load(f)
-            
+
             # Merit: identity.yaml (already in flat) > meta.json
             proj = meta.get("project", {})
             for k, v in proj.items():
                 uk = k.upper()
-                if not flat.get(uk): flat[uk] = v
-            
+                if not flat.get(uk):
+                    flat[uk] = v
+
             org = meta.get("organization", {})
             for k, v in org.items():
                 uk = k.upper()
-                if uk == "NAME": 
-                    if not flat.get("ORG"): flat["ORG"] = v
-                    if not flat.get("ORG_NAME"): flat["ORG_NAME"] = v
+                if uk == "NAME":
+                    if not flat.get("ORG"):
+                        flat["ORG"] = v
+                    if not flat.get("ORG_NAME"):
+                        flat["ORG_NAME"] = v
                 else:
-                    if not flat.get(uk): flat[uk] = v
-            
+                    if not flat.get(uk):
+                        flat[uk] = v
+
             # Specific mappings for required keys
             repo = meta.get("repository", {})
             flat["REPO_URL"] = repo.get("url")
             flat["ISSUES_URL"] = repo.get("issues")
             flat["LICENSE_URL"] = repo.get("license_url")
-            
+
             lic = meta.get("license", {})
             flat["LICENSE"] = lic.get("spdx")
             flat["LICENSE_CUSTOM"] = lic.get("custom")
             if not flat.get("COPYRIGHT_YEAR"):
                 flat["COPYRIGHT_YEAR"] = lic.get("copyright_year")
-            
+
             for k, v in meta.get("artifacts", {}).items():
                 flat[f"ARTIFACT_{k.upper()}"] = v
-                
+
             flat["ARCHITECTURES"] = " ".join(meta.get("architectures", []))
-                
+
     # 3. Fallback to pyproject.toml ONLY if version is still missing
     if not flat.get("VERSION") and os.path.exists(PYPROJECT_PATH):
         version = _read_version_from_pyproject(PYPROJECT_PATH)
@@ -252,7 +303,7 @@ def load_metadata() -> dict:
     # Final derived field overrides
     if flat.get("CODENAME"):
         flat["PROJECT_LOWER"] = flat["CODENAME"].lower()
-    
+
     _compute_derived_fields(flat)
     return flat
 
@@ -319,7 +370,9 @@ def _flatten_meta(meta: dict) -> dict[str, str]:
     flat["ORG"] = org.get("name", "")
     flat["ORG_NAME"] = flat["ORG"]
     flat["ORG_DISPLAY"] = org.get("display_name", flat["ORG"])
-    flat["ORG_LOWER"] = org.get("org_lower", org.get("name", "").lower().replace(" ", "-"))
+    flat["ORG_LOWER"] = org.get(
+        "org_lower", org.get("name", "").lower().replace(" ", "-")
+    )
     flat["REVERSE_DOMAIN"] = org.get("reverse_domain", "")
     flat["HOMEPAGE"] = org.get("homepage", "")
 
@@ -331,7 +384,9 @@ def _flatten_meta(meta: dict) -> dict[str, str]:
     # --- Repository ---
     repo = meta.get("repository", {})
     flat["REPO_URL"] = repo.get("url", "")
-    flat["REPO_NAME"] = flat["REPO_URL"].rstrip("/").rsplit("/", 1)[-1] if flat["REPO_URL"] else ""
+    flat["REPO_NAME"] = (
+        flat["REPO_URL"].rstrip("/").rsplit("/", 1)[-1] if flat["REPO_URL"] else ""
+    )
     flat["ISSUES_URL"] = repo.get("issues", "")
     flat["LICENSE_URL"] = repo.get("license_url", "")
 
@@ -371,14 +426,18 @@ def _compute_derived_fields(flat: dict[str, str]) -> None:
         flat["PROJECT_LOWER"] = flat["CODENAME"].lower().replace(" ", "-")
         flat["PROJECT_UPPER"] = flat["CODENAME"].upper()
         # Snake-case variant for Rust/Cargo (hyphens are illegal in lib target names)
-        flat["CODENAME_SNAKE"] = flat["CODENAME"].lower().replace("-", "_").replace(" ", "_")
+        flat["CODENAME_SNAKE"] = (
+            flat["CODENAME"].lower().replace("-", "_").replace(" ", "_")
+        )
 
     # Organization specific derivations
     if flat.get("ORG"):
         flat["ORG_SLUG"] = flat["ORG"].lower().replace(" ", "-")
         if not flat.get("REVERSE_DOMAIN"):
             # Default to com.slug.name
-            flat["REVERSE_DOMAIN"] = f"com.{flat['ORG_SLUG']}.{flat.get('NAME_LOWER', 'app')}"
+            flat["REVERSE_DOMAIN"] = (
+                f"com.{flat['ORG_SLUG']}.{flat.get('NAME_LOWER', 'app')}"
+            )
 
     # Year shortcut
     flat["YEAR"] = str(datetime.date.today().year)
@@ -406,8 +465,16 @@ def _compute_derived_fields(flat: dict[str, str]) -> None:
 # Validation
 # ---------------------------------------------------------------------------
 REQUIRED_KEYS = [
-    "VERSION", "NAME", "DESCRIPTION", "SHORT_DESCRIPTION",
-    "ORG", "HOMEPAGE", "AUTHOR", "EMAIL", "REPO_URL", "LICENSE"
+    "VERSION",
+    "NAME",
+    "DESCRIPTION",
+    "SHORT_DESCRIPTION",
+    "ORG",
+    "HOMEPAGE",
+    "AUTHOR",
+    "EMAIL",
+    "REPO_URL",
+    "LICENSE",
 ]
 
 
@@ -428,7 +495,9 @@ def _validate(flat: dict[str, str]) -> list[str]:
 # ---------------------------------------------------------------------------
 # Core engine
 # ---------------------------------------------------------------------------
-def hydrate_manifests(*, check_only: bool = False, validate_only: bool = False) -> bool:
+def hydrate_manifests(
+    *, check_only: bool = False, validate_only: bool = False, force: bool = False
+) -> bool:
     # ---- Load and Flatten Metadata ----
     flat = load_metadata()
 
@@ -443,12 +512,13 @@ def hydrate_manifests(*, check_only: bool = False, validate_only: bool = False) 
     if validate_only:
         print("\n📋 Available template placeholders:")
         for k in sorted(flat.keys()):
-            print(f"   {{{{{k}}}}} = {flat[k][:80]}{'…' if len(flat[k]) > 80 else ''}")
+            val = str(flat.get(k, ""))
+            print(f"   {{{{{k}}}}} = {val[:80]}{'…' if len(val) > 80 else ''}")
         return True
 
     # ---- Discover templates ----
     template_files: list[str] = []
-    
+
     if not os.path.exists(TEMPLATES_DIR):
         print(f"ℹ️  Templates directory not found: {TEMPLATES_DIR}")
         return True
@@ -475,10 +545,10 @@ def hydrate_manifests(*, check_only: bool = False, validate_only: bool = False) 
             for fname in files:
                 if fname.endswith(".template"):
                     gov_templates.append(os.path.join(root, fname))
-    
+
     # Revised strategy: Combine lists and use intelligent output path resolution
     all_templates = []
-    
+
     # 1. Project Templates (templates/ -> PROJECT_ROOT/)
     # Exclude templates/governance since we handle it separately
     for t in template_files:
@@ -487,7 +557,7 @@ def hydrate_manifests(*, check_only: bool = False, validate_only: bool = False) 
         rel = os.path.relpath(t, TEMPLATES_DIR)
         out = os.path.join(PROJECT_ROOT, rel.replace(".template", ""))
         all_templates.append((t, out))
-        
+
     # 2. Governance Templates (templates/governance/ -> governance/)
     for t in gov_templates:
         rel = os.path.relpath(t, GOV_TEMPLATES_DIR)
@@ -499,9 +569,17 @@ def hydrate_manifests(*, check_only: bool = False, validate_only: bool = False) 
     # ---- Hydrate ----
     warnings: list[str] = []
     drifted: list[str] = []
+    skipped: list[str] = []
     success = True
 
     for template_path, output_path in all_templates:
+        # ---- Resolve Placeholders in Paths (NEW: Dynamic Path Support) ----
+        # This allows templates like templates/{{CODENAME}}_utils/ to be hydrated correctly
+        for k, v in flat.items():
+            placeholder = f"{{{{{k}}}}}"
+            if placeholder in output_path:
+                output_path = output_path.replace(placeholder, str(v))
+
         rel_output = os.path.relpath(output_path, PROJECT_ROOT)
 
         with open(template_path, "r", encoding="utf-8") as f:
@@ -515,11 +593,27 @@ def hydrate_manifests(*, check_only: bool = False, validate_only: bool = False) 
 
         hydrated = re.sub(r"\{\{([A-Za-z0-9_]+)\}\}", replace_match, content)
 
+        # --- Baseline Identity Refactoring (Clean Syntax Support) ---
+        # If CODENAME is not 'myth', we automatically refactor baseline identifiers
+        # like 'myth_utils' or 'myth_config' to match the active identity.
+        # This keeps templates as valid, statically-analysable Python/JS.
+        current_codename = flat.get("CODENAME", "myth").lower()
+        if current_codename != "myth":
+            hydrated = re.sub(r"\bmyth_config\b", f"{current_codename}_config", hydrated)
+            hydrated = re.sub(r"\bmyth_utils\b", f"{current_codename}_utils", hydrated)
+            # Handle remaining [MYTH] or myth_ strings in JS/Rust that might have been hit
+            # as whole words but aren't explicitly templated.
+            hydrated = re.sub(r"\bMYTH\b", flat.get("NAME", "MYTH"), hydrated)
+
         # SECURITY: If we have a RAW_SECRETS_DATA bundle and the target is secrets.yaml,
         # we bypass the template hydration and just write the bundle.
-        if flat.get("HAS_SECRETS_BUNDLE") == "true" and rel_output.endswith("secrets.yaml"):
+        if flat.get("HAS_SECRETS_BUNDLE") == "true" and rel_output.endswith(
+            "secrets.yaml"
+        ):
             hydrated = flat.get("RAW_SECRETS_DATA")
-            print(f"🧬 [PACKAGING] Bypassed template for {rel_output} -> Injecting raw bundle.")
+            print(
+                f"🧬 [PACKAGING] Bypassed template for {rel_output} -> Injecting raw bundle."
+            )
 
         if file_warnings:
             warnings.extend(file_warnings)
@@ -539,18 +633,37 @@ def hydrate_manifests(*, check_only: bool = False, validate_only: bool = False) 
             else:
                 print(f"✅ IN SYNC:  {rel_output}")
         else:
+            # SAFETY GUARDRAIL: Check for drift before overwriting
+            if os.path.exists(output_path) and not force:
+                with open(output_path, "r", encoding="utf-8") as f:
+                    current = f.read()
+                if current != hydrated:
+                    print(f"⚠️  [GUARDRAIL] DRIFT DETECTED IN {rel_output}")
+                    print(
+                        "    Manual changes found in source that are not in template."
+                    )
+                    print(
+                        "    ⏭️  SKIPPING to prevent data loss. Use --force to overwrite."
+                    )
+                    skipped.append(rel_output)
+                    continue
+
+            # Ensure parent directories exist for dynamic paths
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             with open(output_path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(hydrated)
             print(f"✅ Generated: {rel_output}")
 
     # ---- Summary ----
     print(f"\n{'─' * 50}")
-    print(f"📊 Summary")
+    print("📊 Summary")
     print(f"   Templates:  {len(template_files)}")
     print(f"   Version:    {flat['VERSION']}")
     print(f"   Warnings:   {len(warnings)}")
     if check_only and drifted:
         print(f"   Drifted:    {len(drifted)}")
+    if not check_only and skipped:
+        print(f"   Skipped:    {len(skipped)} (Manual changes detected)")
     print(f"{'─' * 50}")
 
     if warnings:
@@ -576,30 +689,44 @@ def _run_watch():
     print(f"👀 Watching {IDENTITY_PATH} and {TEMPLATES_DIR} for changes...")
     # Initial run
     hydrate_manifests()
-    
+
     for changes in watch(IDENTITY_PATH, TEMPLATES_DIR):
         # changes is a set of (Change, path) tuples
-        print(f"\n🔔 Change detected. Re-hydrating...")
+        print("\n🔔 Change detected. Re-hydrating...")
         hydrate_manifests()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="MYTH Packaging Manifest Hydration Engine",
-        epilog="Run without arguments to generate all manifests from templates."
+        epilog="Run without arguments to generate all manifests from templates.",
     )
-    parser.add_argument("--check", action="store_true",
-                        help="CI mode: verify manifests are in sync (no writes)")
-    parser.add_argument("--validate", action="store_true",
-                        help="Validate meta.json and list available placeholders")
-    parser.add_argument("--watch", action="store_true",
-                        help="Watch identity.yaml and sync in real-time")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="CI mode: verify manifests are in sync (no writes)",
+    )
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Validate meta.json and list available placeholders",
+    )
+    parser.add_argument(
+        "--watch", action="store_true", help="Watch identity.yaml and sync in real-time"
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite drifted files even if manual changes are found",
+    )
     args = parser.parse_args()
 
     if args.watch:
         _run_watch()
     else:
-        ok = hydrate_manifests(check_only=args.check, validate_only=args.validate)
+        ok = hydrate_manifests(
+            check_only=args.check, validate_only=args.validate, force=args.force
+        )
         if ok:
             print("\n✨ Done.")
             sys.exit(0)

@@ -285,6 +285,13 @@
                 },
                 "legal_disclaimer": {
                     "type": "string"
+                },
+                "license_server_url": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "verification_pub_key": {
+                    "type": "string"
                 }
             }
         }

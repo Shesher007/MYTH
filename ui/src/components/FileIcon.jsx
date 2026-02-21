@@ -1,13 +1,10 @@
-import React from 'react';
-import { 
-    FileText, Code, Settings, Image as ImageIcon, Music, 
-    Video, FolderArchive, Shield, Database, Table, 
-    Terminal, BookOpen, Box, Lock, File, Folder,
-    Activity, Cpu, Globe, Boxes, HardDrive, RotateCcw,
-    Layers, Monitor, PenTool, ClipboardList, FileWarning,
+import {
+    FileText, Code, Image as ImageIcon, Music,
+    Video, FolderArchive, Shield, Database, Table,
+    Terminal, BookOpen, File, Folder,
+    Activity, Cpu, Globe, Boxes, RotateCcw,
+    Layers, PenTool, ClipboardList, FileWarning,
     Type, Key, Disc, Bug, Fingerprint, Search, Info,
-    ShieldCheck, EyeOff, Signal, Filter, BarChart3, 
-    Layout, Clock, Command, Zap,
     Smartphone, FlaskConical, Component,
     Brain, Coins, Cloud, Book
 } from 'lucide-react';

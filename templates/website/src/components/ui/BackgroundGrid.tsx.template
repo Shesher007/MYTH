@@ -1,0 +1,68 @@
+import { useRef, useEffect } from 'react'
+
+export default function BackgroundGrid() {
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+
+    useEffect(() => {
+        const canvas = canvasRef.current
+        if (!canvas) return
+
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+
+        let width = canvas.width = window.innerWidth
+        let height = canvas.height = window.innerHeight
+
+        const draw = () => {
+            if (!ctx) return
+
+            // Clear with trail effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
+            ctx.fillRect(0, 0, width, height)
+
+            ctx.strokeStyle = '{{BRANDING_PRIMARY}}'
+            ctx.lineWidth = 1
+            ctx.beginPath()
+
+            const gridSize = 40
+            const horizon = height * 0.6
+
+            // Vertical lines (perspective)
+            for (let x = 0; x <= width; x += gridSize * 2) {
+                // Perspective calculation
+                const x1 = (x - width / 2) * (horizon / height) + width / 2
+                ctx.moveTo(x1, horizon)
+                ctx.lineTo((x - width / 2) * 4 + width / 2, height)
+            }
+
+
+            ctx.stroke()
+
+            // Glow effect
+            ctx.shadowBlur = 20
+            ctx.shadowColor = '{{BRANDING_PRIMARY}}'
+
+            requestAnimationFrame(draw)
+        }
+
+        const handleResize = () => {
+            width = canvas.width = window.innerWidth
+            height = canvas.height = window.innerHeight
+        }
+
+        window.addEventListener('resize', handleResize)
+        const frame = requestAnimationFrame(draw)
+
+        return () => {
+            window.removeEventListener('resize', handleResize)
+            cancelAnimationFrame(frame)
+        }
+    }, [])
+
+    return (
+        <canvas
+            ref={canvasRef}
+            className="fixed inset-0 z-0 opacity-20 pointer-events-none"
+        />
+    )
+}

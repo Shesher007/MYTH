@@ -38,8 +38,6 @@ function App() {
     downloadFile,
     deleteGeneratedFile,
     renameFile,
-    setMessages,
-    setLogs,
     systemStatus,
 
     networkConnections,
@@ -55,7 +53,6 @@ function App() {
     toggleVpn,
     architectureMode,
     switchArchitecture,
-    systemProcesses,
     speakingMode,
     setSpeakingMode,
     settingsKeys,
@@ -63,8 +60,7 @@ function App() {
     purgeSession,
     notifications,
     dismissNotification,
-    clearAllNotifications,
-    addNotification
+    clearAllNotifications
   } = useAgent();
 
   const { playChirp, playTick, playSuccess } = useSoundscape();
@@ -72,7 +68,6 @@ function App() {
   const [isTopologyOpen, setIsTopologyOpen] = React.useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
-  const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
   const [activePreviewFile, setActivePreviewFile] = React.useState(null);
   const [activeView, setActiveView] = React.useState('chat'); // 'chat' or 'documentation'
@@ -128,14 +123,13 @@ function App() {
       description: 'Initiate full system diagnostic',
       run: () => { runSystemScan(); playSuccess(); }
     },
-  ], [setMessages, playSuccess, runSystemScan, setIsTopologyOpen]);
+  ], [playSuccess, runSystemScan, purgeSession]);
 
 
   // Responsive Window Observer
   React.useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      setWindowWidth(width);
       if (width < 1100 && !isSidebarCollapsed) {
         setIsSidebarCollapsed(true);
       }

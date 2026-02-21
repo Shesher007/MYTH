@@ -15,7 +15,7 @@
             This version installs the pre-compiled binary.
         </Description>
         <Archive sha1sum="SKIP" type="binary">
-            {{REPO_URL}}/releases/download/v{{VERSION}}/myth_{{VERSION}}_amd64.deb
+            {{REPO_URL}}/releases/download/v{{VERSION}}/{{NAME_LOWER}}_{{VERSION}}_amd64.deb
         </Archive>
     </Source>
     <Package>

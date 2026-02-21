@@ -7,7 +7,7 @@ arch=('x86_64')
 url="{{REPO_URL}}"
 license=('MIT')
 depends=('webkit2gtk' 'gtk3' 'libappindicator-gtk3' 'openssl')
-source=("{{REPO_URL}}/releases/download/v${pkgver}/myth_${pkgver}_amd64.deb")
+source=("{{REPO_URL}}/releases/download/v${pkgver}/{{NAME_LOWER}}_${pkgver}_amd64.deb")
 sha256sums=('SKIP')
 
 package() {

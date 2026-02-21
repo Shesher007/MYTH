@@ -1,10 +1,10 @@
-import json
-import asyncio
 import os
 import platform
 from datetime import datetime
-from myth_config import load_dotenv
+
 from langchain_core.tools import tool
+
+from myth_config import load_dotenv
 from tools.utilities.report import format_industrial_result
 
 load_dotenv()
@@ -12,6 +12,7 @@ load_dotenv()
 # ==============================================================================
 # 🧬 Advanced Malware Development & EDR Bypass Tools
 # ==============================================================================
+
 
 @tool
 async def indirect_syscall_mapper() -> str:
@@ -24,9 +25,9 @@ async def indirect_syscall_mapper() -> str:
         if not is_windows:
             return format_industrial_result("indirect_syscall_mapper", "Incompatible")
 
-        system_root = os.environ.get('SystemRoot', 'C:\\Windows')
-        ntdll_path = os.path.join(system_root, 'System32', 'ntdll.dll')
-        
+        system_root = os.environ.get("SystemRoot", "C:\\Windows")
+        ntdll_path = os.path.join(system_root, "System32", "ntdll.dll")
+
         # Generative Python Script for SSN Extraction
         python_script = """
 import pefile
@@ -58,10 +59,13 @@ if __name__ == "__main__":
             confidence=1.0,
             impact="HIGH",
             raw_data={"python_script": python_script},
-            summary=f"Python script generated to dynamically extract SSNs from {ntdll_path}."
+            summary=f"Python script generated to dynamically extract SSNs from {ntdll_path}.",
         )
     except Exception as e:
-        return format_industrial_result("indirect_syscall_mapper", "Error", error=str(e))
+        return format_industrial_result(
+            "indirect_syscall_mapper", "Error", error=str(e)
+        )
+
 
 @tool
 async def ghosting_viability_auditor() -> str:
@@ -72,22 +76,32 @@ async def ghosting_viability_auditor() -> str:
     try:
         is_windows = platform.system() == "Windows"
         if not is_windows:
-            return format_industrial_result("ghosting_viability_auditor", "Incompatible", summary="Process Ghosting is a Windows-specific technique.")
+            return format_industrial_result(
+                "ghosting_viability_auditor",
+                "Incompatible",
+                summary="Process Ghosting is a Windows-specific technique.",
+            )
 
         # Technical check: Attempt to create a transactional file handle
         # In a real tool, we would use the 'NtCreateTransaction' API.
         # Here we perform a logic-based filesystem capability check.
-        
-        test_path = os.path.join(os.environ.get('TEMP', 'C:\\Windows\\Temp'), f"ghost_{datetime.now().microsecond}")
+
+        test_path = os.path.join(
+            os.environ.get("TEMP", "C:\\Windows\\Temp"),
+            f"ghost_{datetime.now().microsecond}",
+        )
         txf_supported = False
-        
+
         try:
             # Industrial-grade TxF viability audit (Handle-based check)
-            with open(test_path, 'wb') as f:
+            with open(test_path, "wb") as f:
                 f.write(b"GHOST_PROBE")
             os.remove(test_path)
-            txf_supported = True # Target filesystem supports standard transactional primitives
-        except: pass
+            txf_supported = (
+                True  # Target filesystem supports standard transactional primitives
+            )
+        except Exception:
+            pass
 
         return format_industrial_result(
             "ghosting_viability_auditor",
@@ -95,7 +109,9 @@ async def ghosting_viability_auditor() -> str:
             confidence=0.8,
             impact="HIGH" if txf_supported else "LOW",
             raw_data={"txf_supported": txf_supported, "os": platform.system()},
-            summary=f"Process Ghosting viability audit complete for {platform.node()}. Status: {'VIABLE' if txf_supported else 'NOT VIABLE'}."
+            summary=f"Process Ghosting viability audit complete for {platform.node()}. Status: {'VIABLE' if txf_supported else 'NOT VIABLE'}.",
         )
     except Exception as e:
-        return format_industrial_result("ghosting_viability_auditor", "Error", error=str(e))
+        return format_industrial_result(
+            "ghosting_viability_auditor", "Error", error=str(e)
+        )

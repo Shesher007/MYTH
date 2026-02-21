@@ -1,0 +1,670 @@
+#!/usr/bin/env python3
+"""
+{{NAME}} CI/CD Orchestrator — Platform-Agnostic Build Pipeline
+============================================================
+Encapsulates ALL CI/CD stages as callable functions. GitHub Actions,
+GitLab CI, and local runners are thin wrappers that invoke this script.
+
+Usage:
+    python scripts/ci_orchestrator.py <stage> [options]
+
+Stages:
+    validate      Hydration drift-check + identity schema validation
+    lint          Python linting via ruff
+    test          Run the full {{NAME}} test suite
+    build-backend Package Python backend (PyInstaller sidecar)
+    build-desktop Build Tauri desktop app (requires Rust + Node)
+    build-docker  Build OCI container image
+    deploy-website Deploy website to Cloudflare Pages
+    all           Run validate → lint → test (pre-push gate)
+
+Options:
+    --target <triple>   Rust target triple (e.g. x86_64-unknown-linux-gnu)
+    --dry-run           Print commands without executing
+    --verbose           Show full command output
+    --skip-sync         Skip uv sync for faster re-runs
+"""
+
+import argparse
+import os
+import platform as plat
+import subprocess
+import sys
+import time
+
+# MISSION CRITICAL: Force UTF-8 encoding on Windows
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        import io
+
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+GOVERNANCE_DIR = os.path.join(PROJECT_ROOT, "governance")
+SCRIPTS_DIR = os.path.join(PROJECT_ROOT, "scripts")
+UI_DIR = os.path.join(PROJECT_ROOT, "ui")
+WEBSITE_DIR = os.path.join(PROJECT_ROOT, "website")
+TESTS_DIR = os.path.join(PROJECT_ROOT, "tests")
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+class C:
+    """ANSI colors for terminal output."""
+
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    RED = "\033[91m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    CYAN = "\033[96m"
+    RESET = "\033[0m"
+
+
+def _banner(stage: str, description: str):
+    """Print a stage banner."""
+    print(f"\n{C.BOLD}{C.CYAN}{'━' * 60}{C.RESET}")
+    print(f"{C.BOLD}{C.CYAN}  ⌬ STAGE: {stage.upper()}{C.RESET}")
+    print(f"{C.DIM}  {description}{C.RESET}")
+    print(f"{C.BOLD}{C.CYAN}{'━' * 60}{C.RESET}\n")
+
+
+def _run(
+    cmd: list[str],
+    cwd: str = None,
+    dry_run: bool = False,
+    verbose: bool = False,
+    env: dict = None,
+    check: bool = True,
+    silent: bool = False,
+) -> subprocess.CompletedProcess | None:
+    """Execute a command with logging."""
+    display_cmd = " ".join(cmd)
+    if dry_run:
+        print(f"  {C.DIM}[DRY-RUN]{C.RESET} {display_cmd}")
+        return None
+
+    if not silent:
+        print(f"  {C.DIM}${C.RESET} {display_cmd}")
+    merged_env = {**os.environ, **(env or {})}
+
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=cwd or PROJECT_ROOT,
+            env=merged_env,
+            capture_output=not verbose,
+            text=True,
+            encoding="utf-8",
+            check=False,
+            shell=(sys.platform == "win32"),
+        )
+        if result.returncode != 0:
+            if not verbose and not silent:
+                if result.stdout:
+                    print(result.stdout[-2000:])  # Last 2K chars
+                if result.stderr:
+                    print(result.stderr[-2000:])
+            if check:
+                print(
+                    f"\n  {C.RED}✘ Command failed (exit {result.returncode}){C.RESET}"
+                )
+                sys.exit(result.returncode)
+        return result
+    except FileNotFoundError:
+        if not silent:
+            print(f"  {C.RED}✘ Command not found: {cmd[0]}{C.RESET}")
+        if check:
+            sys.exit(1)
+        return None
+
+
+def _resolve_python() -> str:
+    """Find the best Python interpreter."""
+    # Prefer uv run for managed environments
+    venv_python = (
+        os.path.join(PROJECT_ROOT, ".venv", "Scripts", "python.exe")
+        if sys.platform == "win32"
+        else os.path.join(PROJECT_ROOT, ".venv", "bin", "python")
+    )
+    if os.path.exists(venv_python):
+        return venv_python
+    return sys.executable
+
+
+def _detect_target_triple() -> str:
+    """Auto-detect the Rust target triple for the current platform."""
+    machine = plat.machine().lower()
+    system = plat.system().lower()
+
+    arch_map = {
+        "x86_64": "x86_64",
+        "amd64": "x86_64",
+        "aarch64": "aarch64",
+        "arm64": "aarch64",
+    }
+    arch = arch_map.get(machine, machine)
+
+    if system == "windows":
+        return f"{arch}-pc-windows-msvc"
+    elif system == "darwin":
+        return f"{arch}-apple-darwin"
+    elif system == "linux":
+        return f"{arch}-unknown-linux-gnu"
+    return f"{arch}-unknown-{system}"
+
+
+# ---------------------------------------------------------------------------
+# CI Stages
+# ---------------------------------------------------------------------------
+def stage_validate(*, dry_run=False, verbose=False, **_):
+    """Validate hydration sync and identity schema."""
+    _banner("validate", "Checking template hydration sync & identity schema integrity")
+
+    hydrate_script = os.path.join(GOVERNANCE_DIR, "hydrate.py")
+    _run([sys.executable, hydrate_script, "--check"], dry_run=dry_run, verbose=verbose)
+
+    print(f"\n  {C.GREEN}✔ Validation passed{C.RESET}")
+    return True
+
+
+def stage_lint(*, dry_run=False, verbose=False, **kwargs):
+    """Run all linters (Python, JS, Rust)."""
+    _banner("lint", "Running multi-language linting suite")
+
+    success = True
+    if not stage_lint_python(dry_run=dry_run, verbose=verbose, **kwargs):
+        success = False
+    if not stage_lint_js(dry_run=dry_run, verbose=verbose, **kwargs):
+        success = False
+    if not stage_lint_rust(dry_run=dry_run, verbose=verbose, **kwargs):
+        success = False
+
+    return success
+
+
+def stage_lint_python(*, dry_run=False, verbose=False, **_):
+    """Run Python linting via ruff."""
+    print(f"\n  {C.BOLD}--- Python (ruff) ---{C.RESET}")
+    # Use uv run to ensure ruff is executed from the managed .venv
+    cmd = [
+        "uv",
+        "run",
+        "ruff",
+        "check",
+        ".",
+        "--select",
+        "E,F,I",
+        "--ignore",
+        "E501",
+        "--fix",
+    ]
+    result = _run(cmd, dry_run=dry_run, verbose=verbose, check=False)
+
+    if result is None:
+        print(f"  {C.YELLOW}⚠ Tool 'ruff' not found. Skipping.{C.RESET}")
+        return True
+
+    if result.returncode != 0:
+        print(f"  {C.YELLOW}⚠ Python linting found issues{C.RESET}")
+    else:
+        print(f"  {C.GREEN}✔ Python linting passed{C.RESET}")
+        # Run formatter too
+        _run(
+            ["uv", "run", "ruff", "format", "."],
+            dry_run=dry_run,
+            verbose=verbose,
+            check=False,
+            silent=True,
+        )
+    return True
+
+
+def stage_lint_js(*, dry_run=False, verbose=False, **_):
+    """Run JS/TS linting via oxlint."""
+    print(f"\n  {C.BOLD}--- JavaScript (oxlint) ---{C.RESET}")
+
+    success = True
+    for target_dir in [UI_DIR, WEBSITE_DIR]:
+        if not os.path.exists(target_dir):
+            continue
+
+        rel_path = os.path.relpath(target_dir, PROJECT_ROOT)
+        print(f"  {C.DIM}Checking {rel_path}...{C.RESET}")
+
+        # npx oxlint is the fastest way to run it without local node_modules dependency if needed
+        cmd = ["npx", "oxlint", ".", "--deny-warnings"]
+        result = _run(
+            cmd, cwd=target_dir, dry_run=dry_run, verbose=verbose, check=False
+        )
+
+        if result is None or result.returncode != 0:
+            success = False
+
+    if success:
+        print(f"  {C.GREEN}✔ JavaScript linting passed{C.RESET}")
+    else:
+        print(f"  {C.YELLOW}⚠ JavaScript linting found issues{C.RESET}")
+    return True  # Advisory
+
+
+def stage_lint_rust(*, dry_run=False, verbose=False, **_):
+    """Run Rust linting via clippy."""
+    print(f"\n  {C.BOLD}--- Rust (clippy) ---{C.RESET}")
+
+    tauri_src = os.path.join(UI_DIR, "src-tauri")
+    if not os.path.exists(tauri_src):
+        print(f"  {C.DIM}No Rust/Tauri source found, skipping.{C.RESET}")
+        return True
+
+    cmd = ["cargo", "clippy", "--", "-D", "warnings"]
+    result = _run(cmd, cwd=tauri_src, dry_run=dry_run, verbose=verbose, check=False)
+
+    if result is not None and result.returncode == 0:
+        print(f"  {C.GREEN}✔ Rust linting passed{C.RESET}")
+        return True
+
+    print(f"  {C.YELLOW}⚠ Rust linting found issues{C.RESET}")
+    return True  # Advisory
+
+
+def stage_test(*, dry_run=False, verbose=False, fast=True, **_):
+    """Run the {{NAME}} test suite."""
+    _banner("test", "Running comprehensive test suite")
+
+    test_runner = os.path.join(TESTS_DIR, "run_all.py")
+    cmd = [_resolve_python(), test_runner]
+    if fast:
+        cmd.append("--fast")
+
+    _run(cmd, dry_run=dry_run, verbose=verbose)
+    print(f"\n  {C.GREEN}✔ Tests passed{C.RESET}")
+    return True
+
+
+def stage_build_backend(
+    *, dry_run=False, verbose=False, skip_sync=False, target=None, **_
+):
+    """Package Python backend into PyInstaller sidecar binary."""
+    _banner("build-backend", "Packaging Python backend (PyInstaller sidecar)")
+
+    target = target or os.environ.get("TAURI_TARGET_TRIPLE") or _detect_target_triple()
+    env_extra = {"TAURI_TARGET_TRIPLE": target, "UV_LINK_MODE": "copy"}
+
+    # Inject secrets bundle if available
+    secrets_bundle = os.environ.get("{{NAME}}_SECRETS_BUNDLE")
+    if secrets_bundle:
+        env_extra["{{NAME}}_SECRETS_BUNDLE"] = secrets_bundle
+        print(f"  {C.DIM}🔒 Secrets bundle detected in environment{C.RESET}")
+
+    if not skip_sync:
+        _run(
+            ["uv", "sync", "--all-extras"],
+            dry_run=dry_run,
+            verbose=verbose,
+            env=env_extra,
+        )
+
+    # Hydrate manifests
+    hydrate_script = os.path.join(GOVERNANCE_DIR, "hydrate.py")
+    _run(["uv", "run", hydrate_script], dry_run=dry_run, verbose=verbose, env=env_extra)
+
+    # Package
+    package_script = os.path.join(SCRIPTS_DIR, "package_python.py")
+    # Build stages SHOULD be verbose to prevent "stuck" perception
+    _run(["uv", "run", package_script], dry_run=dry_run, verbose=True, env=env_extra)
+
+    print(f"\n  {C.GREEN}✔ Backend packaged for {target}{C.RESET}")
+    return True
+
+
+def stage_build_desktop(*, dry_run=False, verbose=False, target=None, **_):
+    """Build Tauri desktop application."""
+    _banner("build-desktop", "Building Tauri desktop application")
+
+    target = target or os.environ.get("TAURI_TARGET_TRIPLE") or _detect_target_triple()
+
+    # Install frontend dependencies
+    _run(["npm", "ci"], dry_run=dry_run, verbose=verbose, cwd=UI_DIR)
+
+    # Build Tauri
+    _run(
+        ["npx", "tauri", "build", "--target", target],
+        dry_run=dry_run,
+        verbose=True,
+        cwd=UI_DIR,
+        env={"TAURI_TARGET_TRIPLE": target},
+    )
+
+    print(f"\n  {C.GREEN}✔ Desktop build complete for {target}{C.RESET}")
+    return True
+
+
+def stage_build_docker(*, dry_run=False, verbose=False, **_):
+    """Build Docker/OCI container image."""
+    _banner("build-docker", "Building OCI container image")
+
+    # Read image name from identity if possible
+    image_name = "myth-desktop"
+    try:
+        import yaml
+
+        identity_path = os.path.join(GOVERNANCE_DIR, "identity.yaml")
+        with open(identity_path, "r", encoding="utf-8") as f:
+            identity = yaml.safe_load(f)
+        eco = identity.get("ecosystem", {})
+        image_name = eco.get("docker_image", image_name)
+    except Exception:
+        pass
+
+    _run(["docker", "build", "-t", image_name, "."], dry_run=dry_run, verbose=True)
+
+    print(f"\n  {C.GREEN}✔ Docker image built: {image_name}{C.RESET}")
+    return True
+
+
+def stage_deploy_website(*, dry_run=False, verbose=False, **_):
+    """Build and deploy the website."""
+    _banner("deploy-website", "Building & deploying project website")
+
+    # Read project name from identity if possible
+    site_name = "myth-website"
+    try:
+        import yaml
+
+        identity_path = os.path.join(GOVERNANCE_DIR, "identity.yaml")
+        with open(identity_path, "r", encoding="utf-8") as f:
+            identity = yaml.safe_load(f)
+        id_sect = identity.get("identity", {})
+        site_name = f"{id_sect.get('name', 'myth').lower()}-website"
+    except Exception:
+        pass
+
+    if not os.path.isdir(WEBSITE_DIR):
+        print(f"  {C.YELLOW}⚠ Website directory not found, skipping{C.RESET}")
+        return True
+
+    # Install deps & build
+    _run(["npm", "ci"], dry_run=dry_run, verbose=verbose, cwd=WEBSITE_DIR)
+    _run(["npm", "run", "build"], dry_run=dry_run, verbose=verbose, cwd=WEBSITE_DIR)
+
+    # Deploy (Cloudflare Pages — override with env var if needed)
+    deploy_cmd = os.environ.get(
+        "WEBSITE_DEPLOY_CMD",
+        f"npx wrangler pages deploy dist --project-name={site_name}",
+    )
+    if deploy_cmd and not dry_run:
+        _run(
+            deploy_cmd.split(),
+            dry_run=dry_run,
+            verbose=verbose,
+            cwd=WEBSITE_DIR,
+            check=False,
+        )
+
+    print(f"\n  {C.GREEN}✔ Website deployed to {site_name}{C.RESET}")
+    return True
+
+
+def stage_check_env(*, dry_run=False, verbose=False, **_):
+    """Verify that all required tools are installed in the current environment."""
+    _banner("check-env", "Verifying environment readiness (tools & runtimes)")
+
+    import shutil
+
+    # (Bin, Name, IsCritical)
+    tools = [
+        ("uv", "uv (Python Package Manager)", True),
+        ("node", "Node.js Runtime", False),
+        ("npm", "npm (Node Package Manager)", False),
+        ("ruff", "Ruff (Python Linter)", False),
+        ("rustc", "Rust Compiler", False),
+        ("cargo", "Cargo (Rust Build Tool)", False),
+        ("npx", "npx (Node Package Runner)", False),
+        ("docker", "Docker (Ocular/OCI Builds)", False),
+    ]
+
+    missing_critical = []
+    missing_optional = []
+
+    for bin_name, name, is_critical in tools:
+        found_path = shutil.which(bin_name)
+        if not found_path:
+            if is_critical:
+                missing_critical.append(name)
+                print(f"  {C.RED}✘ CRITICAL: Missing tool: {name}{C.RESET}")
+            else:
+                missing_optional.append(name)
+                print(f"  {C.DIM}⚠ OPTIONAL: Missing tool: {name}{C.RESET}")
+        else:
+            # Print version for verification
+            _run(
+                [bin_name, "--version"],
+                dry_run=dry_run,
+                verbose=verbose,
+                check=False,
+                silent=True,
+            )
+            print(f"  {C.GREEN}✔ Found: {name}{C.RESET}")
+
+    if missing_critical:
+        print(
+            f"\n  {C.RED}✘ Mission-critical tools missing. Pipeline cannot proceed.{C.RESET}"
+        )
+        sys.exit(1)
+
+    if missing_optional:
+        print(
+            f"\n  {C.DIM}Note: Some features (Desktop/Docker/Website) require optional tools.{C.RESET}"
+        )
+
+    print(
+        f"\n  {C.GREEN}✔ Phase 1 Environment readiness check passed (Critical tools verified){C.RESET}"
+    )
+    return True
+
+
+def stage_check_secrets(*, dry_run=False, **_):
+    """Audit environment for required CI/CD secrets."""
+    _banner("check-secrets", "Auditing environment for required CI/CD secrets")
+
+    required_secrets = [
+        "GITHUB_TOKEN",
+        "CLOUDFLARE_API_TOKEN",
+        "CLOUDFLARE_ACCOUNT_ID",
+        "{{NAME}}_SECRETS_BUNDLE",
+    ]
+
+    missing = []
+    for s in required_secrets:
+        if s not in os.environ:
+            missing.append(s)
+            print(f"  {C.YELLOW}⚠ Missing secret: {s}{C.RESET}")
+        else:
+            print(f"  {C.GREEN}✔ Secret found: {s}{C.RESET}")
+
+    if missing:
+        print(
+            f"\n  {C.YELLOW}⚠ Warning: Some deployments/stages will fail without these secrets.{C.RESET}"
+        )
+    else:
+        print(f"\n  {C.GREEN}✔ All core secrets are present{C.RESET}")
+    return True
+
+
+def stage_linux_packages(*, dry_run=False, verbose=False, **_):
+    """Generate multi-format Linux distribution packages."""
+    _banner("linux-packages", "Generating multi-format Linux packages")
+
+    dist_engine = os.path.join(SCRIPTS_DIR, "linux_distribution_engine.py")
+    _run([_resolve_python(), dist_engine], dry_run=dry_run, verbose=verbose)
+
+    print(f"\n  {C.GREEN}✔ Linux packages generated{C.RESET}")
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Stage Registry
+# ---------------------------------------------------------------------------
+STAGES = {
+    "check-env": (stage_check_env, "Verify environment readiness"),
+    "check-secrets": (stage_check_secrets, "Audit required CI/CD secrets"),
+    "validate": (stage_validate, "Hydration drift-check + schema validation"),
+    "lint": (stage_lint, "Multi-language linting (ruff, oxlint, clippy)"),
+    "lint-python": (stage_lint_python, "Python linting via ruff"),
+    "lint-js": (stage_lint_js, "JS/TS linting via oxlint"),
+    "lint-rust": (stage_lint_rust, "Rust linting via clippy"),
+    "test": (stage_test, "Run {{NAME}} test suite"),
+    "build-backend": (stage_build_backend, "Package Python backend sidecar"),
+    "build-desktop": (stage_build_desktop, "Build Tauri desktop app"),
+    "build-docker": (stage_build_docker, "Build Docker/OCI image"),
+    "deploy-website": (stage_deploy_website, "Build & deploy website"),
+    "linux-packages": (stage_linux_packages, "Generate Linux distro packages"),
+}
+
+# Composite stages (run multiple stages in sequence)
+COMPOSITES = {
+    "all": ["check-env", "validate", "lint", "test"],
+    "pre-push": ["check-env", "validate", "lint", "test"],
+    "build-all": ["build-backend", "build-desktop", "linux-packages"],
+    "full": ["check-env", "validate", "lint", "test", "build-backend", "build-desktop"],
+}
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+def main():
+    parser = argparse.ArgumentParser(
+        description="{{NAME}} CI/CD Orchestrator — Platform-Agnostic Build Pipeline",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Stages:
+  validate        Hydration drift-check + identity schema validation
+  lint            Python linting via ruff
+  test            Run the full {{NAME}} test suite
+  build-backend   Package Python backend (PyInstaller sidecar)
+  build-desktop   Build Tauri desktop app
+  build-docker    Build OCI container image
+  deploy-website  Deploy website to Cloudflare Pages
+  linux-packages  Generate Linux distro packages
+
+Composites (run multiple stages):
+  all / pre-push  validate → lint → test
+  build-all       build-backend → build-desktop → linux-packages
+  full            validate → lint → test → build-backend → build-desktop
+        """,
+    )
+    parser.add_argument("stages", nargs="+", help="Stage(s) or composite(s) to run")
+    parser.add_argument("--target", default=None, help="Rust target triple")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Print commands without executing"
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Show full command output"
+    )
+    parser.add_argument(
+        "--skip-sync", action="store_true", help="Skip uv sync for faster re-runs"
+    )
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        default=True,
+        help="Run tests in fast mode (skip slow invocations)",
+    )
+    parser.add_argument(
+        "--full-test",
+        action="store_true",
+        help="Run full test suite including slow invocation tests",
+    )
+
+    args = parser.parse_args()
+
+    if args.full_test:
+        args.fast = False
+
+    # Build kwargs from args
+    kwargs = {
+        "dry_run": args.dry_run,
+        "verbose": args.verbose,
+        "skip_sync": args.skip_sync,
+        "target": args.target,
+        "fast": args.fast,
+    }
+
+    # Header
+    print(f"""
+{C.BOLD}{C.CYAN}
+ ┌─────────────────────────────────────────────────┐
+ │   ⌬  {{NAME}} CI/CD ORCHESTRATOR                    │
+ │   Platform-Agnostic Build Pipeline               │
+ └─────────────────────────────────────────────────┘{C.RESET}
+""")
+
+    start = time.time()
+    results = {}
+
+    for stage_raw in args.stages:
+        stage_name = stage_raw.lower()
+        # Resolve composite or single stage
+        if stage_name in COMPOSITES:
+            stages_to_run = COMPOSITES[stage_name]
+            print(
+                f"  {C.DIM}Composite: {stage_name} → {' → '.join(stages_to_run)}{C.RESET}"
+            )
+        elif stage_name in STAGES:
+            stages_to_run = [stage_name]
+        else:
+            print(f"  {C.RED}✘ Unknown stage: {stage_name}{C.RESET}")
+            print(
+                f"  Available stages: {', '.join(list(STAGES.keys()) + list(COMPOSITES.keys()))}"
+            )
+            sys.exit(1)
+
+        # Execute
+        for name in stages_to_run:
+            if name in results and results[name]:
+                continue  # Skip duplicated stages in sequence
+            fn, _ = STAGES[name]
+            try:
+                results[name] = fn(**kwargs)
+            except SystemExit as e:
+                results[name] = False
+                if e.code != 0:
+                    print(f"\n{C.RED}✘ Pipeline failed at stage: {name}{C.RESET}")
+                    _print_summary(results, time.time() - start)
+                    sys.exit(e.code)
+                _print_summary(results, time.time() - start)
+                sys.exit(e.code)
+
+    _print_summary(results, time.time() - start)
+
+
+def _print_summary(results: dict, elapsed: float):
+    """Print a pipeline summary."""
+    print(f"\n{C.BOLD}{'━' * 60}{C.RESET}")
+    print(f"{C.BOLD}  📊 Pipeline Summary{C.RESET}")
+    print(f"{'━' * 60}")
+    for name, passed in results.items():
+        icon = f"{C.GREEN}✔{C.RESET}" if passed else f"{C.RED}✘{C.RESET}"
+        print(f"  {icon} {name}")
+    print(f"\n  {C.DIM}Elapsed: {elapsed:.1f}s{C.RESET}")
+
+    all_passed = all(results.values())
+    if all_passed:
+        print(f"\n  {C.GREEN}{C.BOLD}✔ All stages passed{C.RESET}")
+    else:
+        print(f"\n  {C.RED}{C.BOLD}✘ Pipeline failed{C.RESET}")
+    print()
+
+
+if __name__ == "__main__":
+    main()

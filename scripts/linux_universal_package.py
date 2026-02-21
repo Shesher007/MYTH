@@ -1,15 +1,16 @@
+import json
 import os
 import shutil
 import tarfile
-import json
 from pathlib import Path
+
 
 def create_universal_package():
     # Paths
     project_root = Path(__file__).parent.parent
     src_tauri = project_root / "ui" / "src-tauri"
     dist_dir = project_root / "dist_universal"
-    
+
     # Load version from tauri.conf.json
     with open(src_tauri / "tauri.conf.json", "r") as f:
         config = json.load(f)
@@ -33,7 +34,7 @@ def create_universal_package():
     if not release_bin.exists():
         # Try different possible names
         release_bin = src_tauri / "target" / "release" / product_name
-    
+
     if release_bin.exists():
         shutil.copy2(release_bin, bin_dir / product_name.lower())
         os.chmod(bin_dir / product_name.lower(), 0o755)
@@ -65,6 +66,7 @@ Comment=Multi-Yield Tactical Hub — Autonomous AI Cybersecurity Agent
         tar.add(app_dir, arcname=app_dir.name)
 
     print(f"✅ Universal package created: {output_filename}")
+
 
 if __name__ == "__main__":
     create_universal_package()

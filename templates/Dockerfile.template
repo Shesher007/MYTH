@@ -1,8 +1,8 @@
 # {{NAME}} Desktop — OCI/Container Image (Feature 16/Modern Atomic support)
 # Version: {{VERSION}}
 # Author:  {{AUTHOR}}
-# Build: docker build -t myth-desktop .
-# Run (X11): docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix myth-desktop
+# Build: docker build -t {{NAME_LOWER}}-desktop .
+# Run (X11): docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix {{NAME_LOWER}}-desktop
 
 FROM ubuntu:22.04
 
@@ -23,8 +23,8 @@ RUN apt-get update && apt-get install -y \
 
 # Add application binary and resources
 # In CI, we copy the release binary
-COPY ui/src-tauri/target/release/myth /usr/bin/myth
-RUN chmod +x /usr/bin/myth
+COPY ui/src-tauri/target/release/{{NAME_LOWER}} /usr/bin/{{NAME_LOWER}}
+RUN chmod +x /usr/bin/{{NAME_LOWER}}
 
 # Default command
-CMD ["/usr/bin/myth"]
+CMD ["/usr/bin/{{NAME_LOWER}}"]

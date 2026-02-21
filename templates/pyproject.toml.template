@@ -55,6 +55,13 @@ dependencies = [
     "sqlalchemy[asyncio]",
     "docker",
     "xxhash",
+    "ujson",
+    "qrcode",
+    "faker",
+    "xmltodict",
+    "audioop-lts; python_version >= '3.13'",
+    "oauth2client<4.0.0",
+    "jsonschema",
 ]
 
 [project.optional-dependencies]
@@ -68,7 +75,8 @@ recon = [
     "nmapthon2",
     "duckduckgo-search",
     "beautifulsoup4",
-    "requests"
+    "requests",
+    "streamlit"
 ]
 forensics = [
     "pypdfium2",
@@ -93,7 +101,8 @@ forensics = [
 intelligence = [
     "tavily-python",
     "wikipedia",
-    "google-search-results"
+    "google-search-results",
+    "langchain-google-community"
 ]
 rag = [
     "qdrant-client",
@@ -109,6 +118,12 @@ rag = [
 ]
 audio = [
     "google-generativeai"
+]
+cloud = [
+    "boto3"
+]
+exploitation = [
+    "pwntools"
 ]
 ml = [
     "torch",
@@ -127,6 +142,7 @@ ml = [
 build = [
     "pyinstaller>=6.0",
     "pyinstaller-hooks-contrib",
+    "ruff",
 ]
 
 [tool.uv]

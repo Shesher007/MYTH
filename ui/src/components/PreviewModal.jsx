@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Maximize2, FileText, Code, Terminal, Shield, Folder, File, HardDrive, Files, AlertTriangle, Clock, Activity, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { X, Maximize2 } from 'lucide-react';
 import FileIcon from './FileIcon';
 
 // Industrial Audio Visualizer Component
@@ -37,7 +37,7 @@ const AudioVisualizer = ({ src }) => {
                 source.connect(analyser);
                 analyser.connect(audioContext.destination);
                 analyser.fftSize = 256;
-                
+
                 const bufferLength = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferLength);
                 const canvas = canvasRef.current;
@@ -61,7 +61,7 @@ const AudioVisualizer = ({ src }) => {
                         const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
                         gradient.addColorStop(0, '#14b8a6'); // Teal
                         gradient.addColorStop(1, '#a855f7'); // Purple
-                        
+
                         ctx.fillStyle = gradient;
                         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
 
@@ -73,7 +73,7 @@ const AudioVisualizer = ({ src }) => {
         };
 
         const handlePlay = () => {
-             if (audioContext && audioContext.state === 'suspended') {
+            if (audioContext && audioContext.state === 'suspended') {
                 audioContext.resume();
             }
             if (!audioContext) initAudioContext();
@@ -109,17 +109,17 @@ const AudioVisualizer = ({ src }) => {
 
     return (
         <div className="w-full max-w-lg bg-black/40 border border-white/10 rounded-xl p-6 backdrop-blur-sm shadow-[0_0_30px_rgba(20,184,166,0.05)]">
-            <canvas 
-                ref={canvasRef} 
-                width={460} 
-                height={100} 
+            <canvas
+                ref={canvasRef}
+                width={460}
+                height={100}
                 className="w-full h-24 mb-6 rounded bg-[#0a0a0a] border border-white/5"
             />
-            
+
             <audio ref={audioRef} src={src} crossOrigin="anonymous" className="hidden" />
 
             <div className="flex items-center gap-4">
-                <button 
+                <button
                     onClick={togglePlay}
                     className="w-10 h-10 rounded-full bg-teal-500/10 hover:bg-teal-500/20 flex items-center justify-center text-teal-400 transition-all border border-teal-500/20 hover:scale-105 active:scale-95"
                 >
@@ -127,21 +127,21 @@ const AudioVisualizer = ({ src }) => {
                 </button>
 
                 <div className="flex-1 flex flex-col gap-1">
-                     <div className="flex justify-between text-[9px] font-mono text-slate-500 font-black tracking-wider">
+                    <div className="flex justify-between text-[9px] font-mono text-slate-500 font-black tracking-wider">
                         <span>{formatTime(currentTime)}</span>
                         <span>{formatTime(duration || 0)}</span>
-                     </div>
-                     <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <motion.div 
+                    </div>
+                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div
                             className="h-full bg-teal-500 rounded-full"
                             style={{ width: `${(currentTime / duration) * 100}%` }}
                             transition={{ type: "tween", ease: "linear", duration: 0.1 }}
                         />
-                     </div>
+                    </div>
                 </div>
             </div>
 
-             <div className="flex justify-center mt-4">
+            <div className="flex justify-center mt-4">
                 <span className="text-[8px] font-mono text-teal-500/40 uppercase tracking-[0.4em] animate-pulse">
                     Live Spectrogram Analysis
                 </span>
@@ -151,7 +151,7 @@ const AudioVisualizer = ({ src }) => {
 };
 
 const PreviewModal = ({ isOpen, onClose, file }) => {
-    const [viewMode, setViewMode] = useState('standard'); 
+    const [viewMode, setViewMode] = useState('standard');
 
     useEffect(() => {
         // Automatically switch to Hex if it's binary or if no standard preview is available
@@ -159,7 +159,7 @@ const PreviewModal = ({ isOpen, onClose, file }) => {
         if (!hasStandard && file?.hex_dump) {
             setViewMode('hex');
         } else if (file?.is_binary && !file?.preview) {
-             setViewMode('hex');
+            setViewMode('hex');
         } else {
             setViewMode('standard');
         }
@@ -171,14 +171,14 @@ const PreviewModal = ({ isOpen, onClose, file }) => {
 
     const renderFullPreview = () => {
         // Check for media types using extensions and MIME
-        const isAudio = name?.match(/\.(wav|mp3|ogg|flac|m4a|aac|opus|wma)$/i) || 
-                       file?.content?.type?.startsWith('audio/') || 
-                       mime_type?.startsWith('audio/');
-        
-        const isImage = name?.match(/\.(jpg|jpeg|png|gif|webp|svg|jfif|avif|apng|pjpeg|pjp|ico|bmp|heif)$/i) || 
-                       file?.content?.type?.startsWith('image/') || 
-                       mime_type?.startsWith('image/');
-        
+        const isAudio = name?.match(/\.(wav|mp3|ogg|flac|m4a|aac|opus|wma)$/i) ||
+            file?.content?.type?.startsWith('audio/') ||
+            mime_type?.startsWith('audio/');
+
+        const isImage = name?.match(/\.(jpg|jpeg|png|gif|webp|svg|jfif|avif|apng|pjpeg|pjp|ico|bmp|heif)$/i) ||
+            file?.content?.type?.startsWith('image/') ||
+            mime_type?.startsWith('image/');
+
         if (viewMode === 'hex' && hex_dump) {
             return (
                 <div className="flex-1 bg-[#050508] p-8 overflow-auto custom-scrollbar-minimal">
@@ -207,21 +207,21 @@ const PreviewModal = ({ isOpen, onClose, file }) => {
                         <div className="w-24 h-24 rounded-full bg-black/60 flex items-center justify-center border border-white/10">
                             <div className="text-teal-400 animate-pulse">
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                                    <line x1="12" x2="12" y1="19" y2="22"/>
+                                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                                    <line x1="12" x2="12" y1="19" y2="22" />
                                 </svg>
                             </div>
                         </div>
                     </div>
                     <h3 className="text-lg font-black text-white uppercase tracking-[0.2em] mb-2">{name}</h3>
                     <p className="text-[10px] text-slate-500 font-mono tracking-widest mb-8">VOICE_INTEL_BUFFER</p>
-                    
+
                     <AudioVisualizer src={preview} />
                 </div>
             );
         }
-        
+
         if (isImage && preview) {
             return (
                 <div className="flex-1 flex items-center justify-center p-8 bg-[#020205] overflow-auto">
@@ -378,7 +378,7 @@ const PreviewModal = ({ isOpen, onClose, file }) => {
                             <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
                                 Direct visual rendering is unavailable. Manual forensic inspection is required for deep analysis.
                             </p>
-                            <button 
+                            <button
                                 onClick={() => setViewMode('hex')}
                                 className="px-8 py-2.5 bg-teal-500/10 border border-teal-500/30 rounded text-teal-400 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-teal-500/20 transition-all shadow-lg shadow-teal-500/5 pulse-glow"
                             >
@@ -387,7 +387,7 @@ const PreviewModal = ({ isOpen, onClose, file }) => {
                         </div>
                     ) : (
                         <p className="mt-8 text-[11px] text-red-500/60 font-mono uppercase tracking-[0.2em]">
-                            Forensic Stream Offline // Inaccessible 
+                            Forensic Stream Offline // Inaccessible
                         </p>
                     )}
                 </div>
@@ -426,14 +426,14 @@ const PreviewModal = ({ isOpen, onClose, file }) => {
                             <div className="flex items-center gap-2">
                                 {hex_dump && (
                                     <div className="flex bg-black/40 p-1 rounded-lg border border-white/10 mr-4">
-                                        <button 
+                                        <button
                                             onClick={() => setViewMode('standard')}
                                             className={`px-3 py-1 rounded text-[9px] font-black uppercase tracking-widest transition-all ${viewMode === 'standard' ? 'bg-teal-500 text-black shadow-[0_0_10px_rgba(20,184,166,0.5)]' : 'text-slate-500 hover:text-slate-300'}`}
                                             disabled={is_binary && !preview && !contentSnippet}
                                         >
                                             Standard
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => setViewMode('hex')}
                                             className={`px-3 py-1 rounded text-[9px] font-black uppercase tracking-widest transition-all ${viewMode === 'hex' ? 'bg-purple-500 text-white shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'text-slate-500 hover:text-slate-300'}`}
                                         >

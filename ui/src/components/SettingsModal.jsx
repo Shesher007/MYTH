@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    X, Shield, Cpu, Key, Save, AlertTriangle, Eye, EyeOff,
+    X, Shield, Cpu, Key, Eye, EyeOff,
     CheckCircle2, CircleDashed, Search, Database, Globe,
-    Target, Zap, Plus, Trash2, Settings2, RefreshCw,
+    Target, Zap, Plus, Trash2, RefreshCw,
     Network, LayoutGrid, Fingerprint
 } from 'lucide-react';
 import { useSoundscape } from '../hooks/useSoundscape';
@@ -146,7 +146,7 @@ const SettingsModal = ({ isOpen, onClose, settingsKeys, onSave }) => {
             return String(data).includes('...') ? undefined : data;
         };
 
-        const updates = cleanPayload(localSecrets);
+        cleanPayload(localSecrets);
 
         const success = await onSave({ updates: localSecrets }); // Send full for now, backend merges
         setIsSaving(false);
@@ -646,7 +646,7 @@ const ProviderCard = ({ provider, category, data, onUpdate }) => {
     );
 };
 
-const PairInput = ({ provider, item, isVisible, onChange, fields }) => {
+const PairInput = ({ provider: _provider, item, isVisible, onChange, fields }) => {
     return (
         <div className="grid grid-cols-2 gap-4">
             {fields.map(f => (

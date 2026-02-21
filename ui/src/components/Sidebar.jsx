@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Terminal, Activity, Cpu, Trash2, Folder, Download, RefreshCw, FileText, Code, Settings, AlertCircle, ShieldAlert, ChevronLeft, ChevronRight, Eye, Edit3, Book } from 'lucide-react';
+import { Shield, Terminal, Activity, Cpu, Trash2, Download, RefreshCw, Settings, AlertCircle, ShieldAlert, ChevronLeft, ChevronRight, Eye, Edit3, Book } from 'lucide-react';
 import FileIcon, { getFileIconDetails } from './FileIcon';
 import { useSoundscape } from '../hooks/useSoundscape';
 import VpnController from './VpnController';
@@ -215,7 +215,7 @@ const Sidebar = ({
             full_name: 'Multi-Yield Tactical Hub',
             version: '...',
             codename: 'LOADING...',
-            org: 'MYTH Tools'
+            org: 'MYTH'
         }
     };
 
@@ -298,10 +298,6 @@ const Sidebar = ({
         onPreviewFile(previewData);
     };
 
-    const handleClear = () => {
-        playChirp();
-        onClearMessages();
-    };
 
     return (
         <aside className={`sidebar relative bg-[#010103] selection:bg-teal-500/30 transition-all duration-500 overflow-hidden h-full ${isCollapsed ? 'collapsed w-0' : 'w-[var(--sidebar-width)]'}`}>
@@ -354,7 +350,7 @@ const Sidebar = ({
                             <div className="flex items-center gap-2 mt-2">
                                 <div className="w-1 h-2 bg-teal-500/30"></div>
                                 <p className="text-[8px] text-teal-500 font-extrabold uppercase tracking-[0.4em] opacity-90 whitespace-nowrap">
-                                    V{statsData.identity.version} // {statsData.identity.org.toUpperCase()}
+                                    V1.1.6 // {statsData.identity.org.toUpperCase()}
                                 </p>
                             </div>
                         </div>

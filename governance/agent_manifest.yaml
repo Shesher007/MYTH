@@ -791,7 +791,7 @@ session_governance:
 
 # --- GOVERNANCE & COMPLIANCE ---
 governance:
-  license: "PROPRIETARY - OMEGA-ULTIMATE-v1"
+  license: "Pro-Elite"
   data_retention_policy: "INFINITE-OFFENSIVE-INTEL"
   pii_redaction: false
   audit_logging: true

@@ -1,12 +1,15 @@
-from myth_config import load_dotenv
-load_dotenv()
-
-from langchain_core.tools import tool
+import hashlib
 import json
 import os
-import hashlib
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
+
+from langchain_core.tools import tool
+
+from myth_config import load_dotenv
+
+load_dotenv()
+
 
 @tool
 def generate_security_report(
@@ -14,13 +17,13 @@ def generate_security_report(
     findings: str,
     vulnerabilities: str,
     recommendations: str,
-    report_format: str = "markdown"
+    report_format: str = "markdown",
 ) -> str:
     """
     Generate a professional-grade security assessment report.
     Useful for: Summarizing findings, vulnerabilities, and providing actionable recommendations.
     **OUTPUT: Saved automatically to 'asset_inventory/'**
-    
+
     Parameters:
     - target_info: JSON string or text describing the scanned target.
     - findings: List of key observations during the assessment.
@@ -32,9 +35,9 @@ def generate_security_report(
     try:
         now = datetime.now()
         report_id = f"MYTH-REPORT-{now.strftime('%Y%m%d%H%M%S')}"
-        
+
         # Structure the report
-        report_content = f"""# SECURITY ASSESSMENT REPORT: {report_id}
+        report_content = """# SECURITY ASSESSMENT REPORT: {report_id}
 **Date**: {now.strftime('%Y-%m-%d')}
 **System**: MYTH Pentesting Agent
 
@@ -62,21 +65,22 @@ This report summarizes the results of the security assessment performed on the t
         os.makedirs(outputs_dir, exist_ok=True)
         report_filename = f"{report_id}.md"
         report_path = os.path.join(outputs_dir, report_filename)
-        
+
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(report_content)
-            
+
         result = {
             "status": "success",
             "report_id": report_id,
             "report_path": report_path,
-            "message": f"Professional security report generated: {report_filename}"
+            "message": f"Professional security report generated: {report_filename}",
         }
-        
+
         return json.dumps(result, indent=2)
-        
+
     except Exception as e:
         return f"Error generating report: {str(e)}"
+
 
 def format_industrial_result(
     tool_name: str,
@@ -85,7 +89,7 @@ def format_industrial_result(
     impact: str = "Low",
     raw_data: Any = None,
     summary: str = "",
-    error: str = None
+    error: str = None,
 ) -> str:
     """
     Standardized industry-grade tool response format for OMEGA-PRIME.
@@ -96,32 +100,35 @@ def format_industrial_result(
             "timestamp": datetime.now().isoformat(),
             "status": status,
             "confidence_score": confidence,
-            "impact_rating": impact
+            "impact_rating": impact,
         },
         "mission_data": raw_data if raw_data is not None else {},
         "tactical_report": summary,
-        "operational_status": "MISSION_FAILURE" if error else "MISSION_SUCCESS"
+        "operational_status": "MISSION_FAILURE" if error else "MISSION_SUCCESS",
     }
     if error:
         response["error_diagnostics"] = {
             "reason": error,
             "code": "EXEC_ERR_01",
-            "suggestion": "Check connectivity or target availability."
+            "suggestion": "Check connectivity or target availability.",
         }
-    
+
     return json.dumps(response, indent=2)
 
+
 @tool
-def dynamic_dashboard_generator(mission_name: str, findings: List[Dict[str, Any]]) -> str:
+def dynamic_dashboard_generator(
+    mission_name: str, findings: List[Dict[str, Any]]
+) -> str:
     """
     Generates a professional, reactive HTML dashboard to visualize tool outputs and mission status.
     Industry-grade for high-fidelity situational awareness and reporting.
     """
     try:
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
         # Simple functional HTML template for industrial dashboarding
-        html_content = f"""
+        html_content = """
         <!DOCTYPE html>
         <html>
         <head>
@@ -153,25 +160,28 @@ def dynamic_dashboard_generator(mission_name: str, findings: List[Dict[str, Any]
         </body>
         </html>
         """
-        
+
         output_dir = "asset_inventory"
         os.makedirs(output_dir, exist_ok=True)
         filename = f"dashboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
         path = os.path.join(output_dir, filename)
-        
+
         with open(path, "w", encoding="utf-8") as f:
             f.write(html_content)
-            
+
         return format_industrial_result(
             "dynamic_dashboard_generator",
             "Dashboard Generated",
             confidence=1.0,
             impact="LOW",
             raw_data={"path": path, "mission": mission_name},
-            summary=f"Dynamic HTML dashboard for mission '{mission_name}' has been generated: {filename}"
+            summary=f"Dynamic HTML dashboard for mission '{mission_name}' has been generated: {filename}",
         )
     except Exception as e:
-        return format_industrial_result("dynamic_dashboard_generator", "Error", error=str(e))
+        return format_industrial_result(
+            "dynamic_dashboard_generator", "Error", error=str(e)
+        )
+
 
 @tool
 def multi_format_exporter(data: Any, format_type: str = "json") -> str:
@@ -185,13 +195,14 @@ def multi_format_exporter(data: Any, format_type: str = "json") -> str:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"export_{timestamp}.{format_type}"
         path = os.path.join(output_dir, filename)
-        
+
         if format_type == "json":
             with open(path, "w") as f:
                 json.dump(data, f, indent=4)
         elif format_type == "csv":
             # Simple functional CSV export logic
             import csv
+
             if isinstance(data, list) and len(data) > 0:
                 keys = data[0].keys()
                 with open(path, "w", newline="") as f:
@@ -202,17 +213,18 @@ def multi_format_exporter(data: Any, format_type: str = "json") -> str:
             # Logic for industrial PDF generation
             with open(path, "w") as f:
                 f.write(f"INDUSTRIAL SECURITY REPORT\nMISSION DATA: {str(data)}")
-        
+
         return format_industrial_result(
             "multi_format_exporter",
             "Export Complete",
             confidence=1.0,
             impact="LOW",
             raw_data={"path": path, "format": format_type},
-            summary=f"Data exported to {format_type} format successfully: {filename}"
+            summary=f"Data exported to {format_type} format successfully: {filename}",
         )
     except Exception as e:
         return format_industrial_result("multi_format_exporter", "Error", error=str(e))
+
 
 @tool
 def apex_impact_predictor(discovery_artifacts: List[Dict[str, Any]]) -> str:
@@ -225,31 +237,56 @@ def apex_impact_predictor(discovery_artifacts: List[Dict[str, Any]]) -> str:
         results = []
         for art in discovery_artifacts:
             # High-fidelity DREAD scoring
-            damage = 10 if art.get("severity", "").upper() == "CRITICAL" else 7 if art.get("severity", "").upper() == "HIGH" else 4
-            reproducibility = 8 # Defaults for detected vulns
+            damage = (
+                10
+                if art.get("severity", "").upper() == "CRITICAL"
+                else 7
+                if art.get("severity", "").upper() == "HIGH"
+                else 4
+            )
+            reproducibility = 8  # Defaults for detected vulns
             exploitability = 7
             affected_users = 6
             discoverability = 9
-            
-            dread_score = (damage + reproducibility + exploitability + affected_users + discoverability) / 5
-            
-            results.append({
-                "finding": art.get("summary", "Unknown Finding"),
-                "dread_score": round(dread_score, 2),
-                "priority": "CRITICAL" if dread_score > 8 else "HIGH" if dread_score > 6 else "MEDIUM",
-                "metrics": {"D": damage, "R": reproducibility, "E": exploitability, "A": affected_users, "De": discoverability}
-            })
-            
+
+            dread_score = (
+                damage
+                + reproducibility
+                + exploitability
+                + affected_users
+                + discoverability
+            ) / 5
+
+            results.append(
+                {
+                    "finding": art.get("summary", "Unknown Finding"),
+                    "dread_score": round(dread_score, 2),
+                    "priority": "CRITICAL"
+                    if dread_score > 8
+                    else "HIGH"
+                    if dread_score > 6
+                    else "MEDIUM",
+                    "metrics": {
+                        "D": damage,
+                        "R": reproducibility,
+                        "E": exploitability,
+                        "A": affected_users,
+                        "De": discoverability,
+                    },
+                }
+            )
+
         return format_industrial_result(
             "apex_impact_predictor",
             "Scoring Complete",
             confidence=1.0,
             impact="LOW",
             raw_data={"impact_profiles": results},
-            summary=f"DREAD risk assessment finished for {len(discovery_artifacts)} artifacts. Identified {len([r for r in results if r['priority'] == 'CRITICAL'])} critical impact nodes."
+            summary=f"DREAD risk assessment finished for {len(discovery_artifacts)} artifacts. Identified {len([r for r in results if r['priority'] == 'CRITICAL'])} critical impact nodes.",
         )
     except Exception as e:
         return format_industrial_result("apex_impact_predictor", "Error", error=str(e))
+
 
 @tool
 def resonance_global_aggregator(mission_reports: List[Dict[str, Any]]) -> str:
@@ -260,28 +297,39 @@ def resonance_global_aggregator(mission_reports: List[Dict[str, Any]]) -> str:
     try:
         seen_hashes = set()
         unique_findings = []
-        
+
         for report in mission_reports:
             for finding in report.get("findings", []):
                 # Create hash-based fingerprint for deduplication
-                fingerprint = hashlib.sha256(f"{finding.get('tool')}{finding.get('summary')}".encode()).hexdigest()
+                fingerprint = hashlib.sha256(
+                    f"{finding.get('tool')}{finding.get('summary')}".encode()
+                ).hexdigest()
                 if fingerprint not in seen_hashes:
                     seen_hashes.add(fingerprint)
                     unique_findings.append(finding)
-        
+
         return format_industrial_result(
             "resonance_global_aggregator",
             "Aggregation Complete",
             confidence=1.0,
             impact="LOW",
-            raw_data={"total_merged": len(unique_findings), "findings": unique_findings},
-            summary=f"Global aggregation finished. Merged {len(mission_reports)} reports into {len(unique_findings)} unique intelligence nodes."
+            raw_data={
+                "total_merged": len(unique_findings),
+                "findings": unique_findings,
+            },
+            summary=f"Global aggregation finished. Merged {len(mission_reports)} reports into {len(unique_findings)} unique intelligence nodes.",
         )
     except Exception as e:
-        return format_industrial_result("resonance_global_aggregator", "Error", error=str(e))
+        return format_industrial_result(
+            "resonance_global_aggregator", "Error", error=str(e)
+        )
+
 
 @tool
-def predictive_report_synthesizer(current_findings: List[Dict[str, Any]], historical_context: Optional[Dict[str, Any]] = None) -> str:
+def predictive_report_synthesizer(
+    current_findings: List[Dict[str, Any]],
+    historical_context: Optional[Dict[str, Any]] = None,
+) -> str:
     """
     Industry-grade trend analysis engine. Synthesizes current findings with frequency data.
     Weaponized for absolute strategic foresight.
@@ -291,17 +339,20 @@ def predictive_report_synthesizer(current_findings: List[Dict[str, Any]], histor
         severity_dist = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
         for f in current_findings:
             sev = f.get("severity", "LOW").upper()
-            if sev in severity_dist: severity_dist[sev] += 1
-            
+            if sev in severity_dist:
+                severity_dist[sev] += 1
+
         risk_trend = "EXPONENTIAL" if severity_dist["CRITICAL"] > 2 else "STABLE"
-        
+
         return format_industrial_result(
             "predictive_report_synthesizer",
             "Synthesis Success",
             confidence=0.92,
             impact="MEDIUM",
             raw_data={"trend": risk_trend, "distribution": severity_dist},
-            summary=f"Predictive synthesis finished. Identified {risk_trend} risk trajectory based on current finding distribution."
+            summary=f"Predictive synthesis finished. Identified {risk_trend} risk trajectory based on current finding distribution.",
         )
     except Exception as e:
-        return format_industrial_result("predictive_report_synthesizer", "Error", error=str(e))
+        return format_industrial_result(
+            "predictive_report_synthesizer", "Error", error=str(e)
+        )

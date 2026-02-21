@@ -4,13 +4,14 @@ test_mcp_client.py — Test the MCP client infrastructure.
 Tests: SSE_CONFIGS validation, MCPManager instantiation,
        TitanSessionPool singleton, utility functions.
 """
-import sys
+
 import os
+import sys
 import time
 import traceback
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from conftest import ResultTracker, Status, C, safe_import
+from conftest import C, ResultTracker, Status, safe_import
 
 
 def run(tracker: ResultTracker = None):
@@ -43,10 +44,15 @@ def run(tracker: ResultTracker = None):
         for key, cfg in configs.items():
             missing = required_keys - set(cfg.keys())
             if missing:
-                tracker.record(f"SSE_CONFIGS['{key}'] missing: {missing}", Status.FAIL, 0)
+                tracker.record(
+                    f"SSE_CONFIGS['{key}'] missing: {missing}", Status.FAIL, 0
+                )
             else:
-                tracker.record(f"SSE_CONFIGS['{key}'] → port {cfg['port']}, {cfg['name']}",
-                              Status.PASS, 0)
+                tracker.record(
+                    f"SSE_CONFIGS['{key}'] → port {cfg['port']}, {cfg['name']}",
+                    Status.PASS,
+                    0,
+                )
 
         # Check for port collisions
         ports = [cfg["port"] for cfg in configs.values()]
@@ -54,10 +60,14 @@ def run(tracker: ResultTracker = None):
             dupes = [p for p in ports if ports.count(p) > 1]
             tracker.record(f"Port collision detected: {set(dupes)}", Status.FAIL, 0)
         else:
-            tracker.record(f"No port collisions ({len(ports)} unique ports)", Status.PASS, 0)
+            tracker.record(
+                f"No port collisions ({len(ports)} unique ports)", Status.PASS, 0
+            )
 
-    except Exception as e:
-        tracker.record("SSE_CONFIGS validation", Status.FAIL, 0, error=traceback.format_exc())
+    except Exception:
+        tracker.record(
+            "SSE_CONFIGS validation", Status.FAIL, 0, error=traceback.format_exc()
+        )
 
     # --- MCPManager ---
     print(f"\n  {C.CYAN}{C.BOLD}▸ MCPManager{C.RESET}")
@@ -67,8 +77,14 @@ def run(tracker: ResultTracker = None):
         tracker.record("MCPManager class exists", Status.PASS, 0)
 
         # Check it has expected methods
-        expected_methods = ["bootstrap", "ensure_server_running", "shutdown",
-                           "_purge_zombies", "_watchdog_loop", "_is_server_healthy"]
+        expected_methods = [
+            "bootstrap",
+            "ensure_server_running",
+            "shutdown",
+            "_purge_zombies",
+            "_watchdog_loop",
+            "_is_server_healthy",
+        ]
         for method in expected_methods:
             if hasattr(mgr_cls, method):
                 tracker.record(f"MCPManager.{method}() exists", Status.PASS, 0)
@@ -80,7 +96,7 @@ def run(tracker: ResultTracker = None):
             tracker.record("Global manager instance exists", Status.PASS, 0)
         else:
             tracker.record("Global manager instance is None", Status.WARN, 0)
-    except Exception as e:
+    except Exception:
         tracker.record("MCPManager", Status.FAIL, 0, error=traceback.format_exc())
 
     # --- TitanSessionPool ---
@@ -96,7 +112,11 @@ def run(tracker: ResultTracker = None):
         if pool1 is pool2:
             tracker.record("TitanSessionPool singleton pattern works", Status.PASS, 0)
         else:
-            tracker.record("TitanSessionPool singleton broken (different instances)", Status.FAIL, 0)
+            tracker.record(
+                "TitanSessionPool singleton broken (different instances)",
+                Status.FAIL,
+                0,
+            )
 
         # Check methods
         for method in ["get_session", "purge_session", "shutdown"]:
@@ -105,7 +125,7 @@ def run(tracker: ResultTracker = None):
             else:
                 tracker.record(f"TitanSessionPool.{method}() missing", Status.FAIL, 0)
 
-    except Exception as e:
+    except Exception:
         tracker.record("TitanSessionPool", Status.FAIL, 0, error=traceback.format_exc())
 
     # --- Utility Functions ---
@@ -116,9 +136,15 @@ def run(tracker: ResultTracker = None):
         fn = mod._refine_category
         result = fn("nmap_scanner", "uncategorized")
         assert isinstance(result, str)
-        tracker.record(f"_refine_category('nmap_scanner', 'uncategorized') → '{result}'", Status.PASS, 0)
-    except Exception as e:
-        tracker.record("_refine_category()", Status.FAIL, 0, error=traceback.format_exc())
+        tracker.record(
+            f"_refine_category('nmap_scanner', 'uncategorized') → '{result}'",
+            Status.PASS,
+            0,
+        )
+    except Exception:
+        tracker.record(
+            "_refine_category()", Status.FAIL, 0, error=traceback.format_exc()
+        )
 
     # _sanitize_schema
     try:
@@ -126,19 +152,21 @@ def run(tracker: ResultTracker = None):
         result = fn({"type": "object", "properties": {"test": {"type": "string"}}})
         assert isinstance(result, dict)
         tracker.record("_sanitize_schema(dict) works", Status.PASS, 0)
-        
-        result_none = fn(None)
-        tracker.record("_sanitize_schema(None) works", Status.PASS, 0)
-    except Exception as e:
-        tracker.record("_sanitize_schema()", Status.FAIL, 0, error=traceback.format_exc())
 
-    # _is_port_open  
+        fn(None)
+        tracker.record("_sanitize_schema(None) works", Status.PASS, 0)
+    except Exception:
+        tracker.record(
+            "_sanitize_schema()", Status.FAIL, 0, error=traceback.format_exc()
+        )
+
+    # _is_port_open
     try:
         fn = mod._is_port_open
         result = fn(99999)  # Should return False (no server on this port)
-        assert result == False, f"Expected False for port 99999, got {result}"
+        assert result is False, f"Expected False for port 99999, got {result}"
         tracker.record("_is_port_open(99999) → False", Status.PASS, 0)
-    except Exception as e:
+    except Exception:
         tracker.record("_is_port_open()", Status.FAIL, 0, error=traceback.format_exc())
 
     # _get_config_fingerprint
@@ -148,8 +176,10 @@ def run(tracker: ResultTracker = None):
         assert isinstance(fp, str)
         assert len(fp) > 0
         tracker.record(f"_get_config_fingerprint() → {fp[:16]}...", Status.PASS, 0)
-    except Exception as e:
-        tracker.record("_get_config_fingerprint()", Status.FAIL, 0, error=traceback.format_exc())
+    except Exception:
+        tracker.record(
+            "_get_config_fingerprint()", Status.FAIL, 0, error=traceback.format_exc()
+        )
 
     # mcp_common
     start = time.time()

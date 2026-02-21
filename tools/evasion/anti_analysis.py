@@ -1,11 +1,10 @@
-import json
-import asyncio
 import os
 import platform
+
 import psutil
-from datetime import datetime
-from myth_config import load_dotenv
 from langchain_core.tools import tool
+
+from myth_config import load_dotenv
 from tools.utilities.report import format_industrial_result
 
 load_dotenv()
@@ -13,6 +12,7 @@ load_dotenv()
 # ==============================================================================
 # 🕵️ Anti-Analysis & Sandbox Evasion Red Team Tools
 # ==============================================================================
+
 
 @tool
 async def sandbox_evasion_prober() -> str:
@@ -22,36 +22,74 @@ async def sandbox_evasion_prober() -> str:
     """
     try:
         findings = []
-        is_windows = platform.system() == "Windows"
-        
+        # Industrial Grade: Check architecture for anti-debugging characteristics
+
         # 1. Hardware Metrics (Deep Check)
         cores = os.cpu_count()
         if cores is not None and cores <= 2:
-            findings.append({"check": "CPU Core", "status": "FAIL", "detail": f"{cores} cores (Suspicious)"})
-        
+            findings.append(
+                {
+                    "check": "CPU Core",
+                    "status": "FAIL",
+                    "detail": f"{cores} cores (Suspicious)",
+                }
+            )
+
         # Disk Size via psutil
         try:
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
             disk_gb = disk.total / (1024**3)
             if disk_gb < 60:
-                findings.append({"check": "Disk Size", "status": "FAIL", "detail": f"{round(disk_gb, 2)} GB (Likely Sandbox)"})
+                findings.append(
+                    {
+                        "check": "Disk Size",
+                        "status": "FAIL",
+                        "detail": f"{round(disk_gb, 2)} GB (Likely Sandbox)",
+                    }
+                )
         except (psutil.AccessDenied, PermissionError):
-            findings.append({"check": "Disk Size", "status": "INCONCLUSIVE", "detail": "Access Denied"})
-        except Exception: pass
+            findings.append(
+                {
+                    "check": "Disk Size",
+                    "status": "INCONCLUSIVE",
+                    "detail": "Access Denied",
+                }
+            )
+        except Exception:
+            pass
 
         # RAM Size
         try:
             ram = psutil.virtual_memory().total / (1024**3)
             if ram < 4:
-                findings.append({"check": "RAM Size", "status": "FAIL", "detail": f"{round(ram, 2)} GB (Suspicious)"})
-        except Exception: pass
+                findings.append(
+                    {
+                        "check": "RAM Size",
+                        "status": "FAIL",
+                        "detail": f"{round(ram, 2)} GB (Suspicious)",
+                    }
+                )
+        except Exception:
+            pass
 
         # 3. Process Artifacts (Updated)
-        vm_artifacts = ["vboxservice.exe", "vboxtray.exe", "vmtoolsd.exe", "vmwaretray.exe", "qemu-ga.exe"]
+        vm_artifacts = [
+            "vboxservice.exe",
+            "vboxtray.exe",
+            "vmtoolsd.exe",
+            "vmwaretray.exe",
+            "qemu-ga.exe",
+        ]
         try:
-            for proc in psutil.process_iter(['name']):
-                if proc.info['name'] and proc.info['name'].lower() in vm_artifacts:
-                    findings.append({"check": "Artifact", "status": "FAIL", "detail": f"VM Service: {proc.info['name']}"})
+            for proc in psutil.process_iter(["name"]):
+                if proc.info["name"] and proc.info["name"].lower() in vm_artifacts:
+                    findings.append(
+                        {
+                            "check": "Artifact",
+                            "status": "FAIL",
+                            "detail": f"VM Service: {proc.info['name']}",
+                        }
+                    )
         except (psutil.AccessDenied, psutil.NoSuchProcess):
             pass
 
@@ -61,10 +99,13 @@ async def sandbox_evasion_prober() -> str:
             confidence=0.95,
             impact="HIGH" if findings else "LOW",
             raw_data={"metrics": {"cores": cores}, "findings": findings},
-            summary=f"Anti-analysis audit finished. Result: {'CRITICAL: Sandbox environment identified!' if findings else 'Environment matches physical host characteristics.'}"
+            summary=f"Anti-analysis audit finished. Result: {'CRITICAL: Sandbox environment identified!' if findings else 'Environment matches physical host characteristics.'}",
         )
     except Exception as e:
-        return format_industrial_result("sandbox_evasion_prober", "Runtime Failure", error=str(e))
+        return format_industrial_result(
+            "sandbox_evasion_prober", "Runtime Failure", error=str(e)
+        )
+
 
 @tool
 async def payload_entropy_auditor(payload_hex: str) -> str:
@@ -74,19 +115,20 @@ async def payload_entropy_auditor(payload_hex: str) -> str:
     """
     try:
         # Robustness Pass: Input Validation
-        if not all(c in '0123456789abcdefABCDEF' for c in payload_hex):
-             raise ValueError("Invalid hex character sequence in payload.")
-             
+        if not all(c in "0123456789abcdefABCDEF" for c in payload_hex):
+            raise ValueError("Invalid hex character sequence in payload.")
+
         data = bytes.fromhex(payload_hex)
         if not data:
             raise ValueError("Payload is empty or improperly formatted.")
 
         import math
+
         # Frequency calculation
         freqs = {}
         for b in data:
             freqs[b] = freqs.get(b, 0) + 1
-        
+
         # Shannon Entropy
         entropy = 0
         for count in freqs.values():
@@ -99,14 +141,24 @@ async def payload_entropy_auditor(payload_hex: str) -> str:
             confidence=1.0,
             impact="MEDIUM",
             raw_data={"entropy": round(entropy, 2), "payload_len": len(data)},
-            summary=f"Entropy analysis for payload finalized. Score: {round(entropy, 2)}. {'WARNING: High entropy may trigger AV flagging.' if entropy > 7.0 else 'Entropy level looks normal.'}"
+            summary=f"Entropy analysis for payload finalized. Score: {round(entropy, 2)}. {'WARNING: High entropy may trigger AV flagging.' if entropy > 7.0 else 'Entropy level looks normal.'}",
         )
     except ValueError as e:
-        return format_industrial_result("payload_entropy_auditor", "Validation Error", error=str(e))
+        return format_industrial_result(
+            "payload_entropy_auditor", "Validation Error", error=str(e)
+        )
     except (MemoryError, OverflowError):
-        return format_industrial_result("payload_entropy_auditor", "Resource Error", error="Payload too large for memory processing.")
+        return format_industrial_result(
+            "payload_entropy_auditor",
+            "Resource Error",
+            error="Payload too large for memory processing.",
+        )
     except Exception as e:
-        return format_industrial_result("payload_entropy_auditor", "Internal Error", error=str(e))
+        return format_industrial_result(
+            "payload_entropy_auditor", "Internal Error", error=str(e)
+        )
+
+
 @tool
 async def instrumentation_bypass_prober() -> str:
     """
@@ -116,7 +168,9 @@ async def instrumentation_bypass_prober() -> str:
     try:
         is_windows = platform.system() == "Windows"
         if not is_windows:
-             return format_industrial_result("instrumentation_bypass_prober", "Incompatible")
+            return format_industrial_result(
+                "instrumentation_bypass_prober", "Incompatible"
+            )
 
         # Generative C++ Logic for ETW/AMSI Bypass
         cpp_code = """
@@ -160,7 +214,9 @@ int main() {
             confidence=1.0,
             impact="CRITICAL",
             raw_data={"cpp_source": cpp_code},
-            summary="Instrumentation bypass C++ patcher generated. Code neutralizes AMSI and ETW via memory patching."
+            summary="Instrumentation bypass C++ patcher generated. Code neutralizes AMSI and ETW via memory patching.",
         )
     except Exception as e:
-        return format_industrial_result("instrumentation_bypass_prober", "Error", error=str(e))
+        return format_industrial_result(
+            "instrumentation_bypass_prober", "Error", error=str(e)
+        )

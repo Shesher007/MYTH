@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-import os
-import sys
-import zipfile
-import tarfile
-import urllib.request
 import shutil
 import subprocess
+import sys
+import tarfile
+import urllib.request
+import zipfile
 from pathlib import Path
 
 # --- Configuration ---
@@ -21,8 +20,9 @@ NODE_TARGET_DIR = BINARIES_DIR / "nodejs"
 URLS = {
     "win32": f"https://nodejs.org/dist/v{NODE_VERSION}/node-v{NODE_VERSION}-win-x64.zip",
     "linux": f"https://nodejs.org/dist/v{NODE_VERSION}/node-v{NODE_VERSION}-linux-x64.tar.xz",
-    "darwin": f"https://nodejs.org/dist/v{NODE_VERSION}/node-v{NODE_VERSION}-darwin-x64.tar.gz"
+    "darwin": f"https://nodejs.org/dist/v{NODE_VERSION}/node-v{NODE_VERSION}-darwin-x64.tar.gz",
 }
+
 
 def install_node_runtime():
     """Download and set up a portable Node.js runtime."""
@@ -55,7 +55,7 @@ def install_node_runtime():
     print(f"  [EXTRACT] Extracting to {NODE_TARGET_DIR}...")
     if NODE_TARGET_DIR.exists():
         shutil.rmtree(NODE_TARGET_DIR)
-    
+
     temp_extract_dir = BINARIES_DIR / "node_temp"
     if temp_extract_dir.exists():
         shutil.rmtree(temp_extract_dir)
@@ -63,12 +63,12 @@ def install_node_runtime():
 
     try:
         if archive_name.endswith(".zip"):
-            with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+            with zipfile.ZipFile(archive_path, "r") as zip_ref:
                 zip_ref.extractall(temp_extract_dir)
         else:
-            with tarfile.open(archive_path, 'r:*') as tar_ref:
+            with tarfile.open(archive_path, "r:*") as tar_ref:
                 tar_ref.extractall(temp_extract_dir)
-        
+
         # Move the inner folder to the final target
         extracted_dirs = [d for d in temp_extract_dir.iterdir() if d.is_dir()]
         if extracted_dirs:
@@ -100,6 +100,7 @@ def install_node_runtime():
     else:
         print(f"  [ERROR] Verification failed: node binary not found at {node_exe}")
         return False
+
 
 if __name__ == "__main__":
     if install_node_runtime():

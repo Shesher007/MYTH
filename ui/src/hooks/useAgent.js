@@ -35,7 +35,7 @@ export const useAgent = () => {
         metrics: { cpu: 0, ram: 0, disk: 0, tools: 0, latency: '0ms', network_ping: -1 },
         components: { agent: 'INIT', rag: 'INIT', mcp: 'INIT' },
         os: 'UNKNOWN', ip: '127.0.0.1', hostname: 'NODE_LOCAL_01', uptime: '0h 0m',
-        identity: { name: 'MYTH', full_name: 'Multi-Yield Tactical Hub', version: '...', codename: 'LOADING...', org: 'MYTH Tools' }
+        identity: { name: 'MYTH', full_name: '', version: '1.1.6', codename: 'myth', org: 'MYTH' }
     });
 
     const [networkConnections, setNetworkConnections] = useState([]);
@@ -44,7 +44,6 @@ export const useAgent = () => {
     const [localNotifications, setLocalNotifications] = useState([]);
     const [systemSessions, setSystemSessions] = useState([]);
     const [systemProcesses, setSystemProcesses] = useState([]);
-    const [complianceReport, setComplianceReport] = useState(null);
     const [isScanning, setIsScanning] = useState(false);
     const [vpnStatus, setVpnStatus] = useState({ connected: false, active_node: null, throughput_tx: 0, throughput_rx: 0, uptime: '0h 0m', ip_virtual: '0.0.0.0' });
     const [vpnNodes, setVpnNodes] = useState([]);
@@ -94,7 +93,7 @@ export const useAgent = () => {
             try {
                 audioContext.current._currentSource.stop();
                 audioContext.current._currentSource = null;
-            } catch (e) { /* ignore */ }
+            } catch { /* ignore */ }
         }
         audioQueue.current = [];
         isPlayingAudio.current = false;
@@ -135,7 +134,7 @@ export const useAgent = () => {
         try {
             const res = await fetch(`${API_BASE}/settings/keys`);
             if (res.ok) setSettingsKeys(await res.json());
-        } catch (err) { console.error("Fetch setting keys err:", err); }
+        } catch { console.error("Fetch setting keys err"); }
     }, []);
 
     const updateSettingsKeys = useCallback(async (keys) => {
@@ -149,7 +148,7 @@ export const useAgent = () => {
                 await fetchSettingsKeys();
                 return true;
             }
-        } catch (err) { console.error("Update setting keys err:", err); }
+        } catch { console.error("Update setting keys err"); }
         return false;
     }, [fetchSettingsKeys]);
 
@@ -196,7 +195,7 @@ export const useAgent = () => {
                 // headers: { 'Content-Type': 'multipart/form-data' }, // FIXED: Let browser set boundary!
                 onUploadProgress: (progressEvent) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                    onProgress && onProgress(percentCompleted);
+                    if (onProgress) onProgress(percentCompleted);
                 }
             };
 
@@ -355,7 +354,7 @@ export const useAgent = () => {
                     for (let i = 0; i < bStr.length; i++) bts[i] = bStr.charCodeAt(i);
                     audioContext.current.decodeAudioData(bts.buffer).then(decoded => {
                         audioQueue.current[0] = { buffer: decoded };
-                    }).catch(err => console.error("Pre-decode failed:", err));
+                    }).catch(() => console.error("Pre-decode failed"));
                 }
             }
 
@@ -368,7 +367,7 @@ export const useAgent = () => {
 
     // --- 5. STREAM LOGIC ---
 
-    const sendMessage = useCallback(async (text, attachments = [], sessionId = null) => {
+    const sendMessage = useCallback(async (text, attachments = []) => {
         if (!text.trim() && attachments.length === 0) return;
 
         // Halt any existing audio and previous sockets immediately
@@ -381,7 +380,7 @@ export const useAgent = () => {
             try {
                 audioContext.current._currentSource.stop();
                 audioContext.current._currentSource = null;
-            } catch (e) { /* ignore */ }
+            } catch { /* ignore */ }
         }
         audioQueue.current = [];
         isPlayingAudio.current = false;
@@ -567,8 +566,8 @@ export const useAgent = () => {
                 }
             };
 
-            socket.onerror = (err) => {
-                console.error("🔌 [WS] Socket Pulse Failure:", err);
+            socket.onerror = () => {
+                console.error("🔌 [WS] Socket Pulse Failure");
                 setStreamStatus('ERROR');
                 setIsProcessing(false);
                 setCurrentStatus('Error');
@@ -726,8 +725,8 @@ export const useAgent = () => {
                 setTimeout(connectSystemTelemetry, 5000);
             };
 
-            socket.onerror = (err) => {
-                console.error("📊 [TELEMETRY] Pulse Failure:", err);
+            socket.onerror = () => {
+                console.error("📊 [TELEMETRY] Pulse Failure");
                 socket.close();
             };
         };
@@ -798,7 +797,7 @@ export const useAgent = () => {
         messages, sendMessage, isProcessing, currentStatus, activeNode, activeModel, usedTools, logs, setLogs, thoughts, thinkingStartTime,
         stopGeneration, uploadDocument, generatedFiles, downloadFile, deleteGeneratedFile, renameFile,
         indexFolder, browseFolder, getFolderSummary, setMessages, systemStatus, networkConnections, securityAlerts,
-        clearAlerts, isolateNode, systemSessions, complianceReport, isScanning, runSystemScan,
+        clearAlerts, isolateNode, systemSessions, isScanning, runSystemScan,
         vpnStatus, vpnNodes, toggleVpn, architectureMode, switchArchitecture, fetchArchitecture,
         speakingMode, setSpeakingMode, settingsKeys, fetchSettingsKeys, updateSettingsKeys, uploadFileWithProgress,
         streamStatus, indexingProgress, systemProcesses, purgeSession,

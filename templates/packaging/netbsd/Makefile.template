@@ -4,7 +4,7 @@
 DISTNAME=       {{NAME_LOWER}}-{{VERSION}}
 CATEGORIES=     security net
 MASTER_SITES=   {{REPO_URL}}/releases/download/v{{VERSION}}/
-DISTFILES=      myth_{{VERSION}}_amd64.deb
+DISTFILES=      {{NAME_LOWER}}_{{VERSION}}_amd64.deb
 
 MAINTAINER=     {{EMAIL}}
 HOMEPAGE=       {{HOMEPAGE}}
@@ -16,7 +16,7 @@ DEPENDS+=       python3>=3.10:../../lang/python310
 NO_BUILD=       yes
 
 do-install:
-	${INSTALL_PROGRAM} ${DISTDIR}/myth_{{VERSION}}_amd64.deb \
+	${INSTALL_PROGRAM} ${DISTDIR}/{{NAME_LOWER}}_{{VERSION}}_amd64.deb \
 		${DESTDIR}${PREFIX}/bin/{{NAME_LOWER}}
 
 .include "../../mk/bsd.pkg.mk"

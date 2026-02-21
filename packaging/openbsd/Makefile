@@ -3,7 +3,7 @@
 
 COMMENT =       Multi-Yield Tactical Hub — AI Cybersecurity Agent (Binary)
 
-V =             1.1.1
+V =             1.1.6
 DISTNAME =      myth-${V}
 
 CATEGORIES =    security net
