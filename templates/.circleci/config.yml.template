@@ -33,6 +33,8 @@ jobs:
       - run:
           name: Validate Hydration
           command: uv run python scripts/ci_orchestrator.py validate --verbose
+      - store_test_results:
+          path: tests/
 
   lint:
     executor: linux-executor
@@ -51,6 +53,8 @@ jobs:
       - run:
           name: Run Linters
           command: uv run python scripts/ci_orchestrator.py lint --verbose
+      - store_test_results:
+          path: tests/
 
   test:
     executor: linux-executor

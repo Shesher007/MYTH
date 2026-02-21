@@ -57,6 +57,21 @@ TESTS_DIR = os.path.join(PROJECT_ROOT, "tests")
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+def _write_junit_success(stage_name: str):
+    """Write a minimal success JUnit XML to satisfy CI systems and overwrite stale fails."""
+    filename = os.path.join(PROJECT_ROOT, "tests", f"{stage_name.replace('-', '_')}_results.xml")
+    os.makedirs(os.path.dirname(os.path.abspath(filename)), exist_ok=True)
+    xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="{stage_name}" tests="1" failures="0" skipped="0" time="0.001">
+    <testcase name="stage_{stage_name}_passed" classname="ci_orchestrator" time="0.001" />
+  </testsuite>
+</testsuites>
+"""
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(xml)
+
+
 class C:
     """ANSI colors for terminal output."""
 
@@ -173,6 +188,7 @@ def stage_validate(*, dry_run=False, verbose=False, **_):
     _run([sys.executable, hydrate_script, "--check"], dry_run=dry_run, verbose=verbose)
 
     print(f"\n  {C.GREEN}✔ Validation passed{C.RESET}")
+    _write_junit_success("validate")
     return True
 
 
@@ -188,6 +204,8 @@ def stage_lint(*, dry_run=False, verbose=False, **kwargs):
     if not stage_lint_rust(dry_run=dry_run, verbose=verbose, **kwargs):
         success = False
 
+    if success:
+        _write_junit_success("lint")
     return success
 
 
