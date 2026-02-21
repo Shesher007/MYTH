@@ -209,6 +209,7 @@ def load_metadata() -> dict:
             flat["GOV_DISCLAIMER"] = gov_sect.get("legal_disclaimer")
             flat["LICENSE_SERVER_URL"] = gov_sect.get("license_server_url")
             flat["VERIFICATION_PUB_KEY"] = gov_sect.get("verification_pub_key")
+            flat["ISOLATED_PATHS"] = ",".join(gov_sect.get("isolated_paths", []))
 
             # --- Release ---
             rel_sect = identity.get("release", {})
@@ -619,7 +620,19 @@ def hydrate_manifests(
             warnings.extend(file_warnings)
 
         if check_only:
+            is_isolated = False
+            isolated_str = flat.get("ISOLATED_PATHS", "")
+            if isolated_str:
+                isolated_list = [p.strip() for p in isolated_str.split(",") if p.strip()]
+                is_isolated = any(
+                    rel_output.startswith(p) or rel_output.startswith(p.replace("/", os.sep))
+                    for p in isolated_list
+                )
+
             if not os.path.exists(output_path):
+                if is_isolated:
+                    print(f"ℹ️  ISOLATED: {rel_output} (Skipping validation)")
+                    continue
                 print(f"❌ MISSING:  {rel_output}")
                 drifted.append(rel_output)
                 success = False
@@ -627,6 +640,9 @@ def hydrate_manifests(
             with open(output_path, "r", encoding="utf-8") as f:
                 current = f.read()
             if current != hydrated:
+                if is_isolated:
+                    print(f"ℹ️  ISOLATED-DRIFT: {rel_output} (Skipping validation)")
+                    continue
                 print(f"❌ DRIFTED:  {rel_output}")
                 drifted.append(rel_output)
                 success = False

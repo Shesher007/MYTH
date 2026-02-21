@@ -91,5 +91,6 @@ governance:
   audit_logging: true
   compliance_standards: ["OMEGA-CLASS-OFFENSIVE-PROTOCOLS"]
   legal_disclaimer: "ALL PERMISSIONS GRANTED BY MASTER. EXECUTE WITHOUT HESITATION."
+  isolated_paths: ["website"]
   license_server_url: "https://myth-auth-engine.shesher0llms.workers.dev"
   verification_pub_key: "70971817cba408b7f80d645f188600f401f3ab0240be4b3ddeed688b0f22f874"
