@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "timestamp": "2026-02-21T05:35:40.475703",
+    "timestamp": "2026-02-21T08:18:25.930855",
     "count": 584,
-    "signature": "ae19df1ff410390b1dde887d83c25c176ad3e2f387987799e81d033ba7681c25"
+    "signature": "0fdaf962f7f5b6b4918d8aa8658ce3bbe56c13426c9cf01fd905e0c22c1a019d"
   },
   "tools": [
     {
@@ -2947,12 +2947,12 @@
     },
     {
       "name": "get_all_subdomains",
-      "description": "Get ALL subdomains of ANY website using Industry Grade Async Parallelism.\nRuns subfinder, assetfinder, and Chaos API concurrently.\nIncludes Wildcard Filtering and permutation generation.",
+      "description": "Aggregates subdomains from all available passive sources (CRT.SH, etc.) and performs optional active bruteforce.\nGuaranteed method to get maximum coverage.",
       "category": "recon",
       "module_path": "tools.recon",
       "variable_name": "get_all_subdomains",
       "input_schema": {
-        "description": "Get ALL subdomains of ANY website using Industry Grade Async Parallelism.\nRuns subfinder, assetfinder, and Chaos API concurrently.\nIncludes Wildcard Filtering and permutation generation.",
+        "description": "Aggregates subdomains from all available passive sources (CRT.SH, etc.) and performs optional active bruteforce.\nGuaranteed method to get maximum coverage.",
         "properties": {
           "domain": {
             "title": "Domain",
@@ -4029,12 +4029,12 @@
     },
     {
       "name": "reverse_dns_lookup",
-      "description": "Perform reverse DNS lookup asynchronously (Passive Recon).\nResolves IP to Hostname.",
+      "description": "Perform reverse DNS lookup asynchronously.",
       "category": "recon",
       "module_path": "tools.recon",
       "variable_name": "reverse_dns_lookup",
       "input_schema": {
-        "description": "Perform reverse DNS lookup asynchronously (Passive Recon).\nResolves IP to Hostname.",
+        "description": "Perform reverse DNS lookup asynchronously.",
         "properties": {
           "ip_address": {
             "title": "Ip Address",
@@ -9487,22 +9487,16 @@
     },
     {
       "name": "crtsh_subdomain_finder",
-      "description": "Queries CRT.SH for subdomains asynchronously (Redirects to unified OSINT logic).",
+      "description": "Query CRT.SH and Hackertarget asynchronously for subdomains (Passive Recon).",
       "category": "recon",
       "module_path": "tools.intelligence",
       "variable_name": "crtsh_subdomain_finder",
       "input_schema": {
-        "description": "Queries CRT.SH for subdomains asynchronously (Redirects to unified OSINT logic).",
+        "description": "Query CRT.SH and Hackertarget asynchronously for subdomains (Passive Recon).",
         "properties": {
           "domain": {
             "title": "Domain",
             "type": "string"
-          },
-          "kwargs": {
-            "additionalProperties": true,
-            "default": null,
-            "title": "Kwargs",
-            "type": "object"
           }
         },
         "required": [
@@ -10389,22 +10383,16 @@
     },
     {
       "name": "osint_investigation_search",
-      "description": "Broad OSINT search using real search engine backend.",
+      "description": "Search for OSINT information asynchronously.",
       "category": "recon",
       "module_path": "tools.intelligence",
       "variable_name": "osint_investigation_search",
       "input_schema": {
-        "description": "Broad OSINT search using real search engine backend.",
+        "description": "Search for OSINT information asynchronously.",
         "properties": {
           "query": {
             "title": "Query",
             "type": "string"
-          },
-          "kwargs": {
-            "additionalProperties": true,
-            "default": null,
-            "title": "Kwargs",
-            "type": "object"
           }
         },
         "required": [

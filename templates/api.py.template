@@ -130,13 +130,13 @@ class NotificationManager:
                         self._queue[-1]["timestamp"] = datetime.now().isoformat()
                         self._queue[-1]["count"] = self._queue[-1].get("count", 1) + 1
                         logger.debug(
-                            f"🔄 [NOTIFY] Suppressed duplicate: {title} (Count: {self._queue[-1]['count']})"
+                            f"[SUPPRESS] [NOTIFY] Suppressed duplicate: {title} (Count: {self._queue[-1]['count']})"
                         )
                         # Trigger telemetry update even for duplicates to refresh the count in UI
                         asyncio.create_task(trigger_telemetry_update())
                         return self._queue[-1]
                 except Exception as e:
-                    logger.warning(f"⚠️ [NOTIFY] Grouping logic error: {e}")
+                    logger.warning(f"[WARN] [NOTIFY] Grouping logic error: {e}")
 
             self._id_counter += 1
             notification = {
@@ -152,7 +152,7 @@ class NotificationManager:
             # Enforce max queue size (FIFO eviction)
             if len(self._queue) > self._max_size:
                 self._queue.pop(0)
-            logger.debug(f"🔔 [NOTIFY] {type.upper()}: {title}")
+            logger.debug(f"[NOTIFY] {type.upper()}: {title}")
 
             # Industrial Bridge: Trigger instant telemetry broadcast
             asyncio.create_task(trigger_telemetry_update())
@@ -328,11 +328,11 @@ async def trigger_telemetry_update():
         _telemetry_pending = False
 
 
-logger.info("🔥 [BOOT] CORE_RELAY_V4_LOADED")
+logger.info("[BOOT] CORE_RELAY_V4_LOADED")
 BOOT_ID = str(uuid.uuid4())[:8].upper()
 backend.REGISTRY["boot_id"] = BOOT_ID
 backend.REGISTRY["notify_cb"] = notification_manager.add
-logger.info(f"🆔 [BOOT_ID] {BOOT_ID}")
+logger.info(f"[BOOT_ID] {BOOT_ID}")
 
 
 # --- Security Core: FIM & State ---
@@ -547,7 +547,7 @@ async def file_integrity_monitor():
                         "timestamp": datetime.now().isoformat(),
                     }
                     security_alerts.append(alert)
-                    logger.error(f"🚨 [INTEGRITY] Critical Hash Mismatch in {f}!")
+                    logger.error(f"[FAIL] [INTEGRITY] Critical Hash Mismatch in {f}!")
                     # Industrial Hook: Surface source breach
                     backend.notify_system(
                         "ERROR",
@@ -737,13 +737,13 @@ async def lifespan(app: FastAPI):
         from mcp_servers.mcp_client import stop_mcp_servers
 
         await asyncio.to_thread(stop_mcp_servers)
-        logger.info("🔌 [MCP] MCP servers shutdown.")
+        logger.info("[SYS] [MCP] MCP servers shutdown.")
     except Exception as e:
         logger.error(f"Error during MCP server cleanup: {e}")
 
 
 app = FastAPI(
-    title=f"⌬ {agent_config.identity.name.lower()}.ᴄᴏʀᴇ API",
+    title=f"[MYTH] {agent_config.identity.name.lower()}.CORE API",
     description=agent_config.identity.description,
     version=agent_config.identity.version,
     lifespan=lifespan,

@@ -16,7 +16,7 @@ Stages:
     build-desktop Build Tauri desktop app (requires Rust + Node)
     build-docker  Build OCI container image
     deploy-website Deploy website to Cloudflare Pages
-    all           Run validate → lint → test (pre-push gate)
+    all           Run validate -> lint -> test (pre-push gate)
 
 Options:
     --target <triple>   Rust target triple (e.g. x86_64-unknown-linux-gnu)
@@ -86,10 +86,10 @@ class C:
 
 def _banner(stage: str, description: str):
     """Print a stage banner."""
-    print(f"\n{C.BOLD}{C.CYAN}{'━' * 60}{C.RESET}")
-    print(f"{C.BOLD}{C.CYAN}  ⌬ STAGE: {stage.upper()}{C.RESET}")
+    print(f"\n{C.BOLD}{C.CYAN}{'=' * 60}{C.RESET}")
+    print(f"{C.BOLD}{C.CYAN}  [MYTH] STAGE: {stage.upper()}{C.RESET}")
     print(f"{C.DIM}  {description}{C.RESET}")
-    print(f"{C.BOLD}{C.CYAN}{'━' * 60}{C.RESET}\n")
+    print(f"{C.BOLD}{C.CYAN}{'=' * 60}{C.RESET}\n")
 
 
 def _run(
@@ -130,13 +130,13 @@ def _run(
                     print(result.stderr[-2000:])
             if check:
                 print(
-                    f"\n  {C.RED}✘ Command failed (exit {result.returncode}){C.RESET}"
+                    f"\n  {C.RED}[FAIL] Command failed (exit {result.returncode}){C.RESET}"
                 )
                 sys.exit(result.returncode)
         return result
     except FileNotFoundError:
         if not silent:
-            print(f"  {C.RED}✘ Command not found: {cmd[0]}{C.RESET}")
+            print(f"  {C.RED}[FAIL] Command not found: {cmd[0]}{C.RESET}")
         if check:
             sys.exit(1)
         return None
@@ -187,7 +187,7 @@ def stage_validate(*, dry_run=False, verbose=False, **_):
     hydrate_script = os.path.join(GOVERNANCE_DIR, "hydrate.py")
     _run([sys.executable, hydrate_script, "--check"], dry_run=dry_run, verbose=verbose)
 
-    print(f"\n  {C.GREEN}✔ Validation passed{C.RESET}")
+    print(f"\n  {C.GREEN}[PASS] Validation passed{C.RESET}")
     _write_junit_success("validate")
     return True
 
@@ -232,9 +232,9 @@ def stage_lint_python(*, dry_run=False, verbose=False, **_):
         return True
 
     if result.returncode != 0:
-        print(f"  {C.YELLOW}⚠ Python linting found issues{C.RESET}")
+        print(f"  {C.YELLOW}[WARN] Python linting found issues{C.RESET}")
     else:
-        print(f"  {C.GREEN}✔ Python linting passed{C.RESET}")
+        print(f"  {C.GREEN}[PASS] Python linting passed{C.RESET}")
         # Run formatter too
         _run(
             ["uv", "run", "ruff", "format", "."],
@@ -268,9 +268,9 @@ def stage_lint_js(*, dry_run=False, verbose=False, **_):
             success = False
 
     if success:
-        print(f"  {C.GREEN}✔ JavaScript linting passed{C.RESET}")
+        print(f"  {C.GREEN}[PASS] JavaScript linting passed{C.RESET}")
     else:
-        print(f"  {C.YELLOW}⚠ JavaScript linting found issues{C.RESET}")
+        print(f"  {C.YELLOW}[WARN] JavaScript linting found issues{C.RESET}")
     return True  # Advisory
 
 
@@ -287,10 +287,10 @@ def stage_lint_rust(*, dry_run=False, verbose=False, **_):
     result = _run(cmd, cwd=tauri_src, dry_run=dry_run, verbose=verbose, check=False)
 
     if result is not None and result.returncode == 0:
-        print(f"  {C.GREEN}✔ Rust linting passed{C.RESET}")
+        print(f"  {C.GREEN}[PASS] Rust linting passed{C.RESET}")
         return True
-
-    print(f"  {C.YELLOW}⚠ Rust linting found issues{C.RESET}")
+    
+    print(f"  {C.YELLOW}[WARN] Rust linting found issues{C.RESET}")
     return True  # Advisory
 
 
@@ -304,7 +304,7 @@ def stage_test(*, dry_run=False, verbose=False, fast=True, **_):
         cmd.append("--fast")
 
     _run(cmd, dry_run=dry_run, verbose=verbose)
-    print(f"\n  {C.GREEN}✔ Tests passed{C.RESET}")
+    print(f"\n  {C.GREEN}[PASS] Tests passed{C.RESET}")
     return True
 
 
@@ -340,7 +340,7 @@ def stage_build_backend(
     # Build stages SHOULD be verbose to prevent "stuck" perception
     _run(["uv", "run", package_script], dry_run=dry_run, verbose=True, env=env_extra)
 
-    print(f"\n  {C.GREEN}✔ Backend packaged for {target}{C.RESET}")
+    print(f"\n  {C.GREEN}[PASS] Backend packaged for {target}{C.RESET}")
     return True
 
 
@@ -362,7 +362,7 @@ def stage_build_desktop(*, dry_run=False, verbose=False, target=None, **_):
         env={"TAURI_TARGET_TRIPLE": target},
     )
 
-    print(f"\n  {C.GREEN}✔ Desktop build complete for {target}{C.RESET}")
+    print(f"\n  {C.GREEN}[PASS] Desktop build complete for {target}{C.RESET}")
     return True
 
 
@@ -385,7 +385,7 @@ def stage_build_docker(*, dry_run=False, verbose=False, **_):
 
     _run(["docker", "build", "-t", image_name, "."], dry_run=dry_run, verbose=True)
 
-    print(f"\n  {C.GREEN}✔ Docker image built: {image_name}{C.RESET}")
+    print(f"\n  {C.GREEN}[PASS] Docker image built: {image_name}{C.RESET}")
     return True
 
 
@@ -428,7 +428,7 @@ def stage_deploy_website(*, dry_run=False, verbose=False, **_):
             check=False,
         )
 
-    print(f"\n  {C.GREEN}✔ Website deployed to {site_name}{C.RESET}")
+    print(f"\n  {C.GREEN}[PASS] Website deployed to {site_name}{C.RESET}")
     return True
 
 
@@ -458,10 +458,10 @@ def stage_check_env(*, dry_run=False, verbose=False, **_):
         if not found_path:
             if is_critical:
                 missing_critical.append(name)
-                print(f"  {C.RED}✘ CRITICAL: Missing tool: {name}{C.RESET}")
+                print(f"  {C.RED}[FAIL] CRITICAL: Missing tool: {name}{C.RESET}")
             else:
                 missing_optional.append(name)
-                print(f"  {C.DIM}⚠ OPTIONAL: Missing tool: {name}{C.RESET}")
+                print(f"  {C.DIM}[WARN] OPTIONAL: Missing tool: {name}{C.RESET}")
         else:
             # Print version for verification
             _run(
@@ -471,11 +471,11 @@ def stage_check_env(*, dry_run=False, verbose=False, **_):
                 check=False,
                 silent=True,
             )
-            print(f"  {C.GREEN}✔ Found: {name}{C.RESET}")
+            print(f"  {C.GREEN}[PASS] Found: {name}{C.RESET}")
 
     if missing_critical:
         print(
-            f"\n  {C.RED}✘ Mission-critical tools missing. Pipeline cannot proceed.{C.RESET}"
+            f"\n  {C.RED}[FAIL] Mission-critical tools missing. Pipeline cannot proceed.{C.RESET}"
         )
         sys.exit(1)
 
@@ -485,7 +485,7 @@ def stage_check_env(*, dry_run=False, verbose=False, **_):
         )
 
     print(
-        f"\n  {C.GREEN}✔ Phase 1 Environment readiness check passed (Critical tools verified){C.RESET}"
+        f"\n  {C.GREEN}[PASS] Phase 1 Environment readiness check passed (Critical tools verified){C.RESET}"
     )
     return True
 
@@ -505,16 +505,16 @@ def stage_check_secrets(*, dry_run=False, **_):
     for s in required_secrets:
         if s not in os.environ:
             missing.append(s)
-            print(f"  {C.YELLOW}⚠ Missing secret: {s}{C.RESET}")
+            print(f"  {C.YELLOW}[WARN] Missing secret: {s}{C.RESET}")
         else:
-            print(f"  {C.GREEN}✔ Secret found: {s}{C.RESET}")
+            print(f"  {C.GREEN}[PASS] Secret found: {s}{C.RESET}")
 
     if missing:
         print(
-            f"\n  {C.YELLOW}⚠ Warning: Some deployments/stages will fail without these secrets.{C.RESET}"
+            f"\n  {C.YELLOW}[WARN] Warning: Some deployments/stages will fail without these secrets.{C.RESET}"
         )
     else:
-        print(f"\n  {C.GREEN}✔ All core secrets are present{C.RESET}")
+        print(f"\n  {C.GREEN}[PASS] All core secrets are present{C.RESET}")
     return True
 
 
@@ -525,7 +525,7 @@ def stage_linux_packages(*, dry_run=False, verbose=False, **_):
     dist_engine = os.path.join(SCRIPTS_DIR, "linux_distribution_engine.py")
     _run([_resolve_python(), dist_engine], dry_run=dry_run, verbose=verbose)
 
-    print(f"\n  {C.GREEN}✔ Linux packages generated{C.RESET}")
+    print(f"\n  {C.GREEN}[PASS] Linux packages generated{C.RESET}")
     return True
 
 
@@ -622,7 +622,7 @@ Composites (run multiple stages):
     print(f"""
 {C.BOLD}{C.CYAN}
  ┌─────────────────────────────────────────────────┐
- │   ⌬  {{NAME}} CI/CD ORCHESTRATOR                    │
+ │  [MYTH] {{NAME}} CI/CD ORCHESTRATOR               │
  │   Platform-Agnostic Build Pipeline               │
  └─────────────────────────────────────────────────┘{C.RESET}
 """)
@@ -641,7 +641,7 @@ Composites (run multiple stages):
         elif stage_name in STAGES:
             stages_to_run = [stage_name]
         else:
-            print(f"  {C.RED}✘ Unknown stage: {stage_name}{C.RESET}")
+            print(f"  {C.RED}[FAIL] Unknown stage: {stage_name}{C.RESET}")
             print(
                 f"  Available stages: {', '.join(list(STAGES.keys()) + list(COMPOSITES.keys()))}"
             )
@@ -657,7 +657,7 @@ Composites (run multiple stages):
             except SystemExit as e:
                 results[name] = False
                 if e.code != 0:
-                    print(f"\n{C.RED}✘ Pipeline failed at stage: {name}{C.RESET}")
+                    print(f"\n{C.RED}[FAIL] Pipeline failed at stage: {name}{C.RESET}")
                     _print_summary(results, time.time() - start)
                     sys.exit(e.code)
                 _print_summary(results, time.time() - start)
@@ -668,19 +668,19 @@ Composites (run multiple stages):
 
 def _print_summary(results: dict, elapsed: float):
     """Print a pipeline summary."""
-    print(f"\n{C.BOLD}{'━' * 60}{C.RESET}")
+    print(f"\n{C.BOLD}{'=' * 60}{C.RESET}")
     print(f"{C.BOLD}  📊 Pipeline Summary{C.RESET}")
-    print(f"{'━' * 60}")
+    print(f"{'=' * 60}")
     for name, passed in results.items():
-        icon = f"{C.GREEN}✔{C.RESET}" if passed else f"{C.RED}✘{C.RESET}"
+        icon = f"{C.GREEN}[PASS]{C.RESET}" if passed else f"{C.RED}[FAIL]{C.RESET}"
         print(f"  {icon} {name}")
     print(f"\n  {C.DIM}Elapsed: {elapsed:.1f}s{C.RESET}")
 
     all_passed = all(results.values())
     if all_passed:
-        print(f"\n  {C.GREEN}{C.BOLD}✔ All stages passed{C.RESET}")
+        print(f"\n  {C.GREEN}{C.BOLD}[PASS] All stages passed{C.RESET}")
     else:
-        print(f"\n  {C.RED}{C.BOLD}✘ Pipeline failed{C.RESET}")
+        print(f"\n  {C.RED}{C.BOLD}[FAIL] Pipeline failed{C.RESET}")
     print()
 
 

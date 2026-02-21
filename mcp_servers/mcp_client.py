@@ -482,7 +482,9 @@ class TitanSessionPool:
         async with self.lock:
             if not self._sessions:
                 return
-            print(f"  🛑 [POOL] Closing {len(self._sessions)} persistent sessions...")
+            print(
+                f"  [STOP] [POOL] Closing {len(self._sessions)} persistent sessions..."
+            )
             for port in list(self._contexts.keys()):
                 await self.purge_session(port)
 
@@ -531,12 +533,12 @@ class MCPManager:
                 os.environ["PATH"] = (
                     f"{bin_path}{os.pathsep}{os.environ.get('PATH', '')}"
                 )
-                print(f"  🧠 [INIT] Injected bundled Node.js into PATH: {bin_path}")
+                print(f"  [INIT] Injected bundled Node.js into PATH: {bin_path}")
 
         configs = list(SSE_CONFIGS.items())
         total = len(configs)
         print(
-            f"🚀 [INIT] Bootstrapping {total} MCP Tool Servers ({mode_label} mode)..."
+            f"[BOOT] [INIT] Bootstrapping {total} MCP Tool Servers ({mode_label} mode)..."
         )
 
         # High-concurrency parallel startup
@@ -557,7 +559,7 @@ class MCPManager:
                     else:
                         failed_servers.append(cfg["name"])
                     print(
-                        f"  ⚡ MCP Progress: [{ready_count}/{total}] servers ready",
+                        f"  [MCP] MCP Progress: [{ready_count}/{total}] servers ready",
                         end="\r",
                     )
 
@@ -565,10 +567,10 @@ class MCPManager:
 
         # Final status
         print(
-            f"\n✨ [INIT] MCP Servers: {ready_count}/{total} operational ({mode_label}). Watchdog active."
+            f"\n[PASS] [INIT] MCP Servers: {ready_count}/{total} operational ({mode_label}). Watchdog active."
         )
         if failed_servers:
-            print(f"  ⚠️ Failed: {', '.join(failed_servers)}")
+            print(f"  [WARN] Failed: {', '.join(failed_servers)}")
 
         # Start the Watchdog
         self.watchdog_task = asyncio.create_task(self._watchdog_loop())
@@ -585,7 +587,7 @@ class MCPManager:
                 try:
                     proc = psutil.Process(conn.pid)
                     print(
-                        f"  🧹 [PURGE] Terminating zombie process {proc.pid} ({proc.name()}) holding port {conn.laddr.port}..."
+                        f"  [PURGE] Terminating zombie process {proc.pid} ({proc.name()}) holding port {conn.laddr.port}..."
                     )
                     proc.terminate()
                     purged_count += 1
@@ -594,7 +596,7 @@ class MCPManager:
 
         if purged_count > 0:
             print(
-                f"  ✨ [PURGE] Cleared {purged_count} rogue process(es). Ready for clean boot."
+                f"  [PASS] [PURGE] Cleared {purged_count} rogue process(es). Ready for clean boot."
             )
 
     def _run_server_inprocess(self, key: str, module_path: str, port: int):
@@ -774,7 +776,7 @@ class MCPManager:
         if self.watchdog_task:
             self.watchdog_task.cancel()
 
-        print("\n🛑 [MYTH] Extinguishing Tool Infrastructure...")
+        print("\n[STOP] [MYTH] Extinguishing Tool Infrastructure...")
         for key, p in list(self.processes.items()):
             try:
                 p.terminate()
@@ -800,11 +802,31 @@ async def start_mcp_servers(wait_for_ready: bool = False) -> bool:
 def stop_mcp_servers(signum=None, frame=None):
     """Atomic shutdown: ensure every subprocess is killed."""
     global _server_processes
-    print("\n🛑 Initiating Atomic Shutdown...")
+    print("\n[STOP] Initiating Atomic Shutdown...")
 
     if manager:
         try:
-            manager.shutdown()
+            # Industrial Shutdown: Always use a dedicated thread+loop to
+            # guarantee coroutines are fully awaited, regardless of whether
+            # the caller is sync, in a running loop, or in a signal handler.
+            import threading
+
+            async def _async_shutdown():
+                await asyncio.gather(
+                    manager.shutdown(),
+                    session_pool.shutdown(),
+                    return_exceptions=True,
+                )
+
+            def _run_shutdown():
+                try:
+                    asyncio.run(_async_shutdown())
+                except Exception:
+                    pass
+
+            t = threading.Thread(target=_run_shutdown, daemon=True)
+            t.start()
+            t.join(timeout=5)  # Wait up to 5s for graceful shutdown
         except Exception:
             pass
 
@@ -816,7 +838,7 @@ def stop_mcp_servers(signum=None, frame=None):
             pass
 
     _server_processes = []
-    print("✨ System clean. MYTH extinguished.")
+    print("[PASS] System clean. MYTH extinguished.")
 
 
 # ==================== MCP TOOL IMPLEMENTATION ====================

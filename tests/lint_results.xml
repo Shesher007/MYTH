@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="lint" tests="1" failures="0" skipped="0" time="0.001">
+    <testcase name="stage_lint_passed" classname="ci_orchestrator" time="0.001" />
+  </testsuite>
+</testsuites>

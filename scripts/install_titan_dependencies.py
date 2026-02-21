@@ -247,7 +247,7 @@ def main():
     print(f"Starting MYTH TITAN Dependency Install for target: {target_triple}")
     for tool, version in TOOLS.items():
         install_tool(tool, version, target_triple)
-    print("\n✨ Dependency installation complete.")
+    print("\n[PASS] Dependency installation complete.")
 
 
 if __name__ == "__main__":

@@ -41,7 +41,7 @@ class C:
 
     @classmethod
     def ok(cls, msg):
-        return f"{cls.GREEN}{cls._safe_icon('✓', '[PASS]')} {msg}{cls.RESET}"
+        return f"{cls.GREEN}[PASS] {msg}{cls.RESET}"
 
     @classmethod
     def fail(cls, msg):
@@ -49,15 +49,15 @@ class C:
 
     @classmethod
     def warn(cls, msg):
-        return f"{cls.YELLOW}{cls._safe_icon('⚠', '[WARN]')} {msg}{cls.RESET}"
+        return f"{cls.YELLOW}{cls._safe_icon('-', '[WARN]')} {msg}{cls.RESET}"
 
     @classmethod
     def info(cls, msg):
-        return f"{cls.CYAN}{cls._safe_icon('ℹ', '[INFO]')} {msg}{cls.RESET}"
+        return f"{cls.CYAN}[INFO] {msg}{cls.RESET}"
 
     @classmethod
     def header(cls, msg):
-        sep = cls._safe_icon("═", "=")
+        sep = cls._safe_icon("=", "=")
         return f"\n{cls.BOLD}{cls.CYAN}{sep * 70}\n  {msg}\n{sep * 70}{cls.RESET}"
 
 
@@ -312,7 +312,7 @@ class ResultTracker:
         print(f"  {C.info(f'JUnit XML exported: {filename}')}")
 
 
-# ─── Test Helpers ──────────────────────────────────────────────────────────────
+# --- Test Helpers ==============================================================
 def safe_import(module_path: str) -> tuple:
     """Try to import a module, return (module, None) or (None, error_str)."""
     try:

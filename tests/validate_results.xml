@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="validate" tests="1" failures="0" skipped="0" time="0.001">
+    <testcase name="stage_validate_passed" classname="ci_orchestrator" time="0.001" />
+  </testsuite>
+</testsuites>

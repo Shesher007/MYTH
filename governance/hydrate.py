@@ -508,7 +508,7 @@ def hydrate_manifests(
         for e in errors:
             print(f"❌ Validation: {e}")
         return False
-    print(f"✅ Metadata validated ({len(flat)} keys loaded)")
+    print("Metadata validated")
 
     if validate_only:
         print("\n📋 Available template placeholders:")
@@ -565,7 +565,7 @@ def hydrate_manifests(
         out = os.path.join(GOVERNANCE_DIR, rel.replace(".template", ""))
         all_templates.append((t, out))
 
-    print(f"🚀 Hydrating {len(all_templates)} templates...\n")
+    print(f"[INFO] Hydrating {len(all_templates)} templates...\n")
 
     # ---- Hydrate ----
     warnings: list[str] = []
@@ -615,7 +615,7 @@ def hydrate_manifests(
         ):
             hydrated = flat.get("RAW_SECRETS_DATA")
             print(
-                f"🧬 [PACKAGING] Bypassed template for {rel_output} -> Injecting raw bundle."
+                f"[INFO] [PACKAGING] Bypassed template for {rel_output} -> Injecting raw bundle."
             )
 
         if file_warnings:
@@ -636,9 +636,9 @@ def hydrate_manifests(
 
             if not os.path.exists(output_path):
                 if is_isolated:
-                    print(f"ℹ️  ISOLATED: {rel_output} (Skipping validation)")
+                    print(f"[INFO] ISOLATED: {rel_output} (Skipping validation)")
                     continue
-                print(f"❌ MISSING:  {rel_output}")
+                print(f"[FAIL] MISSING:  {rel_output}")
                 drifted.append(rel_output)
                 success = False
                 continue
@@ -646,25 +646,25 @@ def hydrate_manifests(
                 current = f.read()
             if current != hydrated:
                 if is_isolated:
-                    print(f"ℹ️  ISOLATED-DRIFT: {rel_output} (Skipping validation)")
+                    print(f"[INFO] ISOLATED-DRIFT: {rel_output} (Skipping validation)")
                     continue
-                print(f"❌ DRIFTED:  {rel_output}")
+                print(f"[FAIL] DRIFTED:  {rel_output}")
                 drifted.append(rel_output)
                 success = False
             else:
-                print(f"✅ IN SYNC:  {rel_output}")
+                print(f"[PASS] IN SYNC:  {rel_output}")
         else:
             # SAFETY GUARDRAIL: Check for drift before overwriting
             if os.path.exists(output_path) and not force:
                 with open(output_path, "r", encoding="utf-8") as f:
                     current = f.read()
                 if current != hydrated:
-                    print(f"⚠️  [GUARDRAIL] DRIFT DETECTED IN {rel_output}")
+                    print(f"[WARN] [GUARDRAIL] DRIFT DETECTED IN {rel_output}")
                     print(
                         "    Manual changes found in source that are not in template."
                     )
                     print(
-                        "    ⏭️  SKIPPING to prevent data loss. Use --force to overwrite."
+                        "    [SKIP] SKIPPING to prevent data loss. Use --force to overwrite."
                     )
                     skipped.append(rel_output)
                     continue
@@ -673,11 +673,11 @@ def hydrate_manifests(
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             with open(output_path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(hydrated)
-            print(f"✅ Generated: {rel_output}")
+            print(f"[PASS] Generated: {rel_output}")
 
     # ---- Summary ----
-    print(f"\n{'─' * 50}")
-    print("📊 Summary")
+    print(f"\n{'-' * 50}")
+    print("Summary")
     print(f"   Templates:  {len(template_files)}")
     print(f"   Version:    {flat['VERSION']}")
     print(f"   Warnings:   {len(warnings)}")
@@ -685,10 +685,10 @@ def hydrate_manifests(
         print(f"   Drifted:    {len(drifted)}")
     if not check_only and skipped:
         print(f"   Skipped:    {len(skipped)} (Manual changes detected)")
-    print(f"{'─' * 50}")
+    print(f"{'-' * 50}")
 
     if warnings:
-        print("\n⚠️  Warnings:")
+        print("\n[WARN] Warnings:")
         for w in warnings:
             print(w)
 
@@ -703,17 +703,17 @@ def _run_watch():
     try:
         from watchfiles import watch
     except ImportError:
-        print("❌ Error: 'watchfiles' package is required for --watch mode.")
+        print("[FAIL] Error: 'watchfiles' package is required for --watch mode.")
         print("   Run: uv pip install watchfiles")
         sys.exit(1)
 
-    print(f"👀 Watching {IDENTITY_PATH} and {TEMPLATES_DIR} for changes...")
+    print(f"[INFO] Watching {IDENTITY_PATH} and {TEMPLATES_DIR} for changes...")
     # Initial run
     hydrate_manifests()
 
     for changes in watch(IDENTITY_PATH, TEMPLATES_DIR):
         # changes is a set of (Change, path) tuples
-        print("\n🔔 Change detected. Re-hydrating...")
+        print("\n[WARN] Change detected. Re-hydrating...")
         hydrate_manifests()
 
 
@@ -749,8 +749,8 @@ if __name__ == "__main__":
             check_only=args.check, validate_only=args.validate, force=args.force
         )
         if ok:
-            print("\n✨ Done.")
+            print("\n[INFO] Done.")
             sys.exit(0)
         else:
-            print("\n❌ Failed.")
+            print("\n[FAIL] Failed.")
             sys.exit(1)

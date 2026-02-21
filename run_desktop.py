@@ -26,7 +26,7 @@ def scorch_earth_cleanup(
 ):
     """Industrial Grade: Deep-scans system for zombie backends and terminates them."""
     print(
-        f"🧹 [CLEANUP] Scouring system for legacy {agent_config.identity.name} infrastructure..."
+        f"[CLEANUP] Scouring system for legacy {agent_config.identity.name} infrastructure..."
     )
     current_pid = os.getpid()
     project_root = str(Path(__file__).parent.absolute()).lower()
@@ -42,7 +42,7 @@ def scorch_earth_cleanup(
                         if proc.pid == current_pid:
                             continue
                         print(
-                            f"   🗑️  [CLEANUP] Terminating zombie on port {port} (PID: {proc.pid})..."
+                            f"   [CLEANUP] Terminating zombie on port {port} (PID: {proc.pid})..."
                         )
                         proc.kill()
                         proc.wait(timeout=3)
@@ -98,7 +98,7 @@ def scorch_earth_cleanup(
             ):
                 try:
                     print(
-                        f"   🗑️  [CLEANUP] Purging industrial ghost: {pinfo['name']} (PID: {pinfo['pid']})"
+                        f"   [CLEANUP] Purging industrial ghost: {pinfo['name']} (PID: {pinfo['pid']})"
                     )
                     p = psutil.Process(pinfo["pid"])
                     p.kill()
@@ -128,7 +128,7 @@ def wait_for_port(port=5173, host="127.0.0.1", timeout=30):
 
 def run_myth_desktop():
     banner = f"""
-    ⌬ {agent_config.identity.name} | {agent_config.identity.codename}
+    [MYTH] {agent_config.identity.name} | {agent_config.identity.codename}
     ----------------------------
     Initializing Peak industrial Infrastructure...
     Region: {agent_config.runtime.region} | Node: {agent_config.runtime.node_id}
@@ -146,12 +146,12 @@ def run_myth_desktop():
     )
 
     if not venv_python.exists():
-        print(f"❌ Error: UV virtual environment not found at {venv_python}")
+        print(f"[FAIL] Error: UV virtual environment not found at {venv_python}")
         print("Please ensure your environment is set up correctly.")
         return
 
     # 0. Port Cleanup & Audit Reset
-    print("🧹 [0/3] Cleaning industrial infrastructure (8890, 8890, )...")
+    print("[CLEANUP] [0/3] Cleaning industrial infrastructure (8890, 8890, )...")
     scorch_earth_cleanup()
 
     # Industrial Audit Reset (Aggressive Cleanup)
@@ -163,25 +163,25 @@ def run_myth_desktop():
 
     for audit_log in possible_audit_logs:
         if audit_log.exists():
-            print(f"   🧹 [CLEANUP] Found audit log: {audit_log.name}")
+            print(f"   [CLEANUP] Found audit log: {audit_log.name}")
             for attempt in range(5):
                 try:
                     # Open in write mode to clear it
                     with open(audit_log, "w") as f:
                         pass
                     print(
-                        f"   ✅ [CLEANUP] Industrial Audit Log reset: {audit_log.name}"
+                        f"   [PASS] [CLEANUP] Industrial Audit Log reset: {audit_log.name}"
                     )
                     break
                 except Exception as e:
                     print(
-                        f"   ⚠️ [CLEANUP] Attempt {attempt + 1} failed to reset audit log {audit_log}: {e}"
+                        f"   [WARN] [CLEANUP] Attempt {attempt + 1} failed to reset audit log {audit_log}: {e}"
                     )
                     if attempt < 4:
                         time.sleep(1)
                     else:
                         print(
-                            f"   ❌ [CLEANUP] Failed to reset audit log {audit_log} after multiple attempts."
+                            f"   [FAIL] [CLEANUP] Failed to reset audit log {audit_log} after multiple attempts."
                         )
 
     # 0.1 Industrial System Log Reset
@@ -191,24 +191,24 @@ def run_myth_desktop():
             # Open in write mode to clear it
             with open(system_log, "w") as f:
                 pass
-            print(f"   ✅ [CLEANUP] Industrial System Log reset: {system_log.name}")
+            print(f"   [PASS] [CLEANUP] Industrial System Log reset: {system_log.name}")
         except Exception as e:
             print(
-                f"   ⚠️ [CLEANUP] Could not reset system log: {e} (Likely in use by zombie process)"
+                f"   [WARN] [CLEANUP] Could not reset system log: {e} (Likely in use by zombie process)"
             )
 
     # Wait for port 8890 to be definitively free (prevents zombie interference)
-    print("   ⏳ Waiting for port 8890 to be released...")
+    print("   [WAIT] Waiting for port 8890 to be released...")
     for _ in range(5):
         try:
             with socket.create_connection(("127.0.0.1", 8890), timeout=1):
                 time.sleep(1)  # Port still occupied, wait
         except (ConnectionRefusedError, socket.timeout, OSError):
             break  # Port is free
-    print("   ✅ Port 8890 is clear.")
+    print("   [PASS] Port 8890 is clear.")
 
     # Clear Python bytecode cache to prevent stale module loading
-    print("   🗑️ Clearing bytecode cache...")
+    print("   [CLEANUP] Clearing bytecode cache...")
     import shutil
 
     for cache_dir in root_dir.rglob("__pycache__"):
@@ -219,7 +219,7 @@ def run_myth_desktop():
                 pass
 
     # 1. Start FastAPI Backend (Static Engine for absolute stability)
-    print("🚀 [1/3] Starting FastAPI Engine (Persistence Lock: ON)...")
+    print("[BOOT] [1/3] Starting FastAPI Engine (Persistence Lock: ON)...")
     api_cmd = [
         str(venv_python),
         "-m",
@@ -248,7 +248,7 @@ def run_myth_desktop():
     )
 
     # Wait for backend to be ready
-    print("⏳ Waiting for backend to initialize (MCP tools, RAG, etc.)...")
+    print("[WAIT] Waiting for backend to initialize (MCP tools, RAG, etc.)...")
     import urllib.error
     import urllib.request
 
@@ -278,18 +278,18 @@ def run_myth_desktop():
                         # Check for explicit error response
                         if data.get("status") == "error":
                             print(
-                                f"   ❌ Backend Health Error: {data.get('error')}"
+                                f"   [FAIL] Backend Health Error: {data.get('error')}"
                                 + " " * 20
                             )
                         elif retry_count % 3 == 0:
                             print(
-                                "   ⏳ Waiting for API verification (Boot ID missing)..."
+                                "   [WAIT] Waiting for API verification (Boot ID missing)..."
                                 + " " * 10,
                                 end="\r",
                             )
                             # DEBUG: Print the mystery JSON to see what we are getting
                             print(
-                                f"\n   🔴 DEBUG: Received JSON without BOOT_ID: {json.dumps(data)}"
+                                f"\n   [WARN] DEBUG: Received JSON without BOOT_ID: {json.dumps(data)}"
                             )
 
                         retry_count += 1
@@ -323,7 +323,7 @@ def run_myth_desktop():
                         # Rescue: If stuck for > 3 retries, try killing the specific stale process
                         if retry_count > 3:
                             print(
-                                f"\n   💣 [RESCUE] Stale backend detected (ID: {boot_id}). Purging ghost..."
+                                f"\n   [CLEANUP] [RESCUE] Stale backend detected (ID: {boot_id}). Purging ghost..."
                             )
                             for conn in psutil.net_connections(kind="inet"):
                                 if (
@@ -333,7 +333,7 @@ def run_myth_desktop():
                                     try:
                                         p = psutil.Process(conn.pid)
                                         print(
-                                            f"   🗑️  [RESCUE] Terminating ghost PID: {conn.pid}"
+                                            f"   [CLEANUP] Terminating ghost PID: {conn.pid}"
                                         )
                                         p.kill()
                                     except Exception:
@@ -341,7 +341,7 @@ def run_myth_desktop():
                             retry_count = 0
                         else:
                             print(
-                                f"   ⏳ Waiting for new backend (stale: {boot_id}, expected: {expected_boot_id})..."
+                                f"   [WAIT] Waiting for new backend (stale: {boot_id}, expected: {expected_boot_id})..."
                                 + " " * 10,
                                 end="\r",
                             )
@@ -361,7 +361,7 @@ def run_myth_desktop():
                         # System is ready - no need for log file verification
                         # The health endpoint's ready=True + all_components_ready is authoritative
                         print(
-                            f"\n✅ Backend Infrastructure: READY. [BOOT_ID: {boot_id}]"
+                            f"\n[PASS] Backend Infrastructure: READY. [BOOT_ID: {boot_id}]"
                         )
                         break
                     else:
@@ -383,7 +383,7 @@ def run_myth_desktop():
                         # Only print if status changed to avoid overwriting backend logs
                         if status_str != last_status_str:
                             print(
-                                f"   ⏳ Backend online. Status: [{status_str}]",
+                                f"   [WAIT] Backend online. Status: [{status_str}]",
                                 flush=True,
                             )
                             last_status_str = status_str
@@ -394,13 +394,13 @@ def run_myth_desktop():
             ) or "[WinError 10061]" in str(e.reason):
                 if retry_count % 3 == 0:
                     print(
-                        f"   ⏳ Waiting for backend to bind port 8890... ({retry_count * 2}s)",
+                        f"   [WAIT] Waiting for backend to bind port 8890... ({retry_count * 2}s)",
                         end="\r",
                         flush=True,
                     )
             else:
                 if retry_count % 5 == 0:
-                    print(f"   ⚠️  Connection issue: {e.reason}")
+                    print(f"   [WARN] Connection issue: {e.reason}")
         except ConnectionResetError:
             pass
         except Exception as e:
@@ -413,12 +413,12 @@ def run_myth_desktop():
     print()  # New line after the progress updates
 
     if retry_count >= max_retries:
-        print("\n❌ Error: Backend failed to respond to health checks in 300s.")
+        print("\n[FAIL] Error: Backend failed to respond to health checks in 300s.")
         api_process.terminate()
         return
 
     # 2. Start Frontend Dev Server (Vite)
-    print("🚀 [2/3] Starting React Dashboard (Vite)...")
+    print("[BOOT] [2/3] Starting React Dashboard (Vite)...")
     npm_cmd = "npm.cmd" if sys.platform == "win32" else "npm"
     ui_process = subprocess.Popen(
         [npm_cmd, "run", "dev", "--", "--host", "127.0.0.1"],
@@ -429,21 +429,21 @@ def run_myth_desktop():
     )
 
     # Wait for Vite to be reachable
-    print("⏳ Waiting for Vite interface to become reachable...", flush=True)
+    print("[WAIT] Waiting for Vite interface to become reachable...", flush=True)
     if wait_for_port():
-        print("✅ Frontend Interface: READY.", flush=True)
+        print("[PASS] Frontend Interface: READY.", flush=True)
     else:
         print(
-            "⚠️  Frontend took too long to start, attempting browser launch anyway.",
+            "[WARN] Frontend took too long to start, attempting browser launch anyway.",
             flush=True,
         )
 
     # 3. Open Browser
-    print("🚀 [3/3] Launching System Interface...")
+    print("[BOOT] [3/3] Launching System Interface...")
     time.sleep(1)  # Final settle
     webbrowser.open("http://127.0.0.1:5173")
 
-    print("\n✅ SYSTEM ONLINE. Press Ctrl+C to terminate all services.\n")
+    print("\n[PASS] SYSTEM ONLINE. Press Ctrl+C to terminate all services.\n")
 
     # Flag to track shutdown status
     shutdown_flag = False
@@ -451,7 +451,7 @@ def run_myth_desktop():
     def handle_exit(sig, frame):
         nonlocal shutdown_flag
         if not shutdown_flag:
-            print("\n🛑 SHUTTING DOWN SYSTEM...")
+            print("\n[STOP] SHUTTING DOWN SYSTEM...")
             shutdown_flag = True
         else:
             # Force exit if Ctrl+C is pressed again during shutdown
@@ -479,10 +479,10 @@ def run_myth_desktop():
                     continue
                 else:
                     print(
-                        f"🔄 [ORCHESTRATOR] Backend service (PID {api_process.pid}) closed with code {api_exit_code}."
+                        f"[SYNC] [ORCHESTRATOR] Backend service (PID {api_process.pid}) closed with code {api_exit_code}."
                     )
                     print(
-                        "⚠️  [ORCHESTRATOR] Backend seems dead. Attempting manual restart..."
+                        "[WARN] [ORCHESTRATOR] Backend seems dead. Attempting manual restart..."
                     )
                     api_process = subprocess.Popen(
                         api_cmd,
@@ -492,13 +492,13 @@ def run_myth_desktop():
                         if sys.platform == "win32"
                         else 0,
                     )
-                    print("♻️ [ORCHESTRATOR] Backend restart initiated.")
+                    print("[BOOT] [ORCHESTRATOR] Backend restart initiated.")
 
             # 2. Monitor Frontend Process
             if ui_process.poll() is not None:
-                print("⚠️  [ORCHESTRATOR] Frontend service stopped.")
+                print("[WARN] [ORCHESTRATOR] Frontend service stopped.")
                 if not shutdown_flag:
-                    print("♻️  [ORCHESTRATOR] Restarting Frontend...")
+                    print("[BOOT] [ORCHESTRATOR] Restarting Frontend...")
                     ui_process = subprocess.Popen(
                         [npm_cmd, "run", "dev", "--", "--host", "127.0.0.1"],
                         cwd=ui_dir,
@@ -509,10 +509,10 @@ def run_myth_desktop():
 
     except Exception as e:
         if not shutdown_flag:
-            print(f"❌ [ORCHESTRATOR] Unexpected error in monitoring loop: {e}")
+            print(f"[FAIL] [ORCHESTRATOR] Unexpected error in monitoring loop: {e}")
     finally:
         # Graceful cleanup
-        print("🧼 [CLEANUP] Terminating sibling processes...")
+        print("[CLEANUP] Terminating sibling processes...")
         try:
             api_process.terminate()
             ui_process.terminate()
@@ -538,7 +538,7 @@ def run_myth_desktop():
         # Final port cleanup to ensure no orphaned listeners
         kill_process_on_port(8890)
         kill_process_on_port()
-        print("✅ Services terminated. Session closed.")
+        print("[PASS] Services terminated. Session closed.")
 
 
 def _check_port_listening(port, host="127.0.0.1"):

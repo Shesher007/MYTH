@@ -51,11 +51,11 @@ def create_distro_packages():
             shutil.copy2(path, bin_dir / pkg_name)
             os.chmod(bin_dir / pkg_name, 0o755)
             binary_found = True
-            print(f"✅ Found binary at: {path}")
+            print(f"[PASS] Found binary at: {path}")
             break
 
     if not binary_found:
-        print("❌ CRITICAL: Could not find built binary for packaging.")
+        print("[FAIL] CRITICAL: Could not find built binary for packaging.")
         # In CI, we want to fail if binary is missing
         # exit(1)
 
@@ -79,7 +79,7 @@ Comment=High-Performance Offensive Intelligence Engine
         out_file = project_root / f"{pkg_name}_{version}_amd64.{ext}"
         with tarfile.open(out_file, mode) as tar:
             tar.add(base_app_dir, arcname="/")
-        print(f"📦 Created: {out_file.name}")
+        print(f"[PACK] Created: {out_file.name}")
         return out_file
 
     # 2. Generate Formats
@@ -125,7 +125,7 @@ Comment=High-Performance Offensive Intelligence Engine
 # universal_tar = project_root / f"{pkg_name}_{version}_universal.tar.gz"
 # with tarfile.open(universal_tar, "w:gz") as tar:
 #     tar.add(base_app_dir, arcname=f"{pkg_name}-{version}")
-# print(f"📦 Created: {universal_tar.name}")
+# print(f"[PACK] Created: {universal_tar.name}")
 
 # 3. Bundle ALL Manifests from packaging/ for Release inclusion
 # print("📂 Bundling all package manifests...")
@@ -138,7 +138,7 @@ Comment=High-Performance Offensive Intelligence Engine
 #         dist_name = "_".join(rel_path.parts)
 #         dst_path = project_root / dist_name
 #         shutil.copy2(src_path, dst_path)
-#         print(f"📄 Prepared manifest: {dist_name}")
+#         print(f"[PASS] Prepared manifest: {dist_name}")
 
 if __name__ == "__main__":
     create_distro_packages()
