@@ -193,6 +193,11 @@ jobs:
       - attach_workspace:
           at: .
       - run:
+          name: Install uv
+          command: |
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
+      - run:
           name: Install Bundling Dependencies
           command: |
             sudo DEBIAN_FRONTEND=noninteractive apt-get update
@@ -212,8 +217,7 @@ jobs:
       - run:
           name: Bundle RPM
           command: |
-            cd ui
-            npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build": {"beforeBuildCommand": ""}}'
+            uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles rpm --skip-before-build --verbose
           no_output_timeout: 30m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
@@ -248,8 +252,7 @@ jobs:
       - run:
           name: Bundle AppImage
           command: |
-            cd ui
-            npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build": {"beforeBuildCommand": ""}}'
+            uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles appimage --skip-before-build --verbose
           no_output_timeout: 30m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
@@ -284,14 +287,24 @@ jobs:
       - run:
           name: Install uv
           command: |
-             # PowerShell-based uv install
              powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+             # Use CircleCI's recommended way to persist PATH on Windows
+             echo "setx PATH \"$env:PATH;$HOME\.local\bin\"" | clip
+             powershell -ExecutionPolicy ByPass -c "setx PATH \"$env:PATH;$HOME\.local\bin\""
+      - run:
+          name: Install Python via uv
+          command: |
+            uv python install 3.13.11
+            # Ensure future steps see the uv-managed python
+            uv venv
       - run:
           name: Build Backend
-          command: uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
+          command: |
+            uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
       - run:
           name: Build Desktop (NSIS)
-          command: uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
+          command: |
+             uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
       - store_artifacts:
           path: ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/
           destination: bundles-windows

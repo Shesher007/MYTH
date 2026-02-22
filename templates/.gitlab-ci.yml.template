@@ -75,10 +75,10 @@ build-linux-rpm:
   stage: build
   needs: ["build-linux-deb"]
   script:
-    - apt-get update && apt-get install -y rpm
+    - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+    - apt-get install -y nodejs rpm
     - |
-      cd ui
-      npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build": {"beforeBuildCommand": ""}}'
+      uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles rpm --skip-before-build --verbose
   artifacts:
     paths:
       - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/rpm/*.rpm"
@@ -89,10 +89,10 @@ build-linux-appimage:
   stage: build
   needs: ["build-linux-deb"]
   script:
-    - apt-get update && apt-get install -y libfuse2
+    - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+    - apt-get install -y nodejs libfuse2
     - |
-      cd ui
-      npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build": {"beforeBuildCommand": ""}}'
+      uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles appimage --skip-before-build --verbose
   artifacts:
     paths:
       - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage"

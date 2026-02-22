@@ -177,11 +177,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24.12.0"
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.11"
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
       - name: Bundle RPM
         run: |
-          cd ui
-          npm install @tauri-apps/cli
-          npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build": {"beforeBuildCommand": ""}}'
+          uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles rpm --skip-before-build --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.CUSTOM_DEPLOY_TOKEN }}
       - name: Upload RPM artifact
@@ -207,11 +213,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24.12.0"
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.11"
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
       - name: Bundle AppImage
         run: |
-          cd ui
-          npm install @tauri-apps/cli
-          npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build": {"beforeBuildCommand": ""}}'
+          uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles appimage --skip-before-build --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.CUSTOM_DEPLOY_TOKEN }}
           APPIMAGE_EXTRACT_AND_RUN: "1"

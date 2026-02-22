@@ -24,6 +24,7 @@ Options:
     --dry-run           Print commands without executing
     --verbose           Show full command output
     --skip-sync         Skip uv sync for faster re-runs
+    --skip-before-build Skip frontend build in Tauri (uses existing dist)
 """
 
 import argparse
@@ -358,10 +359,18 @@ def stage_build_desktop(*, dry_run=False, verbose=False, target=None, bundle=Non
     target = target or os.environ.get("TAURI_TARGET_TRIPLE") or _detect_target_triple()
 
     # Install frontend dependencies
-    _run(["npm", "ci"], dry_run=dry_run, verbose=verbose, cwd=UI_DIR)
+    if not kwargs.get("skip_before_build"):
+        _run(["npm", "ci"], dry_run=dry_run, verbose=verbose, cwd=UI_DIR)
+    else:
+        print(f"  {C.DIM}⏭ Skipping frontend build & dependency sync{C.RESET}")
 
     # Build Tauri
     cmd = ["npx", "tauri", "build", "--target", target]
+    if kwargs.get("skip_before_build"):
+        # This is the 'proper' way to prevent redundant build commands in CI
+        # Using a list of arguments ensures the shell doesn't misinterpret colons/spaces.
+        cmd += ["--config", '{"build": {"beforeBuildCommand": ""}}']
+
     if bundle:
         supported = ["deb", "rpm", "appimage", "msi", "nsis", "dmg", "app"]
         if bundle.lower() not in supported:
@@ -609,7 +618,9 @@ Composites (run multiple stages):
         "--verbose", action="store_true", help="Show full command output"
     )
     parser.add_argument(
-        "--skip-sync", action="store_true", help="Skip uv sync for faster re-runs"
+        "--skip-before-build",
+        action="store_true",
+        help="Skip frontend build in Tauri (uses existing dist)",
     )
     parser.add_argument(
         "--fast",
@@ -636,6 +647,7 @@ Composites (run multiple stages):
         "target": args.target,
         "bundle": args.bundles,
         "fast": args.fast,
+        "skip_before_build": args.skip_before_build,
     }
 
     # Header
