@@ -352,7 +352,7 @@ def stage_build_backend(
     return True
 
 
-def stage_build_desktop(*, dry_run=False, verbose=False, target=None, bundle=None, **_):
+def stage_build_desktop(*, dry_run=False, verbose=False, target=None, bundle=None, **kwargs):
     """Build Tauri desktop application."""
     _banner("build-desktop", "Building Tauri desktop application")
 
@@ -616,6 +616,9 @@ Composites (run multiple stages):
     )
     parser.add_argument(
         "--verbose", action="store_true", help="Show full command output"
+    )
+    parser.add_argument(
+        "--skip-sync", action="store_true", help="Skip uv sync for faster re-runs"
     )
     parser.add_argument(
         "--skip-before-build",
