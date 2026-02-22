@@ -13,7 +13,7 @@ source="https://github.com/Shesher007/MYTH/archive/v${pkgver}.tar.gz"
 build() {
 	cd "$srcdir/MYTH/ui"
 	npm install
-	npm run tauri build -- --bundle deb # Use deb as base for extraction or build raw
+	npm run tauri build -- --bundles deb # Use deb as base for extraction or build raw
 }
 
 package() {

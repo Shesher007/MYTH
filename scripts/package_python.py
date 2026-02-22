@@ -381,9 +381,18 @@ def build_backend(skip_if_exists=False):
         "pysqlite2",
         "MySQLdb",
         # --- Windows Libraries on Linux (Section 5 of log) ---
+        # Explicitly exclude Windows DLLs to stop 'not found' warnings during ctypes scanning
         "user32" if system != "windows" else None,
         "ole32" if system != "windows" else None,
         "shell32" if system != "windows" else None,
+        "advapi32" if system != "windows" else None,
+        "comctl32" if system != "windows" else None,
+        "ws2_32" if system != "windows" else None,
+        "gdi32" if system != "windows" else None,
+        "winmm" if system != "windows" else None,
+        "kernel32" if system != "windows" else None,
+        "msvcrt" if system != "windows" else None,
+        "shlwapi" if system != "windows" else None,
         "text_unidecode",  # Silence collect_data_files warning
     ]
     for ex in [e for e in exclusions if e]:

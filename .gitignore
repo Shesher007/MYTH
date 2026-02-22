@@ -145,4 +145,6 @@ all_py_files_errors.txt
 all_rs_files_errors.txt
 
 Last-step(uploading artifacts).txt
-build-linux-raw-log.txt
+build-linux(appimage)-raw-log.txt
+build-linux(deb)-raw-log.txt
+build-linux(rpm)-raw-log.txt

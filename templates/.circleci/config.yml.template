@@ -90,8 +90,8 @@ jobs:
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
             sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-jammy.list /etc/apt/sources.list.d/docker.list.distUpgrade
-            sudo apt-get update
-            sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev rpm
+            sudo DEBIAN_FRONTEND=noninteractive apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev rpm
       - run:
           name: Install uv
           command: |
@@ -151,6 +151,23 @@ jobs:
       - run:
           name: Generate Linux Packages
           command: uv run python scripts/ci_orchestrator.py linux-packages --verbose
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ui/src-tauri/target/x86_64-unknown-linux-gnu/release/
+            - ui/src-tauri/binaries/
+            - ui/src-tauri/resources/
+            - ui/src-tauri/tauri.conf.json
+            - ui/src-tauri/Cargo.toml
+            - ui/src-tauri/Cargo.lock
+            - ui/src-tauri/src/
+            - ui/src-tauri/capabilities/
+            - ui/src-tauri/icons/
+            - ui/dist/
+            - governance/
+            - resources/
+            - pyproject.toml
+            - packaging/
       - store_artifacts:
           path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/
           destination: bundles-deb
@@ -159,25 +176,17 @@ jobs:
           destination: bundles-extras
 
   build-linux-rpm:
-    # Parallel Job Part 2: RedHat/Fedora Bundling
-    # Split to bypass CircleCI's 60-minute absolute job timeout for large 1.6GiB payloads.
+    # Lightweight Job: RPM Bundling Only
+    # Attaches workspace from build-linux-deb to avoid redundant compilation.
     executor: linux-executor
     steps:
-      - checkout
+      - attach_workspace:
+          at: .
       - run:
-          name: Install System Dependencies
+          name: Install Bundling Dependencies
           command: |
-            sudo mkdir -p /etc/apt/keyrings
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-            sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-jammy.list /etc/apt/sources.list.d/docker.list.distUpgrade
             sudo apt-get update
-            sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev rpm
-      - run:
-          name: Install uv
-          command: |
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
+            sudo apt-get install -y rpm libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev
       - run:
           name: Setup Rust
           command: |
@@ -185,48 +194,15 @@ jobs:
             echo 'source $HOME/.cargo/env' >> $BASH_ENV
             source $HOME/.cargo/env
             rustup target add x86_64-unknown-linux-gnu
-      - run:
-          name: Sync Dependencies
-          command: uv sync --all-extras
       - node/install:
           node-version: "{{NODE_VERSION}}"
       - run:
-          name: Environment Setup & Hydration
-          command: |
-            mkdir -p ui/src-tauri/binaries
-            mkdir -p ui/src-tauri/resources
-            for dir in nodejs nmap driver_installers; do
-              mkdir -p "ui/src-tauri/binaries/$dir"
-              echo "placeholder" > "ui/src-tauri/binaries/$dir/.gitkeep"
-            done
-            uv run python scripts/ci_orchestrator.py validate --verbose
+          name: Install Tauri CLI
+          command: npm install --prefix ui @tauri-apps/cli
       - run:
-          name: Download TITAN Go Binaries
-          command: python3 scripts/install_titan_dependencies.py
-          environment:
-            PDTM_HOME: "/home/circleci/project/ui/src-tauri/binaries"
-            TAURI_TARGET_TRIPLE: "x86_64-unknown-linux-gnu"
-      - run:
-          name: Package Backend
-          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-backend --target x86_64-unknown-linux-gnu --verbose
-      - run:
-          name: Verify Backend Sidecar
-          command: |
-            echo "=== Sidecar Verification ==="
-            EXPECTED_NAME="{{CODENAME}}-backend-x86_64-unknown-linux-gnu"
-            SIDECAR_PATH="ui/src-tauri/binaries/${EXPECTED_NAME}"
-            if [ -f "$SIDECAR_PATH" ]; then
-              echo "✅ Sidecar found: $SIDECAR_PATH"
-              ls -lh "$SIDECAR_PATH"
-            else
-              echo "❌ FATAL: Sidecar missing: $SIDECAR_PATH"
-              ls -la ui/src-tauri/binaries/
-              exit 1
-            fi
-      - run:
-          name: Build Desktop App (RPM)
-          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles rpm --verbose
-          no_output_timeout: 100m
+          name: Bundle RPM
+          command: cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci
+          no_output_timeout: 30m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
       - store_artifacts:
@@ -234,25 +210,17 @@ jobs:
           destination: bundles-rpm
 
   build-linux-appimage:
-    # Parallel Job Part 3: AppImage Bundling (Universal Binary)
-    # Split to bypass CircleCI's 60-minute absolute job timeout for large 1.6GiB payloads.
+    # Lightweight Job: AppImage Bundling Only
+    # Attaches workspace from build-linux-deb to avoid redundant compilation.
     executor: linux-executor
     steps:
-      - checkout
+      - attach_workspace:
+          at: .
       - run:
-          name: Install System Dependencies
+          name: Install Bundling Dependencies
           command: |
-            sudo mkdir -p /etc/apt/keyrings
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-            sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-jammy.list /etc/apt/sources.list.d/docker.list.distUpgrade
             sudo apt-get update
-            sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev rpm
-      - run:
-          name: Install uv
-          command: |
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
+            sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev libfuse2
       - run:
           name: Setup Rust
           command: |
@@ -260,50 +228,19 @@ jobs:
             echo 'source $HOME/.cargo/env' >> $BASH_ENV
             source $HOME/.cargo/env
             rustup target add x86_64-unknown-linux-gnu
-      - run:
-          name: Sync Dependencies
-          command: uv sync --all-extras
       - node/install:
           node-version: "{{NODE_VERSION}}"
       - run:
-          name: Environment Setup & Hydration
-          command: |
-            mkdir -p ui/src-tauri/binaries
-            mkdir -p ui/src-tauri/resources
-            for dir in nodejs nmap driver_installers; do
-              mkdir -p "ui/src-tauri/binaries/$dir"
-              echo "placeholder" > "ui/src-tauri/binaries/$dir/.gitkeep"
-            done
-            uv run python scripts/ci_orchestrator.py validate --verbose
+          name: Install Tauri CLI
+          command: npm install --prefix ui @tauri-apps/cli
       - run:
-          name: Download TITAN Go Binaries
-          command: python3 scripts/install_titan_dependencies.py
-          environment:
-            PDTM_HOME: "/home/circleci/project/ui/src-tauri/binaries"
-            TAURI_TARGET_TRIPLE: "x86_64-unknown-linux-gnu"
-      - run:
-          name: Package Backend
-          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-backend --target x86_64-unknown-linux-gnu --verbose
-      - run:
-          name: Verify Backend Sidecar
-          command: |
-            echo "=== Sidecar Verification ==="
-            EXPECTED_NAME="{{CODENAME}}-backend-x86_64-unknown-linux-gnu"
-            SIDECAR_PATH="ui/src-tauri/binaries/${EXPECTED_NAME}"
-            if [ -f "$SIDECAR_PATH" ]; then
-              echo "✅ Sidecar found: $SIDECAR_PATH"
-              ls -lh "$SIDECAR_PATH"
-            else
-              echo "❌ FATAL: Sidecar missing: $SIDECAR_PATH"
-              ls -la ui/src-tauri/binaries/
-              exit 1
-            fi
-      - run:
-          name: Build Desktop App (AppImage)
-          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles appimage --verbose
-          no_output_timeout: 100m
+          name: Bundle AppImage
+          command: cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci
+          no_output_timeout: 30m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
+            NO_STRIP: "1"
+            APPIMAGE_EXTRACT_AND_RUN: "1"
       - store_artifacts:
           path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/
           destination: bundles-appimage
@@ -348,7 +285,7 @@ workflows:
                 - main
       - build-linux-rpm:
           requires:
-            - test
+            - build-linux-deb
           filters:
             tags:
               only: /^v.*/
@@ -357,7 +294,7 @@ workflows:
                 - main
       - build-linux-appimage:
           requires:
-            - test
+            - build-linux-deb
           filters:
             tags:
               only: /^v.*/

@@ -13,7 +13,7 @@ source="{{REPO_URL}}/archive/v${pkgver}.tar.gz"
 build() {
 	cd "$srcdir/{{NAME}}/ui"
 	npm install
-	npm run tauri build -- --bundle deb # Use deb as base for extraction or build raw
+	npm run tauri build -- --bundles deb # Use deb as base for extraction or build raw
 }
 
 package() {

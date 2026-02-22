@@ -20,7 +20,7 @@ Stages:
 
 Options:
     --target <triple>   Rust target triple (e.g. x86_64-unknown-linux-gnu)
-    --bundle <target>   Tauri bundle target (e.g. deb, rpm, appimage)
+    --bundles <target>  Tauri bundle target (e.g. deb, rpm, appimage)
     --dry-run           Print commands without executing
     --verbose           Show full command output
     --skip-sync         Skip uv sync for faster re-runs

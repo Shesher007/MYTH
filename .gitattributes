@@ -1,9 +1,9 @@
 # Normalize line endings
 * text=auto eol=lf
 
-# Explicitly set EOL for PowerShell scripts (common on Windows)
-*.ps1 text eol=crlf
-*.psm1 text eol=crlf
+# Explicitly set EOL for PowerShell scripts (Standardized to LF)
+*.ps1 text eol=lf
+*.psm1 text eol=lf
 
 # Ensure shell scripts use LF
 *.sh text eol=lf
