@@ -77,18 +77,18 @@ jobs:
           path: tests/test_errors.txt
           destination: test-reports
 
-  build-linux:
+  build-linux-deb:
+    # Parallel Job Part 1: Debian/Ubuntu Bundling
+    # Split to bypass CircleCI's 60-minute absolute job timeout for large 1.6GiB payloads.
     executor: linux-executor
     steps:
       - checkout
       - run:
           name: Install System Dependencies
           command: |
-            # Eliminate legacy GPG keyring warnings & Apt-key deprecation messages
             sudo mkdir -p /etc/apt/keyrings
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-            # Standardize on modern repo lists — Force removal of any legacy/duplicate sources
             sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-jammy.list /etc/apt/sources.list.d/docker.list.distUpgrade
             sudo apt-get update
             sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev rpm
@@ -114,7 +114,6 @@ jobs:
           command: |
             mkdir -p ui/src-tauri/binaries
             mkdir -p ui/src-tauri/resources
-            # Ensure optional resource directories exist to prevent Tauri build failure
             for dir in nodejs nmap driver_installers; do
               mkdir -p "ui/src-tauri/binaries/$dir"
               echo "placeholder" > "ui/src-tauri/binaries/$dir/.gitkeep"
@@ -144,8 +143,8 @@ jobs:
               exit 1
             fi
       - run:
-          name: Build Desktop App
-          command: uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --verbose
+          name: Build Desktop App (DEB)
+          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundle deb --verbose
           no_output_timeout: 100m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
@@ -153,11 +152,161 @@ jobs:
           name: Generate Linux Packages
           command: uv run python scripts/ci_orchestrator.py linux-packages --verbose
       - store_artifacts:
-          path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/
-          destination: bundles
+          path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/
+          destination: bundles-deb
       - store_artifacts:
-          path: .
-          destination: root_artifacts
+          path: dist_distribution/
+          destination: bundles-extras
+
+  build-linux-rpm:
+    # Parallel Job Part 2: RedHat/Fedora Bundling
+    # Split to bypass CircleCI's 60-minute absolute job timeout for large 1.6GiB payloads.
+    executor: linux-executor
+    steps:
+      - checkout
+      - run:
+          name: Install System Dependencies
+          command: |
+            sudo mkdir -p /etc/apt/keyrings
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+            sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-jammy.list /etc/apt/sources.list.d/docker.list.distUpgrade
+            sudo apt-get update
+            sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev rpm
+      - run:
+          name: Install uv
+          command: |
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
+      - run:
+          name: Setup Rust
+          command: |
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            echo 'source $HOME/.cargo/env' >> $BASH_ENV
+            source $HOME/.cargo/env
+            rustup target add x86_64-unknown-linux-gnu
+      - run:
+          name: Sync Dependencies
+          command: uv sync --all-extras
+      - node/install:
+          node-version: "{{NODE_VERSION}}"
+      - run:
+          name: Environment Setup & Hydration
+          command: |
+            mkdir -p ui/src-tauri/binaries
+            mkdir -p ui/src-tauri/resources
+            for dir in nodejs nmap driver_installers; do
+              mkdir -p "ui/src-tauri/binaries/$dir"
+              echo "placeholder" > "ui/src-tauri/binaries/$dir/.gitkeep"
+            done
+            uv run python scripts/ci_orchestrator.py validate --verbose
+      - run:
+          name: Download TITAN Go Binaries
+          command: python3 scripts/install_titan_dependencies.py
+          environment:
+            PDTM_HOME: "/home/circleci/project/ui/src-tauri/binaries"
+            TAURI_TARGET_TRIPLE: "x86_64-unknown-linux-gnu"
+      - run:
+          name: Package Backend
+          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-backend --target x86_64-unknown-linux-gnu --verbose
+      - run:
+          name: Verify Backend Sidecar
+          command: |
+            echo "=== Sidecar Verification ==="
+            EXPECTED_NAME="{{CODENAME}}-backend-x86_64-unknown-linux-gnu"
+            SIDECAR_PATH="ui/src-tauri/binaries/${EXPECTED_NAME}"
+            if [ -f "$SIDECAR_PATH" ]; then
+              echo "✅ Sidecar found: $SIDECAR_PATH"
+              ls -lh "$SIDECAR_PATH"
+            else
+              echo "❌ FATAL: Sidecar missing: $SIDECAR_PATH"
+              ls -la ui/src-tauri/binaries/
+              exit 1
+            fi
+      - run:
+          name: Build Desktop App (RPM)
+          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundle rpm --verbose
+          no_output_timeout: 100m
+          environment:
+            GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
+      - store_artifacts:
+          path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/rpm/
+          destination: bundles-rpm
+
+  build-linux-appimage:
+    # Parallel Job Part 3: AppImage Bundling (Universal Binary)
+    # Split to bypass CircleCI's 60-minute absolute job timeout for large 1.6GiB payloads.
+    executor: linux-executor
+    steps:
+      - checkout
+      - run:
+          name: Install System Dependencies
+          command: |
+            sudo mkdir -p /etc/apt/keyrings
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+            sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-jammy.list /etc/apt/sources.list.d/docker.list.distUpgrade
+            sudo apt-get update
+            sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev rpm
+      - run:
+          name: Install uv
+          command: |
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
+      - run:
+          name: Setup Rust
+          command: |
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            echo 'source $HOME/.cargo/env' >> $BASH_ENV
+            source $HOME/.cargo/env
+            rustup target add x86_64-unknown-linux-gnu
+      - run:
+          name: Sync Dependencies
+          command: uv sync --all-extras
+      - node/install:
+          node-version: "{{NODE_VERSION}}"
+      - run:
+          name: Environment Setup & Hydration
+          command: |
+            mkdir -p ui/src-tauri/binaries
+            mkdir -p ui/src-tauri/resources
+            for dir in nodejs nmap driver_installers; do
+              mkdir -p "ui/src-tauri/binaries/$dir"
+              echo "placeholder" > "ui/src-tauri/binaries/$dir/.gitkeep"
+            done
+            uv run python scripts/ci_orchestrator.py validate --verbose
+      - run:
+          name: Download TITAN Go Binaries
+          command: python3 scripts/install_titan_dependencies.py
+          environment:
+            PDTM_HOME: "/home/circleci/project/ui/src-tauri/binaries"
+            TAURI_TARGET_TRIPLE: "x86_64-unknown-linux-gnu"
+      - run:
+          name: Package Backend
+          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-backend --target x86_64-unknown-linux-gnu --verbose
+      - run:
+          name: Verify Backend Sidecar
+          command: |
+            echo "=== Sidecar Verification ==="
+            EXPECTED_NAME="{{CODENAME}}-backend-x86_64-unknown-linux-gnu"
+            SIDECAR_PATH="ui/src-tauri/binaries/${EXPECTED_NAME}"
+            if [ -f "$SIDECAR_PATH" ]; then
+              echo "✅ Sidecar found: $SIDECAR_PATH"
+              ls -lh "$SIDECAR_PATH"
+            else
+              echo "❌ FATAL: Sidecar missing: $SIDECAR_PATH"
+              ls -la ui/src-tauri/binaries/
+              exit 1
+            fi
+      - run:
+          name: Build Desktop App (AppImage)
+          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundle appimage --verbose
+          no_output_timeout: 100m
+          environment:
+            GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
+      - store_artifacts:
+          path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/
+          destination: bundles-appimage
 
   build-website:
     executor: linux-executor
@@ -188,7 +337,25 @@ workflows:
       - test:
           requires:
             - validate
-      - build-linux:
+      - build-linux-deb:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only:
+                - main
+      - build-linux-rpm:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only:
+                - main
+      - build-linux-appimage:
           requires:
             - test
           filters:

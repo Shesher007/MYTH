@@ -20,6 +20,7 @@ Stages:
 
 Options:
     --target <triple>   Rust target triple (e.g. x86_64-unknown-linux-gnu)
+    --bundle <target>   Tauri bundle target (e.g. deb, rpm, appimage)
     --dry-run           Print commands without executing
     --verbose           Show full command output
     --skip-sync         Skip uv sync for faster re-runs
@@ -350,7 +351,7 @@ def stage_build_backend(
     return True
 
 
-def stage_build_desktop(*, dry_run=False, verbose=False, target=None, **_):
+def stage_build_desktop(*, dry_run=False, verbose=False, target=None, bundle=None, **_):
     """Build Tauri desktop application."""
     _banner("build-desktop", "Building Tauri desktop application")
 
@@ -360,8 +361,15 @@ def stage_build_desktop(*, dry_run=False, verbose=False, target=None, **_):
     _run(["npm", "ci"], dry_run=dry_run, verbose=verbose, cwd=UI_DIR)
 
     # Build Tauri
+    cmd = ["npx", "tauri", "build", "--target", target]
+    if bundle:
+        supported = ["deb", "rpm", "appimage", "msi", "nsis", "dmg", "app"]
+        if bundle.lower() not in supported:
+            print(f"  {C.YELLOW}[WARN] Target '{bundle}' may not be supported by Tauri bundler.{C.RESET}")
+        cmd += ["--bundle", bundle]
+
     _run(
-        ["npx", "tauri", "build", "--target", target],
+        cmd,
         dry_run=dry_run,
         verbose=True,
         cwd=UI_DIR,
@@ -589,6 +597,7 @@ Composites (run multiple stages):
     )
     parser.add_argument("stages", nargs="+", help="Stage(s) or composite(s) to run")
     parser.add_argument("--target", default=None, help="Rust target triple")
+    parser.add_argument("--bundle", default=None, help="Tauri bundle target (deb, rpm, etc.)")
     parser.add_argument(
         "--dry-run", action="store_true", help="Print commands without executing"
     )
@@ -621,6 +630,7 @@ Composites (run multiple stages):
         "verbose": args.verbose,
         "skip_sync": args.skip_sync,
         "target": args.target,
+        "bundle": args.bundle,
         "fast": args.fast,
     }
 
