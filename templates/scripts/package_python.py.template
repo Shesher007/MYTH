@@ -384,7 +384,9 @@ def build_backend(skip_if_exists=False):
         "llvmlite",
         "numba",  # Large
         # --- Windows crash prevention ---
-        "magic" if system == "windows" else "magic.compat",  # Prevent 0xC0000005 Access Violation
+        "magic"
+        if system == "windows"
+        else "magic.compat",  # Prevent 0xC0000005 Access Violation
         # --- Platform Specific Exclusions (Noise Reduction) ---
         "pywin32",
         "pypiwin32",
