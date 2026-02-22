@@ -1,5 +1,5 @@
 # Normalize line endings
-* text=auto
+* text=auto eol=lf
 
 # Explicitly set EOL for PowerShell scripts (common on Windows)
 *.ps1 text eol=crlf

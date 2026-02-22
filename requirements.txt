@@ -67,9 +67,9 @@ bitsandbytes==0.49.2
     # via myth (pyproject.toml)
 blinker==1.9.0
     # via streamlit
-boto3==1.42.53
+boto3==1.42.54
     # via myth (pyproject.toml)
-botocore==1.42.53
+botocore==1.42.54
     # via
     #   boto3
     #   s3transfer
@@ -439,7 +439,7 @@ langsmith==0.7.5
     #   langchain-core
 lazy-loader==0.4
     # via scikit-image
-lief==0.17.3
+lief==0.17.4
     # via myth (pyproject.toml)
 llvmlite==0.46.0
     # via numba
@@ -962,7 +962,7 @@ texttable==1.7.0
     # via py7zr
 threadpoolctl==3.6.0
     # via scikit-learn
-tifffile==2026.2.16
+tifffile==2026.2.20
     # via scikit-image
 tiktoken==0.12.0
     # via

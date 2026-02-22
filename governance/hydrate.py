@@ -496,9 +496,7 @@ def _validate(flat: dict[str, str]) -> list[str]:
 # ---------------------------------------------------------------------------
 # Core engine
 # ---------------------------------------------------------------------------
-def hydrate_manifests(
-    *, check_only: bool = False, validate_only: bool = False
-) -> bool:
+def hydrate_manifests(*, check_only: bool = False, validate_only: bool = False) -> bool:
     # ---- Load and Flatten Metadata ----
     flat = load_metadata()
 
@@ -660,7 +658,7 @@ def hydrate_manifests(
                     current = f.read()
                 if current != hydrated:
                     print(
-                        "    [SKIP] SKIPPING to prevent data loss. Please update the template or manually sync."
+                        f"    [SKIP] DRIFT DETECTED: {rel_output}. Skipping to prevent data loss. Please update the template or manually sync."
                     )
                     skipped.append(rel_output)
                     continue
@@ -736,9 +734,7 @@ if __name__ == "__main__":
     if args.watch:
         _run_watch()
     else:
-        ok = hydrate_manifests(
-            check_only=args.check, validate_only=args.validate
-        )
+        ok = hydrate_manifests(check_only=args.check, validate_only=args.validate)
         if ok:
             print("\n[INFO] Done.")
             sys.exit(0)
