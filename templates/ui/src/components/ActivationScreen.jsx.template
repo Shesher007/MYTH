@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { invoke } from '@tauri-apps/api/core';
 
 const CyberBackground = () => (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -46,6 +45,7 @@ export default function ActivationScreen({ onActivate }) {
         // Fetch machine ID on mount for hardware binding awareness
         const fetchId = async () => {
             try {
+                const { invoke } = await import('@tauri-apps/api/core');
                 const id = await invoke('get_machine_id');
                 // Mask the ID for security/aesthetic: XXXX-...-XXXX
                 const masked = id.length > 12 ? `${id.slice(0, 6)}...${id.slice(-6)}` : id;

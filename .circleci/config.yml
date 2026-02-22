@@ -88,8 +88,8 @@ jobs:
             sudo mkdir -p /etc/apt/keyrings
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-            # Standardize on modern repo lists
-            sudo rm -f /etc/apt/sources.list.d/docker.list.distUpgrade
+            # Standardize on modern repo lists — Force removal of any legacy/duplicate sources
+            sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-jammy.list /etc/apt/sources.list.d/docker.list.distUpgrade
             sudo apt-get update
             sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev rpm
       - run:
@@ -117,7 +117,7 @@ jobs:
             # Ensure optional resource directories exist to prevent Tauri build failure
             for dir in nodejs nmap driver_installers; do
               mkdir -p "ui/src-tauri/binaries/$dir"
-              touch "ui/src-tauri/binaries/$dir/.gitkeep"
+              echo "placeholder" > "ui/src-tauri/binaries/$dir/.gitkeep"
             done
             uv run python scripts/ci_orchestrator.py validate --verbose
       - run:
@@ -146,6 +146,7 @@ jobs:
       - run:
           name: Build Desktop App
           command: uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --verbose
+          no_output_timeout: 100m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
       - run:

@@ -384,6 +384,7 @@ def build_backend(skip_if_exists=False):
         "user32" if system != "windows" else None,
         "ole32" if system != "windows" else None,
         "shell32" if system != "windows" else None,
+        "text_unidecode",  # Silence collect_data_files warning
     ]
     for ex in [e for e in exclusions if e]:
         cmd += ["--exclude-module", ex]
