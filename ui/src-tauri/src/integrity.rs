@@ -68,7 +68,15 @@ pub fn generate_integrity_manifest(app: AppHandle) -> Result<serde_json::Value, 
     let resource_dir = app.path().resource_dir()
         .map_err(|e| format!("Cannot resolve resource dir: {}", e))?;
 
-    let critical_files = ["myth-backend", "index.html", "assets"];
+    let backend_name = if cfg!(windows) {
+        format!("{}-backend-x86_64-pc-windows-msvc.exe", "myth")
+    } else if cfg!(target_os = "macos") {
+        format!("{}-backend-x86_64-apple-darwin", "myth")
+    } else {
+        format!("{}-backend-x86_64-unknown-linux-gnu", "myth")
+    };
+
+    let critical_files = [backend_name.as_str(), "index.html", "assets"];
     let mut hashes = HashMap::new();
 
     for file in &critical_files {

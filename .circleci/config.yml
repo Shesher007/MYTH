@@ -286,29 +286,35 @@ jobs:
       - checkout
       - run:
           name: Install uv
-          command: powershell.exe -ExecutionPolicy Bypass -Command "irm https://astral.sh/uv/install.ps1 | iex"
+          shell: powershell.exe
+          command: irm https://astral.sh/uv/install.ps1 | iex
+      - node/install:
+          node-version: "24.12.0"
       - run:
           name: Install Python via uv
+          shell: powershell.exe
           command: |
-             powershell.exe -ExecutionPolicy Bypass -Command "
-             $uv = '${USERPROFILE}\.local\bin\uv.exe'
+             $uv = "$HOME\.local\bin\uv.exe"
              & $uv python install 3.13.11
              & $uv venv
-             "
       - run:
           name: Build Backend
+          shell: powershell.exe
           command: |
-             powershell.exe -ExecutionPolicy Bypass -Command "
-             $uv = '${USERPROFILE}\.local\bin\uv.exe'
-             & $uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
-             "
+             $uv = "$HOME\.local\bin\uv.exe"
+             & $uv run python scripts/ci_orchestrator.py --stage build-backend --target x86_64-pc-windows-msvc --verbose
+      - run:
+          name: Build Desktop App (Windows)
+          shell: powershell.exe
+          command: |
+             $uv = "$HOME\.local\bin\uv.exe"
+             & $uv run python scripts/ci_orchestrator.py --stage build-desktop --target x86_64-pc-windows-msvc --verbose
       - run:
           name: Build Desktop (NSIS)
+          shell: powershell.exe
           command: |
-             powershell.exe -ExecutionPolicy Bypass -Command "
-             $uv = '${USERPROFILE}\.local\bin\uv.exe'
-             & $uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
-             "
+             $uv = "$HOME\.local\bin\uv.exe"
+             & $uv run python scripts/ci_orchestrator.py --stage build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
       - store_artifacts:
           path: ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/
           destination: bundles-windows
