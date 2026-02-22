@@ -149,6 +149,8 @@ def main():
             "build-docker",
             "deploy-website",
             "linux-packages",
+            "windows-packages",
+            "verify-sidecar",
         ]
         for s in stages:
             print(f"    • {s}")

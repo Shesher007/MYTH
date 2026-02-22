@@ -20,7 +20,9 @@ DRIVER_TARGET_DIR = BINARIES_DIR / "driver_installers"
 # URLs
 NMAP_URL = f"https://nmap.org/dist/nmap-{NMAP_VERSION}-win32.zip"
 NPCAP_URL = f"https://npcap.com/dist/npcap-{NPCAP_VERSION}.exe"
-WINDUMP_URL = "https://www.winpcap.org/install/bin/WinDump.exe"
+# URLs
+NMAP_URL = f"https://nmap.org/dist/nmap-{NMAP_VERSION}-win32.zip"
+NPCAP_URL = f"https://npcap.com/dist/npcap-{NPCAP_VERSION}.exe"
 
 
 def download_file(url, target_path):
@@ -34,7 +36,7 @@ def download_file(url, target_path):
             },
         )
         with (
-            urllib.request.urlopen(req) as response,
+            urllib.request.urlopen(req, timeout=30) as response,
             open(target_path, "wb") as out_file,
         ):
             shutil.copyfileobj(response, out_file)
@@ -107,19 +109,15 @@ def install_nmap_sidecar():
     npcap_installer = DRIVER_TARGET_DIR / "npcap-setup.exe"
     if not npcap_installer.exists():
         if not download_file(NPCAP_URL, npcap_installer):
-            return False
+            # Fallback to alternative Npcap URL if main fails
+            print("  [RETRY] Attempting alternative Npcap URL...")
+            ALT_NPCAP_URL = f"https://npcap.org/dist/npcap-{NPCAP_VERSION}.exe"
+            if not download_file(ALT_NPCAP_URL, npcap_installer):
+                return False
     else:
         print("  [SKIP] Using cached Npcap installer.")
 
-    # 4. Download WinDump
-    windump_exe = NMAP_TARGET_DIR / "WinDump.exe"
-    if not windump_exe.exists():
-        if not download_file(WINDUMP_URL, windump_exe):
-            print("  [WARNING] WinDump download failed. Continuing with Nmap only.")
-    else:
-        print("  [SKIP] Using cached WinDump.")
-
-    # 5. Verification
+    # 4. Verification
     nmap_exe = NMAP_TARGET_DIR / "nmap.exe"
     if nmap_exe.exists():
         print(f"  [SUCCESS] Verified: {nmap_exe}")

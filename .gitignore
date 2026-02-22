@@ -148,3 +148,4 @@ Last-step(uploading artifacts).txt
 build-linux(appimage)-raw-log.txt
 build-linux(deb)-raw-log.txt
 build-linux(rpm)-raw-log.txt
+build-windows(exe)-raw-log.txt

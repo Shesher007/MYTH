@@ -10,6 +10,7 @@ import platform
 import subprocess
 import sys
 import warnings
+
 import yaml
 
 # Suppress annoying SyntaxWarnings from third-party libs (like ropper) during build
@@ -383,7 +384,9 @@ def build_backend(skip_if_exists=False):
         "llvmlite",
         "numba",  # Large
         # --- Windows crash prevention ---
-        "magic.compat",  # access violation in libmagic ctypes on Windows
+        "magic"
+        if system == "windows"
+        else "magic.compat",  # Prevent 0xC0000005 Access Violation
         # --- Platform Specific Exclusions (Noise Reduction) ---
         "pywin32",
         "pypiwin32",
@@ -416,7 +419,6 @@ def build_backend(skip_if_exists=False):
     hidden_imports += ["watchdog"]  # Required for FIM
     cmd += [
         "--noupx",
-        "--strip",
     ]
 
     # Don't show console window on Windows

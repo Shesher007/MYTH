@@ -92,9 +92,7 @@
         "languages": [
           "English"
         ],
-        "compression": "lzma",
-        "oneClick": false,
-        "allowToChangeInstallationDirectory": true
+        "compression": "lzma"
       }
     },
     "macOS": {

@@ -375,7 +375,9 @@ def stage_build_backend(
     return True
 
 
-def stage_build_desktop(*, dry_run=False, verbose=False, target=None, bundle=None, **kwargs):
+def stage_build_desktop(
+    *, dry_run=False, verbose=False, target=None, bundle=None, **kwargs
+):
     """Build Tauri desktop application."""
     _banner("build-desktop", "Building Tauri desktop application")
 
@@ -582,7 +584,9 @@ def stage_windows_packages(*, dry_run=False, verbose=False, **_):
     _banner("windows-packages", "Generating portable Windows package")
 
     if sys.platform != "win32":
-        print(f"  {C.YELLOW}⚠ This stage is only supported on Windows, skipping{C.RESET}")
+        print(
+            f"  {C.YELLOW}⚠ This stage is only supported on Windows, skipping{C.RESET}"
+        )
         return True
 
     portable_script = os.path.join(SCRIPTS_DIR, "package_portable_win.ps1")
