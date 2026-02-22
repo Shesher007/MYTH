@@ -1,0 +1,10 @@
+build-linux(appimage)-raw-log.txt:invoke-rc.d: policy-rc.d denied execution of force-reload.
+build-linux(appimage)-raw-log.txt:failed to bundle project `failed to run linuxdeploy`
+build-linux(appimage)-raw-log.txt:       Error failed to bundle project `failed to run linuxdeploy`
+build-linux(appimage)-raw-log.txt:  [FAIL] Command failed (exit 1)
+build-linux(appimage)-raw-log.txt:[FAIL] Pipeline failed at stage: build-desktop
+build-linux(appimage)-raw-log.txt:  [FAIL] Pipeline failed
+build-linux(rpm)-raw-log.txt:invoke-rc.d: policy-rc.d denied execution of force-reload.
+build-linux(rpm)-raw-log.txt:context deadline exceeded
+build-linux(rpm)-raw-log.txt:context deadline exceeded
+build-linux(deb)-raw-log.txt:invoke-rc.d: policy-rc.d denied execution of force-reload.

@@ -90,7 +90,7 @@ class C:
 def _banner(stage: str, description: str):
     """Print a stage banner."""
     print(f"\n{C.BOLD}{C.CYAN}{'=' * 60}{C.RESET}")
-    print(f"{C.BOLD}{C.CYAN}  [MYTH] STAGE: {stage.upper()}{C.RESET}")
+    print(f"{C.BOLD}{C.CYAN}  [{{NAME}}] STAGE: {stage.upper()}{C.RESET}")
     print(f"{C.DIM}  {description}{C.RESET}")
     print(f"{C.BOLD}{C.CYAN}{'=' * 60}{C.RESET}\n")
 
@@ -321,7 +321,7 @@ def stage_build_backend(
     env_extra = {
         "TAURI_TARGET_TRIPLE": target,
         "UV_LINK_MODE": "copy",
-        "MYTH_SILENT_CONFIG": "1",
+        "{{NAME}}_SILENT_CONFIG": "1",
     }
 
     # Inject secrets bundle if available
@@ -365,7 +365,9 @@ def stage_build_desktop(*, dry_run=False, verbose=False, target=None, bundle=Non
     if bundle:
         supported = ["deb", "rpm", "appimage", "msi", "nsis", "dmg", "app"]
         if bundle.lower() not in supported:
-            print(f"  {C.YELLOW}[WARN] Target '{bundle}' may not be supported by Tauri bundler.{C.RESET}")
+            print(
+                f"  {C.YELLOW}[WARN] Target '{bundle}' may not be supported by Tauri bundler.{C.RESET}"
+            )
         cmd += ["--bundles", bundle]
 
     _run(
@@ -385,7 +387,7 @@ def stage_build_docker(*, dry_run=False, verbose=False, **_):
     _banner("build-docker", "Building OCI container image")
 
     # Read image name from identity if possible
-    image_name = "myth-desktop"
+    image_name = "{{CODENAME}}-desktop"
     try:
         import yaml
 
@@ -408,7 +410,7 @@ def stage_deploy_website(*, dry_run=False, verbose=False, **_):
     _banner("deploy-website", "Building & deploying project website")
 
     # Read project name from identity if possible
-    site_name = "myth-website"
+    site_name = "{{CODENAME}}-website"
     try:
         import yaml
 
@@ -416,7 +418,7 @@ def stage_deploy_website(*, dry_run=False, verbose=False, **_):
         with open(identity_path, "r", encoding="utf-8") as f:
             identity = yaml.safe_load(f)
         id_sect = identity.get("identity", {})
-        site_name = f"{id_sect.get('name', 'myth').lower()}-website"
+        site_name = f"{id_sect.get('name', '{{CODENAME}}').lower()}-website"
     except Exception:
         pass
 
@@ -597,7 +599,9 @@ Composites (run multiple stages):
     )
     parser.add_argument("stages", nargs="+", help="Stage(s) or composite(s) to run")
     parser.add_argument("--target", default=None, help="Rust target triple")
-    parser.add_argument("--bundles", default=None, help="Tauri bundle target (deb, rpm, etc.)")
+    parser.add_argument(
+        "--bundles", default=None, help="Tauri bundle target (deb, rpm, etc.)"
+    )
     parser.add_argument(
         "--dry-run", action="store_true", help="Print commands without executing"
     )
@@ -638,7 +642,7 @@ Composites (run multiple stages):
     print(f"""
 {C.BOLD}{C.CYAN}
  ┌─────────────────────────────────────────────────┐
- │  [MYTH] {{NAME}} CI/CD ORCHESTRATOR               │
+ │  [{{NAME}}] {{NAME}} CI/CD ORCHESTRATOR               │
  │   Platform-Agnostic Build Pipeline               │
  └─────────────────────────────────────────────────┘{C.RESET}
 """)
