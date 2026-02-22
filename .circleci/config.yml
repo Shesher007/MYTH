@@ -282,28 +282,33 @@ jobs:
 
   build-windows:
     executor: windows-executor
-    shell: powershell.exe -ExecutionPolicy Bypass -Command
     steps:
       - checkout
       - run:
           name: Install uv
-          command: irm https://astral.sh/uv/install.ps1 | iex
+          command: powershell.exe -ExecutionPolicy Bypass -Command "irm https://astral.sh/uv/install.ps1 | iex"
       - run:
           name: Install Python via uv
           command: |
-            $uv = "$env:USERPROFILE\.local\bin\uv.exe"
-            & $uv python install 3.13.11
-            & $uv venv
+             powershell.exe -ExecutionPolicy Bypass -Command "
+             $uv = '${USERPROFILE}\.local\bin\uv.exe'
+             & $uv python install 3.13.11
+             & $uv venv
+             "
       - run:
           name: Build Backend
           command: |
-            $uv = "$env:USERPROFILE\.local\bin\uv.exe"
-            & $uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
+             powershell.exe -ExecutionPolicy Bypass -Command "
+             $uv = '${USERPROFILE}\.local\bin\uv.exe'
+             & $uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
+             "
       - run:
           name: Build Desktop (NSIS)
           command: |
-            $uv = "$env:USERPROFILE\.local\bin\uv.exe"
-            & $uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
+             powershell.exe -ExecutionPolicy Bypass -Command "
+             $uv = '${USERPROFILE}\.local\bin\uv.exe'
+             & $uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
+             "
       - store_artifacts:
           path: ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/
           destination: bundles-windows

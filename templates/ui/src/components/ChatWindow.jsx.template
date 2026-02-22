@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Loader2, FileUp, ChevronDown, ChevronRight, Terminal, Eye, Volume2, VolumeX, Copy, Check } from 'lucide-react';
+import { Send, Loader2, FileUp, ChevronDown, ChevronRight, Terminal, Eye, Volume2, VolumeX, Copy, Check, Brain, Mic, Image as ImageIcon, Music, FolderUp, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
