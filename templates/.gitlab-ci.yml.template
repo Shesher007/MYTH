@@ -76,7 +76,9 @@ build-linux-rpm:
   needs: ["build-linux-deb"]
   script:
     - apt-get update && apt-get install -y rpm
-    - cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build": {"beforeBuildCommand": ""}}'
+    - |
+      cd ui
+      npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build": {"beforeBuildCommand": ""}}'
   artifacts:
     paths:
       - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/rpm/*.rpm"
@@ -88,7 +90,9 @@ build-linux-appimage:
   needs: ["build-linux-deb"]
   script:
     - apt-get update && apt-get install -y libfuse2
-    - cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build": {"beforeBuildCommand": ""}}'
+    - |
+      cd ui
+      npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build": {"beforeBuildCommand": ""}}'
   artifacts:
     paths:
       - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage"

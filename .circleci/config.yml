@@ -211,7 +211,9 @@ jobs:
           command: npm install --prefix ui @tauri-apps/cli
       - run:
           name: Bundle RPM
-          command: cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build": {"beforeBuildCommand": ""}}'
+          command: |
+            cd ui
+            npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build": {"beforeBuildCommand": ""}}'
           no_output_timeout: 30m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
@@ -245,7 +247,9 @@ jobs:
           command: npm install --prefix ui @tauri-apps/cli
       - run:
           name: Bundle AppImage
-          command: cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build": {"beforeBuildCommand": ""}}'
+          command: |
+            cd ui
+            npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build": {"beforeBuildCommand": ""}}'
           no_output_timeout: 30m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}

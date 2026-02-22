@@ -181,7 +181,7 @@ jobs:
         run: |
           cd ui
           npm install @tauri-apps/cli
-          npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build":{"beforeBuildCommand":""}}'
+          npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build": {"beforeBuildCommand": ""}}'
         env:
           GITHUB_TOKEN: ${{ secrets.CUSTOM_DEPLOY_TOKEN }}
       - name: Upload RPM artifact
@@ -211,7 +211,7 @@ jobs:
         run: |
           cd ui
           npm install @tauri-apps/cli
-          npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build":{"beforeBuildCommand":""}}'
+          npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build": {"beforeBuildCommand": ""}}'
         env:
           GITHUB_TOKEN: ${{ secrets.CUSTOM_DEPLOY_TOKEN }}
           APPIMAGE_EXTRACT_AND_RUN: "1"
