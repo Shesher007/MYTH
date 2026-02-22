@@ -365,7 +365,9 @@ def stage_build_desktop(*, dry_run=False, verbose=False, target=None, bundle=Non
     if bundle:
         supported = ["deb", "rpm", "appimage", "msi", "nsis", "dmg", "app"]
         if bundle.lower() not in supported:
-            print(f"  {C.YELLOW}[WARN] Target '{bundle}' may not be supported by Tauri bundler.{C.RESET}")
+            print(
+                f"  {C.YELLOW}[WARN] Target '{bundle}' may not be supported by Tauri bundler.{C.RESET}"
+            )
         cmd += ["--bundles", bundle]
 
     _run(
@@ -597,7 +599,9 @@ Composites (run multiple stages):
     )
     parser.add_argument("stages", nargs="+", help="Stage(s) or composite(s) to run")
     parser.add_argument("--target", default=None, help="Rust target triple")
-    parser.add_argument("--bundles", default=None, help="Tauri bundle target (deb, rpm, etc.)")
+    parser.add_argument(
+        "--bundles", default=None, help="Tauri bundle target (deb, rpm, etc.)"
+    )
     parser.add_argument(
         "--dry-run", action="store_true", help="Print commands without executing"
     )
