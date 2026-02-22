@@ -317,7 +317,11 @@ def stage_build_backend(
     _banner("build-backend", "Packaging Python backend (PyInstaller sidecar)")
 
     target = target or os.environ.get("TAURI_TARGET_TRIPLE") or _detect_target_triple()
-    env_extra = {"TAURI_TARGET_TRIPLE": target, "UV_LINK_MODE": "copy"}
+    env_extra = {
+        "TAURI_TARGET_TRIPLE": target,
+        "UV_LINK_MODE": "copy",
+        "MYTH_SILENT_CONFIG": "1",
+    }
 
     # Inject secrets bundle if available
     secrets_bundle = os.environ.get("MYTH_SECRETS_BUNDLE")

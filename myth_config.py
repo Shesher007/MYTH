@@ -161,10 +161,11 @@ class SovereignConfig:
     def load(self):
         """Loads configuration from secrets.yaml."""
         if not os.path.exists(self.config_path):
-            logger.warning(f"⚠️ Configuration file missing: {self.config_path}")
-            logger.warning(
-                "⚠️ Run the app once to auto-create secrets.yaml, then populate your API keys."
-            )
+            if os.environ.get("MYTH_SILENT_CONFIG") != "1":
+                logger.warning(f"⚠️ Configuration file missing: {self.config_path}")
+                logger.warning(
+                    "⚠️ Run the app once to auto-create secrets.yaml, then populate your API keys."
+                )
             return
 
         try:

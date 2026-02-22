@@ -497,7 +497,7 @@ def _validate(flat: dict[str, str]) -> list[str]:
 # Core engine
 # ---------------------------------------------------------------------------
 def hydrate_manifests(
-    *, check_only: bool = False, validate_only: bool = False, force: bool = False
+    *, check_only: bool = False, validate_only: bool = False
 ) -> bool:
     # ---- Load and Flatten Metadata ----
     flat = load_metadata()
@@ -655,16 +655,12 @@ def hydrate_manifests(
                 print(f"[PASS] IN SYNC:  {rel_output}")
         else:
             # SAFETY GUARDRAIL: Check for drift before overwriting
-            if os.path.exists(output_path) and not force:
+            if os.path.exists(output_path):
                 with open(output_path, "r", encoding="utf-8") as f:
                     current = f.read()
                 if current != hydrated:
-                    print(f"[WARN] [GUARDRAIL] DRIFT DETECTED IN {rel_output}")
                     print(
-                        "    Manual changes found in source that are not in template."
-                    )
-                    print(
-                        "    [SKIP] SKIPPING to prevent data loss. Use --force to overwrite."
+                        "    [SKIP] SKIPPING to prevent data loss. Please update the template or manually sync."
                     )
                     skipped.append(rel_output)
                     continue
@@ -735,18 +731,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--watch", action="store_true", help="Watch identity.yaml and sync in real-time"
     )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Overwrite drifted files even if manual changes are found",
-    )
     args = parser.parse_args()
 
     if args.watch:
         _run_watch()
     else:
         ok = hydrate_manifests(
-            check_only=args.check, validate_only=args.validate, force=args.force
+            check_only=args.check, validate_only=args.validate
         )
         if ok:
             print("\n[INFO] Done.")

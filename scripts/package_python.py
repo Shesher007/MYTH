@@ -375,6 +375,15 @@ def build_backend(skip_if_exists=False):
         "win32com",
         "win32api",
         "comtypes" if system != "windows" else None,
+        # --- False Positive Hidden Imports (Section 4 of log) ---
+        "pycparser.lextab",
+        "pycparser.yacctab",
+        "pysqlite2",
+        "MySQLdb",
+        # --- Windows Libraries on Linux (Section 5 of log) ---
+        "user32" if system != "windows" else None,
+        "ole32" if system != "windows" else None,
+        "shell32" if system != "windows" else None,
     ]
     for ex in [e for e in exclusions if e]:
         cmd += ["--exclude-module", ex]

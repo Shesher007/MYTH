@@ -143,3 +143,6 @@ all_file_error_ckecker.txt
 all_js_ts_files_errors.txt
 all_py_files_errors.txt
 all_rs_files_errors.txt
+
+Last-step(uploading artifacts).txt
+build-linux-raw-log.txt
