@@ -286,25 +286,23 @@ jobs:
       - checkout
       - run:
           name: Install uv
-          command: |
-             powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-             # Use CircleCI's recommended way to persist PATH on Windows
-             echo "setx PATH \"$env:PATH;$HOME\.local\bin\"" | clip
-             powershell -ExecutionPolicy ByPass -c "setx PATH \"$env:PATH;$HOME\.local\bin\""
+          command: powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
       - run:
           name: Install Python via uv
           command: |
-            uv python install 3.13.11
-            # Ensure future steps see the uv-managed python
-            uv venv
+            $uv = "$env:USERPROFILE\.local\bin\uv.exe"
+            & $uv python install 3.13.11
+            & $uv venv
       - run:
           name: Build Backend
           command: |
-            uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
+            $uv = "$env:USERPROFILE\.local\bin\uv.exe"
+            & $uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
       - run:
           name: Build Desktop (NSIS)
           command: |
-             uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
+            $uv = "$env:USERPROFILE\.local\bin\uv.exe"
+            & $uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
       - store_artifacts:
           path: ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/
           destination: bundles-windows
