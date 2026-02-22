@@ -282,23 +282,40 @@ jobs:
           name: Setup Rust
           shell: powershell.exe
           command: |
-            if (-not (Get-Command rustc -ErrorAction SilentlyContinue)) {
-              Write-Host "Rust not found. Installing..."
-              Invoke-WebRequest -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile "rustup-init.exe"
-              .\rustup-init.exe -y --default-host x86_64-pc-windows-msvc --default-toolchain stable --no-modify-path
-              Remove-Item "rustup-init.exe"
-            }
-            $rustup = "$env:USERPROFILE\.cargo\bin\rustup.exe"
-            if (Test-Path $rustup) {
-              & $rustup target add x86_64-pc-windows-msvc
-              # For subsequent steps in this job, update the path
-              $newPath = "$env:USERPROFILE\.cargo\bin;" + [Environment]::GetEnvironmentVariable("PATH", "Machine")
-              [Environment]::SetEnvironmentVariable("PATH", $newPath, "Process")
-              Write-Host "Rustup configured successfully."
-            } else {
-              Write-Error "Rustup installation failed or binary not found at $rustup"
-              exit 1
-            }
+             # Logic for hyper-resilient toolchain discovery
+             function Get-RustupPath {
+                 $paths = @(
+                     (Join-Path $env:USERPROFILE ".cargo\bin\rustup.exe"),
+                     (Join-Path $HOME ".cargo\bin\rustup.exe"),
+                     "C:\Users\circleci\.cargo\bin\rustup.exe"
+                 )
+                 foreach ($p in $paths) { if (Test-Path $p) { return $p } }
+                 return $null
+             }
+
+             $rustup = Get-RustupPath
+             if ($null -eq $rustup) {
+                 Write-Host "Rustup not detected. Initiating clean installation..."
+                 Invoke-WebRequest -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile "rustup-init.exe"
+                 # Use Start-Process with -Wait for synchronous high-integrity installation
+                 Start-Process -FilePath ".\rustup-init.exe" -ArgumentList "-y", "--default-host", "x86_64-pc-windows-msvc", "--default-toolchain", "stable", "--no-modify-path" -Wait
+                 Remove-Item "rustup-init.exe"
+                 $rustup = Get-RustupPath
+             }
+
+             if ($null -ne $rustup) {
+                 Write-Host "Found rustup at: $rustup"
+                 & $rustup target add x86_64-pc-windows-msvc
+                 
+                 # Force PATH injection for the current process and user profile
+                 $binDir = Split-Path $rustup
+                 $env:PATH = "$binDir;" + $env:PATH
+                 [Environment]::SetEnvironmentVariable("PATH", "$binDir;" + [Environment]::GetEnvironmentVariable("PATH", "User"), "User")
+                 Write-Host "Rust toolchain initialized successfully."
+             } else {
+                 Write-Error "CRITICAL: Rustup installation failed or binary unreachable."
+                 exit 1
+             }
       - run:
           name: Sync Dependencies
           shell: powershell.exe
