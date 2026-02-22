@@ -144,7 +144,7 @@ jobs:
             fi
       - run:
           name: Build Desktop App (DEB)
-          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundle deb --verbose
+          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles deb --verbose
           no_output_timeout: 100m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
@@ -225,7 +225,7 @@ jobs:
             fi
       - run:
           name: Build Desktop App (RPM)
-          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundle rpm --verbose
+          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles rpm --verbose
           no_output_timeout: 100m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
@@ -300,7 +300,7 @@ jobs:
             fi
       - run:
           name: Build Desktop App (AppImage)
-          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundle appimage --verbose
+          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles appimage --verbose
           no_output_timeout: 100m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
