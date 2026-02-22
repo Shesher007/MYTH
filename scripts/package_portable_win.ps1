@@ -4,12 +4,29 @@
 $Version = "1.1.6"
 $TargetDir = "ui\src-tauri\target\release"
 $OutputDir = "dist\portable"
+$Name = "MYTH"
+$NameLower = "myth"
+$Codename = "myth"
 
-Write-Host "Building Portable Windows Package (v$Version)..."
+Write-Host "Building Portable Windows Package ($Name v$Version)..."
 
-# Ensure build exists
-if (-not (Test-Path "$TargetDir\MYTH.exe")) {
-    Write-Error "Build artifacts not found. Run 'npm run tauri:build' first."
+# Ensure build exists - search in standard and triple -specific release folders
+$PotentialTargetDirs = @(
+    "ui\src-tauri\target\release",
+    "ui\src-tauri\target\x86_64-pc-windows-msvc\release"
+)
+
+$TargetDir = $null
+foreach ($dir in $PotentialTargetDirs) {
+    if (Test-Path "$dir\$Name.exe") {
+        $TargetDir = $dir
+        Write-Host "Detected artifacts in: $TargetDir"
+        break
+    }
+}
+
+if ($null -eq $TargetDir) {
+    Write-Error "Build artifacts not found ($Name.exe). Run 'npm run tauri:build' first."
     exit 1
 }
 
@@ -23,8 +40,17 @@ if (Test-Path "$NsisDir\*.exe") {
     Copy-Item "$NsisDir\*" -Destination "$OutputDir\" -Recurse
 } else {
     Write-Warning "NSIS bundle not found. Falling back to raw release artifacts."
-    Copy-Item "$TargetDir\MYTH.exe" -Destination "$OutputDir\"
-    Copy-Item "$TargetDir\myth-backend.exe" -Destination "$OutputDir\"
+    Copy-Item "$TargetDir\$Name.exe" -Destination "$OutputDir\"
+    
+    # Copy backend sidecar from binaries folder (SSOT)
+    $BinariesDir = "ui\src-tauri\binaries"
+    $BackendFile = "$Codename-backend-x86_64-pc-windows-msvc.exe"
+    if (Test-Path "$BinariesDir\$BackendFile") {
+        Copy-Item "$BinariesDir\$BackendFile" -Destination "$OutputDir\"
+    } else {
+        Write-Warning "Backend sidecar not found in binaries folder: $BackendFile"
+    }
+
     if (Test-Path "$TargetDir\resources") {
         Copy-Item "$TargetDir\resources" -Destination "$OutputDir\" -Recurse
     }
@@ -34,6 +60,6 @@ if (Test-Path "$NsisDir\*.exe") {
 New-Item -ItemType File -Path "$OutputDir\portable.dat" -Force | Out-Null
 
 # Zip it
-Compress-Archive -Path "$OutputDir\*" -DestinationPath "dist\myth-$Version-portable-windows.zip" -Force
+Compress-Archive -Path "$OutputDir\*" -DestinationPath "dist\$NameLower-$Version-portable-windows.zip" -Force
 
-Write-Host "Portable package created: dist\myth-$Version-portable-windows.zip"
+Write-Host "Portable package created: dist\$NameLower-$Version-portable-windows.zip"

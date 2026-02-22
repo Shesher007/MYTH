@@ -1,449 +1,621 @@
 <h1 align="center">
+  <img src="static/httpx-logo.png" alt="httpx" width="200px">
   <br>
-  <a href="https://nuclei.projectdiscovery.io"><img src="static/nuclei-logo.png" width="200px" alt="Nuclei"></a>
 </h1>
 
-<h4 align="center">Fast and customisable vulnerability scanner based on simple YAML based DSL.</h4>
 
 
 <p align="center">
-<img src="https://img.shields.io/github/go-mod/go-version/projectdiscovery/nuclei">
-<a href="https://github.com/projectdiscovery/nuclei/releases"><img src="https://img.shields.io/github/downloads/projectdiscovery/nuclei/total">
-<a href="https://github.com/projectdiscovery/nuclei/graphs/contributors"><img src="https://img.shields.io/github/contributors-anon/projectdiscovery/nuclei">
-<a href="https://github.com/projectdiscovery/nuclei/releases/"><img src="https://img.shields.io/github/release/projectdiscovery/nuclei">
-<a href="https://github.com/projectdiscovery/nuclei/issues"><img src="https://img.shields.io/github/issues-raw/projectdiscovery/nuclei">
-<a href="https://github.com/projectdiscovery/nuclei/discussions"><img src="https://img.shields.io/github/discussions/projectdiscovery/nuclei">
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-_red.svg"></a>
+<a href="https://goreportcard.com/badge/github.com/projectdiscovery/httpx"><img src="https://goreportcard.com/badge/github.com/projectdiscovery/httpx"></a>
+<a href="https://github.com/projectdiscovery/httpx/releases"><img src="https://img.shields.io/github/release/projectdiscovery/httpx"></a>
+<a href="https://hub.docker.com/r/projectdiscovery/httpx"><img src="https://img.shields.io/docker/pulls/projectdiscovery/httpx.svg"></a>
+<a href="https://twitter.com/pdiscoveryio"><img src="https://img.shields.io/twitter/follow/pdiscoveryio.svg?logo=twitter"></a>
 <a href="https://discord.gg/projectdiscovery"><img src="https://img.shields.io/discord/695645237418131507.svg?logo=discord"></a>
-<a href="https://twitter.com/pdnuclei"><img src="https://img.shields.io/twitter/follow/pdnuclei.svg?logo=twitter"></a>
 </p>
-      
+
 <p align="center">
-  <a href="#how-it-works">How</a> •
-  <a href="#install-nuclei">Install</a> •
-  <a href="#for-security-engineers">For Security Engineers</a> •
-  <a href="#for-developers-and-organizations">For Developers</a> •
-  <a href="https://nuclei.projectdiscovery.io/nuclei/get-started/">Documentation</a> •
-  <a href="#credits">Credits</a> •
-  <a href="https://nuclei.projectdiscovery.io/faq/nuclei/">FAQs</a> •
+  <a href="#features">Features</a> •
+  <a href="#installation-instructions">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#running-httpx">Running httpx</a> •
+  <a href="#notes">Notes</a> •
   <a href="https://discord.gg/projectdiscovery">Join Discord</a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/projectdiscovery/nuclei/blob/main/README.md">English</a> •
-  <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_CN.md">中文</a> •
-  <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_KR.md">Korean</a> •
-  <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_ID.md">Indonesia</a>
-</p>
 
----
+`httpx` is a fast and multi-purpose HTTP toolkit that allows running multiple probes using the [retryablehttp](https://github.com/projectdiscovery/retryablehttp-go) library. It is designed to maintain result reliability with an increased number of threads.
 
-Nuclei is used to send requests across targets based on a template, leading to zero false positives and providing fast scanning on a large number of hosts. Nuclei offers scanning for a variety of protocols, including TCP, DNS, HTTP, SSL, File, Whois, Websocket, Headless, Code etc. With powerful and flexible templating, Nuclei can be used to model all kinds of security checks.
+# Features
 
-We have a [dedicated repository](https://github.com/projectdiscovery/nuclei-templates) that houses various type of vulnerability templates contributed by **more than 300** security researchers and engineers.
+<h1 align="center">
+  <img src="https://user-images.githubusercontent.com/8293321/135731750-4c1d38b1-bd2a-40f9-88e9-3c4b9f6da378.png" alt="httpx" width="700px">
+  <br>
+</h1>
 
-## How it works
+ - Simple and modular code base making it easy to contribute.
+ - Fast And fully configurable flags to probe multiple elements.
+ - Supports multiple HTTP based probings.
+ - Smart auto fallback from https to http as default. 
+ - Supports hosts, URLs and CIDR as input.
+ - Handles edge cases doing retries, backoffs etc for handling WAFs.
 
+### Supported probes
 
-<h3 align="center">
-  <img src="static/nuclei-flow.jpg" alt="nuclei-flow" width="700px"></a>
-</h3>
+| Probes          | Default check | Probes         | Default check |
+|-----------------|---------------|----------------|---------------|
+| URL             | true          | IP             | true          |
+| Title           | true          | CNAME          | true          |
+| Status Code     | true          | Raw HTTP       | false         |
+| Content Length  | true          | HTTP2          | false         |
+| TLS Certificate | true          | HTTP Pipeline  | false         |
+| CSP Header      | true          | Virtual host   | false         |
+| Line Count      | true          | Word Count     | true          |
+| Location Header | true          | CDN            | false         |
+| Web Server      | true          | Paths          | false         |
+| Web Socket      | true          | Ports          | false         |
+| Response Time   | true          | Request Method | true          |
+| Favicon Hash    | false         | Probe  Status  | false         |
+| Body Hash       | true          | Header  Hash   | true          |
+| Redirect chain  | false         | URL Scheme     | true          |
+| JARM Hash       | false         | ASN            | false         |
 
+# Installation Instructions
+
+`httpx` requires **go1.20** to install successfully. Run the following command to get the repo:
+
+```sh
+go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+```
 
 | :exclamation:  **Disclaimer**  |
 |---------------------------------|
-| **This project is in active development**. Expect breaking changes with releases. Review the release changelog before updating. |
-| This project was primarily built to be used as a standalone CLI tool. **Running nuclei as a service may pose security risks.** It's recommended to use with caution and additional security measures. |
+| **This project is in active development**. Expect breaking changes with releases. Review the changelog before updating. |
+| This project was primarily built to be used as a standalone CLI tool. **Running it as a service may pose security risks.** It's recommended to use with caution and additional security measures. |
 
-# Install Nuclei
-
-Nuclei requires **go1.21** to install successfully. Run the following command to install the latest version -
+# Usage
 
 ```sh
-go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```
-
-<details>
-  <summary>Brew</summary>
-  
-  ```sh
-  brew install nuclei
-  ```
-  
-</details>
-<details>
-  <summary>Docker</summary>
-  
-  ```sh
-  docker pull projectdiscovery/nuclei:latest
-  ```
-  
-</details>
-
-**More installation [methods can be found here](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
-
-<table>
-<tr>
-<td>  
-
-### Nuclei Templates
-
-Nuclei has built-in support for automatic template download/update as default since version [v2.5.2](https://github.com/projectdiscovery/nuclei/releases/tag/v2.5.2). [**Nuclei-Templates**](https://github.com/projectdiscovery/nuclei-templates) project provides a community-contributed list of ready-to-use templates that is constantly updated.
-
-You may still use the `update-templates` flag to update the nuclei templates at any time; You can write your own checks for your individual workflow and needs following Nuclei's [templating guide](https://nuclei.projectdiscovery.io/templating-guide/).
-
-The YAML DSL reference syntax is available [here](SYNTAX-REFERENCE.md).
-
-</td>
-</tr>
-</table>
-
-### Usage
-
-```sh
-nuclei -h
+httpx -h
 ```
 
 This will display help for the tool. Here are all the switches it supports.
 
 
 ```console
-Nuclei is a fast, template based vulnerability scanner focusing
-on extensive configurability, massive extensibility and ease of use.
-
 Usage:
-  ./nuclei [flags]
+  ./httpx [flags]
 
 Flags:
-TARGET:
-   -u, -target string[]             target URLs/hosts to scan
-   -l, -list string                 path to file containing a list of target URLs/hosts to scan (one per line)
-   -eh, -exclude-hosts string[]     hosts to exclude to scan from the input list (ip, cidr, hostname)
-   -resume string                   resume scan using resume.cfg (clustering will be disabled)
-   -sa, -scan-all-ips               scan all the IP's associated with dns record
-   -iv, -ip-version string[]        IP version to scan of hostname (4,6) - (default 4)
+INPUT:
+   -l, -list string      input file containing list of hosts to process
+   -rr, -request string  file containing raw request
+   -u, -target string[]  input target host(s) to probe
 
-TEMPLATES:
-   -nt, -new-templates                    run only new templates added in latest nuclei-templates release
-   -ntv, -new-templates-version string[]  run new templates added in specific version
-   -as, -automatic-scan                   automatic web scan using wappalyzer technology detection to tags mapping
-   -t, -templates string[]                list of template or template directory to run (comma-separated, file)
-   -turl, -template-url string[]          template url or list containing template urls to run (comma-separated, file)
-   -w, -workflows string[]                list of workflow or workflow directory to run (comma-separated, file)
-   -wurl, -workflow-url string[]          workflow url or list containing workflow urls to run (comma-separated, file)
-   -validate                              validate the passed templates to nuclei
-   -nss, -no-strict-syntax                disable strict syntax check on templates
-   -td, -template-display                 displays the templates content
-   -tl                                    list all available templates
-   -sign                                  signs the templates with the private key defined in NUCLEI_SIGNATURE_PRIVATE_KEY env variable
-   -code                                  enable loading code protocol-based templates
-
-FILTERING:
-   -a, -author string[]               templates to run based on authors (comma-separated, file)
-   -tags string[]                     templates to run based on tags (comma-separated, file)
-   -etags, -exclude-tags string[]     templates to exclude based on tags (comma-separated, file)
-   -itags, -include-tags string[]     tags to be executed even if they are excluded either by default or configuration
-   -id, -template-id string[]         templates to run based on template ids (comma-separated, file, allow-wildcard)
-   -eid, -exclude-id string[]         templates to exclude based on template ids (comma-separated, file)
-   -it, -include-templates string[]   templates to be executed even if they are excluded either by default or configuration
-   -et, -exclude-templates string[]   template or template directory to exclude (comma-separated, file)
-   -em, -exclude-matchers string[]    template matchers to exclude in result
-   -s, -severity value[]              templates to run based on severity. Possible values: info, low, medium, high, critical, unknown
-   -es, -exclude-severity value[]     templates to exclude based on severity. Possible values: info, low, medium, high, critical, unknown
-   -pt, -type value[]                 templates to run based on protocol type. Possible values: dns, file, http, headless, tcp, workflow, ssl, websocket, whois, code, javascript
-   -ept, -exclude-type value[]        templates to exclude based on protocol type. Possible values: dns, file, http, headless, tcp, workflow, ssl, websocket, whois, code, javascript
-   -tc, -template-condition string[]  templates to run based on expression condition
-
-OUTPUT:
-   -o, -output string            output file to write found issues/vulnerabilities
-   -sresp, -store-resp           store all request/response passed through nuclei to output directory
-   -srd, -store-resp-dir string  store all request/response passed through nuclei to custom directory (default "output")
-   -silent                       display findings only
-   -nc, -no-color                disable output content coloring (ANSI escape codes)
-   -j, -jsonl                    write output in JSONL(ines) format
-   -irr, -include-rr -omit-raw   include request/response pairs in the JSON, JSONL, and Markdown outputs (for findings only) [DEPRECATED use -omit-raw] (default true)
-   -or, -omit-raw                omit request/response pairs in the JSON, JSONL, and Markdown outputs (for findings only)
-   -ot, -omit-template           omit encoded template in the JSON, JSONL output
-   -nm, -no-meta                 disable printing result metadata in cli output
-   -ts, -timestamp               enables printing timestamp in cli output
-   -rdb, -report-db string       nuclei reporting database (always use this to persist report data)
-   -ms, -matcher-status          display match failure status
-   -me, -markdown-export string  directory to export results in markdown format
-   -se, -sarif-export string     file to export results in SARIF format
-   -je, -json-export string      file to export results in JSON format
-   -jle, -jsonl-export string    file to export results in JSONL(ine) format
-
-CONFIGURATIONS:
-   -config string                        path to the nuclei configuration file
-   -fr, -follow-redirects                enable following redirects for http templates
-   -fhr, -follow-host-redirects          follow redirects on the same host
-   -mr, -max-redirects int               max number of redirects to follow for http templates (default 10)
-   -dr, -disable-redirects               disable redirects for http templates
-   -rc, -report-config string            nuclei reporting module configuration file
-   -H, -header string[]                  custom header/cookie to include in all http request in header:value format (cli, file)
-   -V, -var value                        custom vars in key=value format
-   -r, -resolvers string                 file containing resolver list for nuclei
-   -sr, -system-resolvers                use system DNS resolving as error fallback
-   -dc, -disable-clustering              disable clustering of requests
-   -passive                              enable passive HTTP response processing mode
-   -fh2, -force-http2                    force http2 connection on requests
-   -ev, -env-vars                        enable environment variables to be used in template
-   -cc, -client-cert string              client certificate file (PEM-encoded) used for authenticating against scanned hosts
-   -ck, -client-key string               client key file (PEM-encoded) used for authenticating against scanned hosts
-   -ca, -client-ca string                client certificate authority file (PEM-encoded) used for authenticating against scanned hosts
-   -sml, -show-match-line                show match lines for file templates, works with extractors only
-   -ztls                                 use ztls library with autofallback to standard one for tls13 [Deprecated] autofallback to ztls is enabled by default
-   -sni string                           tls sni hostname to use (default: input domain name)
-   -dt, -dialer-timeout value            timeout for network requests.
-   -dka, -dialer-keep-alive value        keep-alive duration for network requests.
-   -lfa, -allow-local-file-access        allows file (payload) access anywhere on the system
-   -lna, -restrict-local-network-access  blocks connections to the local / private network
-   -i, -interface string                 network interface to use for network scan
-   -at, -attack-type string              type of payload combinations to perform (batteringram,pitchfork,clusterbomb)
-   -sip, -source-ip string               source ip address to use for network scan
-   -rsr, -response-size-read int         max response size to read in bytes (default 10485760)
-   -rss, -response-size-save int         max response size to read in bytes (default 1048576)
-   -reset                                reset removes all nuclei configuration and data files (including nuclei-templates)
-   -tlsi, -tls-impersonate               enable experimental client hello (ja3) tls randomization
-
-INTERACTSH:
-   -iserver, -interactsh-server string  interactsh server url for self-hosted instance (default: oast.pro,oast.live,oast.site,oast.online,oast.fun,oast.me)
-   -itoken, -interactsh-token string    authentication token for self-hosted interactsh server
-   -interactions-cache-size int         number of requests to keep in the interactions cache (default 5000)
-   -interactions-eviction int           number of seconds to wait before evicting requests from cache (default 60)
-   -interactions-poll-duration int      number of seconds to wait before each interaction poll request (default 5)
-   -interactions-cooldown-period int    extra time for interaction polling before exiting (default 5)
-   -ni, -no-interactsh                  disable interactsh server for OAST testing, exclude OAST based templates
-
-FUZZING:
-   -ft, -fuzzing-type string  overrides fuzzing type set in template (replace, prefix, postfix, infix)
-   -fm, -fuzzing-mode string  overrides fuzzing mode set in template (multiple, single)
-
-UNCOVER:
-   -uc, -uncover                  enable uncover engine
-   -uq, -uncover-query string[]   uncover search query
-   -ue, -uncover-engine string[]  uncover search engine (shodan,censys,fofa,shodan-idb,quake,hunter,zoomeye,netlas,criminalip,publicwww,hunterhow) (default shodan)
-   -uf, -uncover-field string     uncover fields to return (ip,port,host) (default "ip:port")
-   -ul, -uncover-limit int        uncover results to return (default 100)
-   -ur, -uncover-ratelimit int    override ratelimit of engines with unknown ratelimit (default 60 req/min) (default 60)
-
-RATE-LIMIT:
-   -rl, -rate-limit int               maximum number of requests to send per second (default 150)
-   -rlm, -rate-limit-minute int       maximum number of requests to send per minute
-   -bs, -bulk-size int                maximum number of hosts to be analyzed in parallel per template (default 25)
-   -c, -concurrency int               maximum number of templates to be executed in parallel (default 25)
-   -hbs, -headless-bulk-size int      maximum number of headless hosts to be analyzed in parallel per template (default 10)
-   -headc, -headless-concurrency int  maximum number of headless templates to be executed in parallel (default 10)
-
-OPTIMIZATIONS:
-   -timeout int                     time to wait in seconds before timeout (default 10)
-   -retries int                     number of times to retry a failed request (default 1)
-   -ldp, -leave-default-ports       leave default HTTP/HTTPS ports (eg. host:80,host:443)
-   -mhe, -max-host-error int        max errors for a host before skipping from scan (default 30)
-   -te, -track-error string[]       adds given error to max-host-error watchlist (standard, file)
-   -nmhe, -no-mhe                   disable skipping host from scan based on errors
-   -project                         use a project folder to avoid sending same request multiple times
-   -project-path string             set a specific project path (default "/tmp")
-   -spm, -stop-at-first-match       stop processing HTTP requests after the first match (may break template/workflow logic)
-   -stream                          stream mode - start elaborating without sorting the input
-   -ss, -scan-strategy value        strategy to use while scanning(auto/host-spray/template-spray) (default auto)
-   -irt, -input-read-timeout value  timeout on input read (default 3m0s)
-   -nh, -no-httpx                   disable httpx probing for non-url input
-   -no-stdin                        disable stdin processing
+PROBES:
+   -sc, -status-code     display response status-code
+   -cl, -content-length  display response content-length
+   -ct, -content-type    display response content-type
+   -location             display response redirect location
+   -favicon              display mmh3 hash for '/favicon.ico' file
+   -hash string          display response body hash (supported: md5,mmh3,simhash,sha1,sha256,sha512)
+   -jarm                 display jarm fingerprint hash
+   -rt, -response-time   display response time
+   -lc, -line-count      display response body line count
+   -wc, -word-count      display response body word count
+   -title                display page title
+   -bp, -body-preview    display first N characters of response body (default 100)
+   -server, -web-server  display server name
+   -td, -tech-detect     display technology in use based on wappalyzer dataset
+   -method               display http request method
+   -websocket            display server using websocket
+   -ip                   display host ip
+   -cname                display host cname
+   -asn                  display host asn information
+   -cdn                  display cdn/waf in use
+   -probe                display probe status
 
 HEADLESS:
-   -headless                        enable templates that require headless browser support (root user on Linux will disable sandbox)
-   -page-timeout int                seconds to wait for each page in headless mode (default 20)
-   -sb, -show-browser               show the browser on the screen when running templates with headless mode
-   -ho, -headless-options string[]  start headless chrome with additional options
-   -sc, -system-chrome              use local installed Chrome browser instead of nuclei installed
-   -lha, -list-headless-action      list available headless actions
+   -ss, -screenshot                 enable saving screenshot of the page using headless browser
+   -system-chrome                   enable using local installed chrome for screenshot
+   -esb, -exclude-screenshot-bytes  enable excluding screenshot bytes from json output
+   -ehb, -exclude-headless-body     enable excluding headless header from json output
 
-DEBUG:
-   -debug                    show all requests and responses
-   -dreq, -debug-req         show all sent requests
-   -dresp, -debug-resp       show all received responses
-   -p, -proxy string[]       list of http/socks5 proxy to use (comma separated or file input)
-   -pi, -proxy-internal      proxy all internal requests
-   -ldf, -list-dsl-function  list all supported DSL function signatures
-   -tlog, -trace-log string  file to write sent requests trace log
-   -elog, -error-log string  file to write sent requests error log
-   -version                  show nuclei version
-   -hm, -hang-monitor        enable nuclei hang monitoring
-   -v, -verbose              show verbose output
-   -profile-mem string       optional nuclei memory profile dump file
-   -vv                       display templates loaded for scan
-   -svd, -show-var-dump      show variables dump for debugging
-   -ep, -enable-pprof        enable pprof debugging server
-   -tv, -templates-version   shows the version of the installed nuclei-templates
-   -hc, -health-check        run diagnostic check up
+MATCHERS:
+   -mc, -match-code string            match response with specified status code (-mc 200,302)
+   -ml, -match-length string          match response with specified content length (-ml 100,102)
+   -mlc, -match-line-count string     match response body with specified line count (-mlc 423,532)
+   -mwc, -match-word-count string     match response body with specified word count (-mwc 43,55)
+   -mfc, -match-favicon string[]      match response with specified favicon hash (-mfc 1494302000)
+   -ms, -match-string string          match response with specified string (-ms admin)
+   -mr, -match-regex string           match response with specified regex (-mr admin)
+   -mcdn, -match-cdn string[]         match host with specified cdn provider (cloudfront, fastly, google, leaseweb, stackpath)
+   -mrt, -match-response-time string  match response with specified response time in seconds (-mrt '< 1')
+   -mdc, -match-condition string      match response with dsl expression condition
+
+EXTRACTOR:
+   -er, -extract-regex string[]   display response content with matched regex
+   -ep, -extract-preset string[]  display response content matched by a pre-defined regex (ipv4,mail,url)
+
+FILTERS:
+   -fc, -filter-code string            filter response with specified status code (-fc 403,401)
+   -fep, -filter-error-page            filter response with ML based error page detection
+   -fl, -filter-length string          filter response with specified content length (-fl 23,33)
+   -flc, -filter-line-count string     filter response body with specified line count (-flc 423,532)
+   -fwc, -filter-word-count string     filter response body with specified word count (-fwc 423,532)
+   -ffc, -filter-favicon string[]      filter response with specified favicon hash (-ffc 1494302000)
+   -fs, -filter-string string          filter response with specified string (-fs admin)
+   -fe, -filter-regex string           filter response with specified regex (-fe admin)
+   -fcdn, -filter-cdn string[]         filter host with specified cdn provider (cloudfront, fastly, google, leaseweb, stackpath)
+   -frt, -filter-response-time string  filter response with specified response time in seconds (-frt '> 1')
+   -fdc, -filter-condition string      filter response with dsl expression condition
+   -strip                              strips all tags in response. supported formats: html,xml (default html)
+
+RATE-LIMIT:
+   -t, -threads int              number of threads to use (default 50)
+   -rl, -rate-limit int          maximum requests to send per second (default 150)
+   -rlm, -rate-limit-minute int  maximum number of requests to send per minute
+
+MISCELLANEOUS:
+   -pa, -probe-all-ips        probe all the ips associated with same host
+   -p, -ports string[]        ports to probe (nmap syntax: eg http:1,2-10,11,https:80)
+   -path string               path or list of paths to probe (comma-separated, file)
+   -tls-probe                 send http probes on the extracted TLS domains (dns_name)
+   -csp-probe                 send http probes on the extracted CSP domains
+   -tls-grab                  perform TLS(SSL) data grabbing
+   -pipeline                  probe and display server supporting HTTP1.1 pipeline
+   -http2                     probe and display server supporting HTTP2
+   -vhost                     probe and display server supporting VHOST
+   -ldv, -list-dsl-variables  list json output field keys name that support dsl matcher/filter
 
 UPDATE:
-   -up, -update                      update nuclei engine to the latest released version
-   -ut, -update-templates            update nuclei-templates to latest released version
-   -ud, -update-template-dir string  custom directory to install / update nuclei-templates
-   -duc, -disable-update-check       disable automatic nuclei/templates update check
+   -up, -update                 update httpx to latest version
+   -duc, -disable-update-check  disable automatic httpx update check
 
-STATISTICS:
-   -stats                    display statistics about the running scan
-   -sj, -stats-json          display statistics in JSONL(ines) format
-   -si, -stats-interval int  number of seconds to wait between showing a statistics update (default 5)
-   -mp, -metrics-port int    port to expose nuclei metrics on (default 9092)
+OUTPUT:
+   -o, -output string                  file to write output results
+   -oa, -output-all                    filename to write output results in all formats
+   -sr, -store-response                store http response to output directory
+   -srd, -store-response-dir string    store http response to custom directory
+   -csv                                store output in csv format
+   -csvo, -csv-output-encoding string  define output encoding
+   -j, -json                           store output in JSONL(ines) format
+   -irh, -include-response-header      include http response (headers) in JSON output (-json only)
+   -irr, -include-response             include http request/response (headers + body) in JSON output (-json only)
+   -irrb, -include-response-base64     include base64 encoded http request/response in JSON output (-json only)
+   -include-chain                      include redirect http chain in JSON output (-json only)
+   -store-chain                        include http redirect chain in responses (-sr only)
+   -svrc, -store-vision-recon-cluster  include visual recon clusters (-ss and -sr only)
 
-CLOUD:
-   -auth                configure projectdiscovery cloud (pdcp) api key
-   -cup, -cloud-upload  upload scan results to pdcp dashboard
+CONFIGURATIONS:
+   -config string                path to the httpx configuration file (default $HOME/.config/httpx/config.yaml)
+   -r, -resolvers string[]       list of custom resolver (file or comma separated)
+   -allow string[]               allowed list of IP/CIDR's to process (file or comma separated)
+   -deny string[]                denied list of IP/CIDR's to process (file or comma separated)
+   -sni, -sni-name string        custom TLS SNI name
+   -random-agent                 enable Random User-Agent to use (default true)
+   -H, -header string[]          custom http headers to send with request
+   -http-proxy, -proxy string    http proxy to use (eg http://127.0.0.1:8080)
+   -unsafe                       send raw requests skipping golang normalization
+   -resume                       resume scan using resume.cfg
+   -fr, -follow-redirects        follow http redirects
+   -maxr, -max-redirects int     max number of redirects to follow per host (default 10)
+   -fhr, -follow-host-redirects  follow redirects on the same host
+   -rhsts, -respect-hsts         respect HSTS response headers for redirect requests
+   -vhost-input                  get a list of vhosts as input
+   -x string                     request methods to probe, use 'all' to probe all HTTP methods
+   -body string                  post body to include in http request
+   -s, -stream                   stream mode - start elaborating input targets without sorting
+   -sd, -skip-dedupe             disable dedupe input items (only used with stream mode)
+   -ldp, -leave-default-ports    leave default http/https ports in host header (eg. http://host:80 - https://host:443
+   -ztls                         use ztls library with autofallback to standard one for tls13
+   -no-decode                    avoid decoding body
+   -tlsi, -tls-impersonate       enable experimental client hello (ja3) tls randomization
+   -no-stdin                     Disable Stdin processing
 
+DEBUG:
+   -health-check, -hc        run diagnostic check up
+   -debug                    display request/response content in cli
+   -debug-req                display request content in cli
+   -debug-resp               display response content in cli
+   -version                  display httpx version
+   -stats                    display scan statistic
+   -profile-mem string       optional httpx memory profile dump file
+   -silent                   silent mode
+   -v, -verbose              verbose mode
+   -si, -stats-interval int  number of seconds to wait between showing a statistics update (default: 5)
+   -nc, -no-color            disable colors in cli output
 
-EXAMPLES:
-Run nuclei on single host:
-	$ nuclei -target example.com
-
-Run nuclei with specific template directories:
-	$ nuclei -target example.com -t http/cves/ -t ssl
-
-Run nuclei against a list of hosts:
-	$ nuclei -list hosts.txt
-
-Run nuclei with a JSON output:
-	$ nuclei -target example.com -json-export output.json
-
-Run nuclei with sorted Markdown outputs (with environment variables):
-	$ MARKDOWN_EXPORT_SORT_MODE=template nuclei -target example.com -markdown-export nuclei_report/
-
-Additional documentation is available at: https://docs.nuclei.sh/getting-started/running
+OPTIMIZATIONS:
+   -nf, -no-fallback                  display both probed protocol (HTTPS and HTTP)
+   -nfs, -no-fallback-scheme          probe with protocol scheme specified in input 
+   -maxhr, -max-host-error int        max error count per host before skipping remaining path/s (default 30)
+   -ec, -exclude-cdn                  skip full port scans for CDN/WAF (only checks for 80,443)
+   -eph, -exclude-private-hosts       skip any hosts which have a private ip address
+   -retries int                       number of retries
+   -timeout int                       timeout in seconds (default 10)
+   -delay value                       duration between each http request (eg: 200ms, 1s) (default -1ns)
+   -rsts, -response-size-to-save int  max response size to save in bytes (default 2147483647)
+   -rstr, -response-size-to-read int  max response size to read in bytes (default 2147483647)
 ```
 
-### Running Nuclei
+# Running httpX
 
-Scanning target domain with [community-curated](https://github.com/projectdiscovery/nuclei-templates) nuclei templates.
+### URL Probe
 
-```sh
-nuclei -u https://example.com
+This will run the tool against all the hosts and subdomains in `hosts.txt` and returns URLs running HTTP webserver. 
+
+```console
+cat hosts.txt | httpx 
+
+    __    __  __       _  __
+   / /_  / /_/ /_____ | |/ /
+  / __ \/ __/ __/ __ \|   / 
+ / / / / /_/ /_/ /_/ /   |  
+/_/ /_/\__/\__/ .___/_/|_|   v1.1.1  
+             /_/            
+
+    projectdiscovery.io
+
+[WRN] Use with caution. You are responsible for your actions
+[WRN] Developers assume no liability and are not responsible for any misuse or damage.
+
+https://mta-sts.managed.hackerone.com
+https://mta-sts.hackerone.com
+https://mta-sts.forwarding.hackerone.com
+https://docs.hackerone.com
+https://www.hackerone.com
+https://resources.hackerone.com
+https://api.hackerone.com
+https://support.hackerone.com
 ```
 
-Scanning target URLs with [community-curated](https://github.com/projectdiscovery/nuclei-templates) nuclei templates.
+### File Input
 
-```sh
-nuclei -list urls.txt
+This will run the tool with the `-probe` flag against all the hosts in **hosts.txt** and return URLs with probed status.
+
+```console
+httpx -list hosts.txt -silent -probe
+
+http://ns.hackerone.com [FAILED]
+https://docs.hackerone.com [SUCCESS]
+https://mta-sts.hackerone.com [SUCCESS]
+https://mta-sts.managed.hackerone.com [SUCCESS]
+http://email.hackerone.com [FAILED]
+https://mta-sts.forwarding.hackerone.com [SUCCESS]
+http://links.hackerone.com [FAILED]
+https://api.hackerone.com [SUCCESS]
+https://www.hackerone.com [SUCCESS]
+http://events.hackerone.com [FAILED]
+https://support.hackerone.com [SUCCESS]
+https://gslink.hackerone.com [SUCCESS]
+http://o1.email.hackerone.com [FAILED]
+http://info.hackerone.com [FAILED]
+https://resources.hackerone.com [SUCCESS]
+http://o2.email.hackerone.com [FAILED]
+http://o3.email.hackerone.com [FAILED]
+http://go.hackerone.com [FAILED]
+http://a.ns.hackerone.com [FAILED]
+http://b.ns.hackerone.com [FAILED]
 ```
 
-Example of `urls.txt`:
+### CIDR Input   
 
-```yaml
-http://example.com
-http://app.example.com
-http://test.example.com
-http://uat.example.com
+```console
+echo 173.0.84.0/24 | httpx -silent
+
+https://173.0.84.29
+https://173.0.84.43
+https://173.0.84.31
+https://173.0.84.44
+https://173.0.84.12
+https://173.0.84.4
+https://173.0.84.36
+https://173.0.84.45
+https://173.0.84.14
+https://173.0.84.25
+https://173.0.84.46
+https://173.0.84.24
+https://173.0.84.32
+https://173.0.84.9
+https://173.0.84.13
+https://173.0.84.6
+https://173.0.84.16
+https://173.0.84.34
+```
+### AS Number Input
+```console
+echo AS14421 | httpx -silent
+
+https://216.101.17.248
+https://216.101.17.249
+https://216.101.17.250
+https://216.101.17.251
+https://216.101.17.252
 ```
 
-**More detailed examples of running nuclei can be found [here](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei).**
-
-# For Security Engineers
-
-Nuclei offers great number of features that are helpful for security engineers to customise workflow in their organization. With the varieties of scan capabilities (like DNS, HTTP, TCP), security engineers can easily create their suite of custom checks with Nuclei.
-
-- Varieties of protocols supported: TCP, DNS, HTTP, File, etc
-- Achieve complex vulnerability steps with workflows and [dynamic requests.](https://blog.projectdiscovery.io/nuclei-unleashed-quickly-write-complex-exploits/)
-- Easy to integrate into CI/CD, designed to be easily integrated into regression cycle to actively check the fix and re-appearance of vulnerability. 
-
-<h1 align="left">
-  <a href="https://nuclei.projectdiscovery.io/nuclei/get-started/"><img src="static/learn-more-button.png" width="170px" alt="Learn More"></a>
-</h1>
-
-<table>
-<tr>
-<td>  
-
-**For Bug Bounty hunters:**
-
-Nuclei allows you to customise your testing approach with your own suite of checks and easily run across your bug bounty programs. Moreover, Nuclei can be easily integrated into any continuous scanning workflow.
-
-- Designed to be easily integrated into other tool workflow.
-- Can process thousands of hosts in few minutes.
-- Easily automate your custom testing approach with our simple YAML DSL.
-
-Please check our other open-source projects that might fit into your bug bounty workflow: [github.com/projectdiscovery](http://github.com/projectdiscovery), we also host daily [refresh of DNS data at Chaos](http://chaos.projectdiscovery.io).
-
-</td>
-</tr>
-</table>
-
-<table>
-<tr>
-<td>
-  
-**For Penetration Testers:**
-
-Nuclei immensely improve how you approach security assessment by augmenting the manual, repetitive processes. Consultancies are already converting their manual assessment steps with Nuclei, it allows them to run set of their custom assessment approach across thousands of hosts in an automated manner. 
-
-Pen-testers get the full power of our public templates and customization capabilities to speed up their assessment process, and specifically with the regression cycle where you can easily verify the fix.
-
-- Easily create your compliance, standards suite (e.g. OWASP Top 10) checklist.
-- With capabilities like [fuzz](https://nuclei.projectdiscovery.io/templating-guide/protocols/http-fuzzing/) and [workflows](https://nuclei.projectdiscovery.io/templating-guide/workflows/), complex manual steps and repetitive assessment can be easily automated with Nuclei.
-- Easy to re-test vulnerability-fix by just re-running the template.
-
-</td>
-</tr>
-</table>
+### Tool Chain
 
 
-# For Developers and Organizations
+```console
+subfinder -d hackerone.com -silent| httpx -title -tech-detect -status-code
 
-Nuclei is built with simplicity in mind, with the community backed templates by hundreds of security researchers, it allows you to stay updated with the latest security threats using continuous Nuclei scanning on the hosts. It is designed to be easily integrated into regression tests cycle, to verify the fixes and eliminate vulnerabilities from occurring in the future.
+    __    __  __       _  __
+   / /_  / /_/ /_____ | |/ /
+  / __ \/ __/ __/ __ \|   /
+ / / / / /_/ /_/ /_/ /   |
+/_/ /_/\__/\__/ .___/_/|_|
+             /_/              v1.1.1
 
-- **CI/CD:** Engineers are already utilising Nuclei within their CI/CD pipeline, it allows them to constantly monitor their staging and production environments with customised templates.
-- **Continuous Regression Cycle:** With Nuclei, you can create your custom template on every new identified vulnerability and put into Nuclei engine to eliminate in the continuous regression cycle.
+    projectdiscovery.io
 
-We have [a discussion thread around this](https://github.com/projectdiscovery/nuclei-templates/discussions/693), there are already some bug bounty programs giving incentives to hackers on writing nuclei templates with every submission, that helps them to eliminate the vulnerability across all their assets, as well as to eliminate future risk in reappearing on productions. If you're interested in implementing it in your organization, feel free to [reach out to us](mailto:contact@projectdiscovery.io). We will be more than happy to help you in the getting started process, or you can also post into the [discussion thread for any help](https://github.com/projectdiscovery/nuclei-templates/discussions/693).
+Use with caution. You are responsible for your actions
+Developers assume no liability and are not responsible for any misuse or damage.
+https://mta-sts.managed.hackerone.com [404] [Page not found · GitHub Pages] [Varnish,GitHub Pages,Ruby on Rails]
+https://mta-sts.hackerone.com [404] [Page not found · GitHub Pages] [Varnish,GitHub Pages,Ruby on Rails]
+https://mta-sts.forwarding.hackerone.com [404] [Page not found · GitHub Pages] [GitHub Pages,Ruby on Rails,Varnish]
+https://docs.hackerone.com [200] [HackerOne Platform Documentation] [Ruby on Rails,jsDelivr,Gatsby,React,webpack,Varnish,GitHub Pages]
+https://support.hackerone.com [301,302,301,200] [HackerOne] [Cloudflare,Ruby on Rails,Ruby]
+https://resources.hackerone.com [301,301,404] [Sorry, no Folders found.]
+```
 
-<h3 align="center">
-  <img src="static/regression-with-nuclei.jpg" alt="regression-cycle-with-nuclei" width="1100px"></a>
-</h3>
+### Error Page Classifier and Filtering
 
-<h1 align="left">
-  <a href="https://github.com/projectdiscovery/nuclei-action"><img src="static/learn-more-button.png" width="170px" alt="Learn More"></a>
-</h1>
+The Error Page Classifier and Filtering feature aims to add intelligence to the tool by enabling it to classify and filter out common error pages returned by web applications. It is an enhancement to the existing httpx capabilities and is geared towards reducing the noise in the results and helping users focus on what matters most.
 
-### Using Nuclei From Go Code
+```console
+httpx -l urls.txt -path /v1/api -fep
 
-Complete guide of using Nuclei as Library/SDK is available at [godoc](https://pkg.go.dev/github.com/projectdiscovery/nuclei/v3/lib#section-readme)
+    __    __  __       _  __
+   / /_  / /_/ /_____ | |/ /
+  / __ \/ __/ __/ __ \|   /
+ / / / / /_/ /_/ /_/ /   |
+/_/ /_/\__/\__/ .___/_/|_|
+             /_/
 
+                projectdiscovery.io
 
-### Resources
+[INF] Current httpx version v1.3.3 (latest)
+https://scanme.sh/v1/api
+```
 
-- [Finding bugs with Nuclei with PinkDraconian (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) by **[@PinkDraconian](https://twitter.com/PinkDraconian)** 
-- [Nuclei: Packing a Punch with Vulnerability Scanning](https://bishopfox.com/blog/nuclei-vulnerability-scan) by **Bishopfox**
-- [The WAF efficacy framework](https://www.fastly.com/blog/the-waf-efficacy-framework-measuring-the-effectiveness-of-your-waf) by **Fastly**
-- [Scanning Live Web Applications with Nuclei in CI/CD Pipeline](https://blog.escape.tech/devsecops-part-iii-scanning-live-web-applications/) by **[@TristanKalos](https://twitter.com/TristanKalos)**
-- [Community Powered Scanning with Nuclei](https://blog.projectdiscovery.io/community-powered-scanning-with-nuclei/)
-- [Nuclei Unleashed - Quickly write complex exploits](https://blog.projectdiscovery.io/nuclei-unleashed-quickly-write-complex-exploits/)
-- [Nuclei - Fuzz all the things](https://blog.projectdiscovery.io/nuclei-fuzz-all-the-things/)
-- [Nuclei + Interactsh Integration for Automating OOB Testing](https://blog.projectdiscovery.io/nuclei-interactsh-integration/)
-- [Weaponizes nuclei Workflows to Pwn All the Things](https://medium.com/@dwisiswant0/weaponizes-nuclei-workflows-to-pwn-all-the-things-cd01223feb77) by **[@dwisiswant0](https://github.com/dwisiswant0)**
-- [How to Scan Continuously with Nuclei?](https://medium.com/@dwisiswant0/how-to-scan-continuously-with-nuclei-fcb7e9d8b8b9) by **[@dwisiswant0](https://github.com/dwisiswant0)**
-- [Hack with Automation !!!](https://dhiyaneshgeek.github.io/web/security/2021/07/19/hack-with-automation/) by **[@DhiyaneshGeek](https://github.com/DhiyaneshGeek)**
+Filtered error pages are stored to predefined file `filtered_error_page.json` in jsonline format when `-filter-error-page` option is used.
 
-### Credits
-
-Thanks to all the amazing [community contributors for sending PRs](https://github.com/projectdiscovery/nuclei/graphs/contributors) and keeping this project updated. :heart:
-
-If you have an idea or some kind of improvement, you are welcome to contribute and participate in the Project, feel free to send your PR.
-
-<p align="center">
-<a href="https://github.com/projectdiscovery/nuclei/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=projectdiscovery/nuclei&max=500">
-</a>
-</p>
+### Favicon Hash
 
 
-Do also check out the below similar open-source projects that may fit in your workflow:
+```console
+subfinder -d hackerone.com -silent | httpx -favicon
 
-[FFuF](https://github.com/ffuf/ffuf), [Qsfuzz](https://github.com/ameenmaali/qsfuzz), [Inception](https://github.com/proabiral/inception), [Snallygaster](https://github.com/hannob/snallygaster), [Gofingerprint](https://github.com/Static-Flow/gofingerprint), [Sn1per](https://github.com/1N3/Sn1per/tree/master/templates), [Google tsunami](https://github.com/google/tsunami-security-scanner), [Jaeles](https://github.com/jaeles-project/jaeles), [ChopChop](https://github.com/michelin/ChopChop)
+    __    __  __       _  __
+   / /_  / /_/ /_____ | |/ /
+  / __ \/ __/ __/ __ \|   /
+ / / / / /_/ /_/ /_/ /   |
+/_/ /_/\__/\__/ .___/_/|_|
+             /_/              v1.1.5
 
-### License
+      projectdiscovery.io
 
-Nuclei is distributed under [MIT License](https://github.com/projectdiscovery/nuclei/blob/main/LICENSE.md)
+Use with caution. You are responsible for your actions.
+Developers assume no liability and are not responsible for any misuse or damage.
+https://docs.hackerone.com/favicon.ico [595148549]
+https://hackerone.com/favicon.ico [595148549]
+https://mta-sts.managed.hackerone.com/favicon.ico [-1700323260]
+https://mta-sts.forwarding.hackerone.com/favicon.ico [-1700323260]
+https://support.hackerone.com/favicon.ico [-1279294674]
+https://gslink.hackerone.com/favicon.ico [1506877856]
+https://resources.hackerone.com/favicon.ico [-1840324437]
+https://api.hackerone.com/favicon.ico [566218143]
+https://mta-sts.hackerone.com/favicon.ico [-1700323260]
+https://www.hackerone.com/favicon.ico [778073381]
+```
 
-<h1 align="left">
-  <a href="https://discord.gg/projectdiscovery"><img src="static/Join-Discord.png" width="380" alt="Join Discord"></a> <a href="https://nuclei.projectdiscovery.io"><img src="static/check-nuclei-documentation.png" width="380" alt="Check Nuclei Documentation"></a>
-</h1>
+### [JARM Fingerprint](https://github.com/salesforce/jarm)
+
+
+```console
+subfinder -d hackerone.com -silent | httpx -jarm
+    __    __  __       _  __
+   / /_  / /_/ /_____ | |/ /
+  / __ \/ __/ __/ __ \|   /
+ / / / / /_/ /_/ /_/ /   |
+/_/ /_/\__/\__/ .___/_/|_|
+             /_/              v1.2.1
+
+      projectdiscovery.io
+
+Use with caution. You are responsible for your actions.
+Developers assume no liability and are not responsible for any misuse or damage.
+https://www.hackerone.com [29d3dd00029d29d00042d43d00041d5de67cc9954cc85372523050f20b5007]
+https://mta-sts.hackerone.com [29d29d00029d29d00042d43d00041d2aa5ce6a70de7ba95aef77a77b00a0af]
+https://mta-sts.managed.hackerone.com [29d29d00029d29d00042d43d00041d2aa5ce6a70de7ba95aef77a77b00a0af]
+https://docs.hackerone.com [29d29d00029d29d00042d43d00041d2aa5ce6a70de7ba95aef77a77b00a0af]
+https://support.hackerone.com [29d3dd00029d29d00029d3dd29d29d5a74e95248e58a6162e37847a24849f7]
+https://api.hackerone.com [29d3dd00029d29d00042d43d00041d5de67cc9954cc85372523050f20b5007]
+https://mta-sts.forwarding.hackerone.com [29d29d00029d29d00042d43d00041d2aa5ce6a70de7ba95aef77a77b00a0af]
+https://resources.hackerone.com [2ad2ad0002ad2ad0002ad2ad2ad2ad043bfbd87c13813505a1b60adf4f6ff5]
+```
+
+### ASN Fingerprint
+
+
+```console
+subfinder -d hackerone.com -silent | httpx -asn
+    __    __  __       _  __
+   / /_  / /_/ /_____ | |/ /
+  / __ \/ __/ __/ __ \|   /
+ / / / / /_/ /_/ /_/ /   |
+/_/ /_/\__/\__/ .___/_/|_|
+             /_/              v1.2.1
+
+      projectdiscovery.io
+
+Use with caution. You are responsible for your actions.
+Developers assume no liability and are not responsible for any misuse or damage.
+https://mta-sts.managed.hackerone.com [AS54113, FASTLY, US]
+https://gslink.hackerone.com [AS16509, AMAZON-02, US]
+https://www.hackerone.com [AS13335, CLOUDFLARENET, US]
+https://mta-sts.forwarding.hackerone.com [AS54113, FASTLY, US]
+https://resources.hackerone.com [AS16509, AMAZON-02, US]
+https://support.hackerone.com [AS13335, CLOUDFLARENET, US]
+https://mta-sts.hackerone.com [AS54113, FASTLY, US]
+https://docs.hackerone.com [AS54113, FASTLY, US]
+https://api.hackerone.com [AS13335, CLOUDFLARENET, US]
+```
+
+
+### File/Path Bruteforce
+
+
+```console
+httpx -l urls.txt -path /v1/api -sc
+
+    __    __  __       _  __
+   / /_  / /_/ /_____ | |/ /
+  / __ \/ __/ __/ __ \|   /
+ / / / / /_/ /_/ /_/ /   |
+/_/ /_/\__/\__/ .___/_/|_|
+             /_/              v1.1.5
+
+      projectdiscovery.io
+
+Use with caution. You are responsible for your actions.
+Developers assume no liability and are not responsible for any misuse or damage.
+https://mta-sts.managed.hackerone.com/v1/api [404]
+https://mta-sts.hackerone.com/v1/api [404]
+https://mta-sts.forwarding.hackerone.com/v1/api [404]
+https://docs.hackerone.com/v1/api [404]
+https://api.hackerone.com/v1/api [401]
+https://hackerone.com/v1/api [302]
+https://support.hackerone.com/v1/api [404]
+https://resources.hackerone.com/v1/api [301]
+https://gslink.hackerone.com/v1/api [404]
+http://www.hackerone.com/v1/api [301]
+```
+
+### Docker Run
+
+```console
+cat sub_domains.txt | docker run -i projectdiscovery/httpx
+
+    __    __  __       _  __
+   / /_  / /_/ /_____ | |/ /
+  / __ \/ __/ __/ __ \|   /
+ / / / / /_/ /_/ /_/ /   |
+/_/ /_/\__/\__/ .___/_/|_|
+             /_/              v1.1.2
+
+      projectdiscovery.io
+
+Use with caution. You are responsible for your actions
+Developers assume no liability and are not responsible for any misuse or damage.
+https://mta-sts.forwarding.hackerone.com
+https://mta-sts.hackerone.com
+https://mta-sts.managed.hackerone.com
+https://www.hackerone.com
+https://api.hackerone.com
+https://gslink.hackerone.com
+https://resources.hackerone.com
+https://docs.hackerone.com
+https://support.hackerone.com
+```
+
+### Screenshot
+
+Latest addition to the project, the addition of the `-screenshot` option in httpx, a powerful new feature that allows users to take screenshots of target URLs, pages, or endpoints along with the rendered DOM. This functionality enables the **visual content discovery process**, providing a comprehensive view of the target's visual appearance.
+
+Rendered DOM body is also included in json line output when `-screenshot` option is used with `-json` option.
+
+#### 🚩 Usage
+
+To use the screenshot feature, simply add the `-screenshot` flag to your httpx command:
+
+```console
+httpx -screenshot -u https://example.com
+```
+
+🎯 Domain, Subdomain, and Path Support
+The `-screenshot` option is versatile and can be used to capture screenshots for domains, subdomains, and even specific paths when used in conjunction with the `-path` option:
+
+```console
+httpx -screenshot -u example.com
+httpx -screenshot -u https://example.com/login
+httpx -screenshot -path fuzz_path.txt -u https://example.com
+```
+
+Using with other tools:
+
+```console
+subfinder -d example.com | httpx -screenshot
+```
+
+#### 🌐 System Chrome
+
+By default, httpx will use the go-rod library to install and manage Chrome for taking screenshots. However, if you prefer to use your locally installed system Chrome, add the `-system-chrome` flag:
+
+```console
+httpx -screenshot -system-chrome -u https://example.com
+```
+
+#### 📁 Output Directory
+
+Screenshots are stored in the output/screenshot directory by default. To specify a custom output directory, use the `-srd` option:
+
+```console
+httpx -screenshot -srd /path/to/custom/directory -u https://example.com
+```
+
+### Body Preview
+Body preview shows first N characters of response. And strip html tags in response.
+
+```console
+httpx -u https://example.com -silent -body-preview
+https://example.com [Example Domain This domain is for use in illustrative examples in documents. You may use this domai]
+```
+
+```console
+httpx -u https://example.com -silent -body-preview=200 -strip=html
+https://example.com [Example Domain This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission. More information...]
+```
+
+#### ⏳ Performance Considerations
+
+Please note that since screenshots are captured using a headless browser, httpx runs will be slower when using the `-screenshot` option.
+
+### Using `httpx` as a library
+`httpx` can be used as a library by creating an instance of the `Option` struct and populating it with the same options that would be specified via CLI. Once validated, the struct should be passed to a runner instance (to be closed at the end of the program) and the `RunEnumeration` method should be called. A minimal example of how to do it is in the [examples](examples/) folder
+
+# Notes
+
+- As default, `httpx` probe with **HTTPS** scheme and fall-back to **HTTP** only if **HTTPS** is not reachable.
+- The `-no-fallback` flag can be used to probe and display both **HTTP** and **HTTPS** result.
+- Custom scheme for ports can be defined, for example `-ports http:443,http:80,https:8443`
+- Custom resolver supports multiple protocol (**doh|tcp|udp**) in form of `protocol:resolver:port` (e.g. `udp:127.0.0.1:53`)
+- The following flags should be used for specific use cases instead of running them as default with other probes:
+   - `-ports`
+   - `-path`
+   - `-vhost`
+   - `-screenshot`
+   - `-csp-probe`
+   - `-tls-probe`
+   - `-favicon`
+   - `-http2`
+   - `-pipeline`
+   - `-tls-impersonate`
+
+
+# Acknowledgement
+
+Probing feature is inspired by [@tomnomnom/httprobe](https://github.com/tomnomnom/httprobe) work ❤️
+
+
+--------
+
+<div align="center">
+
+`httpx` is made with 💙 by the [projectdiscovery](https://projectdiscovery.io) team and distributed under [MIT License](LICENSE.md).
+
+
+<a href="https://discord.gg/projectdiscovery"><img src="https://raw.githubusercontent.com/projectdiscovery/nuclei-burp-plugin/main/static/join-discord.png" width="300" alt="Join Discord"></a>
+
+</div>

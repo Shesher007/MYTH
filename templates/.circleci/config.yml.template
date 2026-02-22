@@ -122,34 +122,13 @@ jobs:
           command: |
             mkdir -p ui/src-tauri/binaries
             mkdir -p ui/src-tauri/resources
-            for dir in nodejs nmap driver_installers; do
-              mkdir -p "ui/src-tauri/binaries/$dir"
-              echo "placeholder" > "ui/src-tauri/binaries/$dir/.gitkeep"
-            done
             uv run python scripts/ci_orchestrator.py validate --verbose
       - run:
-          name: Download TITAN Go Binaries
-          command: python3 scripts/install_titan_dependencies.py
-          environment:
-            PDTM_HOME: "/home/circleci/project/ui/src-tauri/binaries"
-            TAURI_TARGET_TRIPLE: "x86_64-unknown-linux-gnu"
-      - run:
-          name: Package Backend
+          name: Build Backend & Sidecars
           command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-backend --target x86_64-unknown-linux-gnu --verbose
       - run:
           name: Verify Backend Sidecar
-          command: |
-            echo "=== Sidecar Verification ==="
-            EXPECTED_NAME="{{CODENAME}}-backend-x86_64-unknown-linux-gnu"
-            SIDECAR_PATH="ui/src-tauri/binaries/${EXPECTED_NAME}"
-            if [ -f "$SIDECAR_PATH" ]; then
-              echo "✅ Sidecar found: $SIDECAR_PATH"
-              ls -lh "$SIDECAR_PATH"
-            else
-              echo "❌ FATAL: Sidecar missing: $SIDECAR_PATH"
-              ls -la ui/src-tauri/binaries/
-              exit 1
-            fi
+          command: uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-unknown-linux-gnu --verbose
       - run:
           name: Build Desktop App (DEB)
           command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles deb --verbose
@@ -298,26 +277,70 @@ jobs:
              & $uv python install {{PYTHON_VERSION}}
              & $uv venv
       - run:
-          name: Build Backend
+          name: Setup Rust
           shell: powershell.exe
           command: |
-             $uv = "$HOME\.local\bin\uv.exe"
-             & $uv run python scripts/ci_orchestrator.py --stage build-backend --target x86_64-pc-windows-msvc --verbose
+            if (-not (Get-Command rustc -ErrorAction SilentlyContinue)) {
+              Invoke-WebRequest -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile "rustup-init.exe"
+              .\rustup-init.exe -y --default-host x86_64-pc-windows-msvc --default-toolchain stable
+              Remove-Item "rustup-init.exe"
+            }
+            $env:PATH += ";$env:USERPROFILE\.cargo\bin"
+            rustup target add x86_64-pc-windows-msvc
       - run:
-          name: Build Desktop App (Windows)
+          name: Sync Dependencies
           shell: powershell.exe
           command: |
-             $uv = "$HOME\.local\bin\uv.exe"
-             & $uv run python scripts/ci_orchestrator.py --stage build-desktop --target x86_64-pc-windows-msvc --verbose
+            $uv = "$HOME\.local\bin\uv.exe"
+            & $uv sync --all-extras
       - run:
-          name: Build Desktop (NSIS)
+          name: Environment Setup & Hydration
+          shell: powershell.exe
+          command: |
+            New-Item -ItemType Directory -Force -Path "ui\src-tauri\binaries"
+            New-Item -ItemType Directory -Force -Path "ui\src-tauri\resources"
+            $uv = "$HOME\.local\bin\uv.exe"
+            & $uv run python scripts/ci_orchestrator.py validate --verbose
+      - run:
+          name: Build Backend & Sidecars
+          shell: powershell.exe
+          command: |
+            $uv = "$HOME\.local\bin\uv.exe"
+            & $uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
+      - run:
+          name: Verify Backend Sidecar
           shell: powershell.exe
           command: |
              $uv = "$HOME\.local\bin\uv.exe"
-             & $uv run python scripts/ci_orchestrator.py --stage build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
+             & $uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-pc-windows-msvc --verbose
+      - run:
+          name: Build Desktop App (NSIS)
+          shell: powershell.exe
+          command: |
+             $uv = "$HOME\.local\bin\uv.exe"
+             & $uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
+          no_output_timeout: 100m
+          environment:
+            GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
+      - run:
+          name: Generate Windows Portable Package
+          shell: powershell.exe
+          command: |
+             $uv = "$HOME\.local\bin\uv.exe"
+             & $uv run python scripts/ci_orchestrator.py windows-packages --verbose
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ui/src-tauri/target/x86_64-pc-windows-msvc/release/
+            - ui/src-tauri/binaries/
+            - ui/src-tauri/resources/
+            - dist/
       - store_artifacts:
           path: ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/
-          destination: bundles-windows
+          destination: bundles-nsis
+      - store_artifacts:
+          path: dist/
+          destination: bundles-portable
 
 workflows:
   version: 2

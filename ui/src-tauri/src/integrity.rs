@@ -69,14 +69,48 @@ pub fn generate_integrity_manifest(app: AppHandle) -> Result<serde_json::Value, 
         .map_err(|e| format!("Cannot resolve resource dir: {}", e))?;
 
     let backend_name = if cfg!(windows) {
-        format!("{}-backend-x86_64-pc-windows-msvc.exe", "myth")
+        format!("binaries/{}-backend-x86_64-pc-windows-msvc.exe", "myth")
     } else if cfg!(target_os = "macos") {
-        format!("{}-backend-x86_64-apple-darwin", "myth")
+        format!("binaries/{}-backend-x86_64-apple-darwin", "myth")
     } else {
-        format!("{}-backend-x86_64-unknown-linux-gnu", "myth")
+        format!("binaries/{}-backend-x86_64-unknown-linux-gnu", "myth")
     };
 
-    let critical_files = [backend_name.as_str(), "index.html", "assets"];
+    let arch = if cfg!(target_arch = "x86_64") {
+        "x86_64"
+    } else if cfg!(target_arch = "aarch64") {
+        "aarch64"
+    } else {
+        "x86_64" // Fallback
+    };
+
+    let target_triple = if cfg!(windows) {
+        format!("{}-pc-windows-msvc", arch)
+    } else if cfg!(target_os = "macos") {
+        format!("{}-apple-darwin", arch)
+    } else {
+        format!("{}-unknown-linux-gnu", arch)
+    };
+
+    let ext = if cfg!(windows) { ".exe" } else { "" };
+
+    let mut critical_files = vec![
+        backend_name.clone(),
+        "index.html".to_string(),
+        "assets".to_string(),
+    ];
+
+    // Industrial Toolset Sidecars
+    let sidecars = [
+        "nuclei", "subfinder", "naabu", "httpx", "dnsx", "asnmap",
+        "shuffledns", "katana", "notify", "tlsx", "mapcidr",
+        "uncover", "urlfinder", "alterx", "chaos", "interactsh-client"
+    ];
+
+    for s in sidecars {
+        critical_files.push(format!("binaries/{}-{}{}", s, target_triple, ext));
+    }
+
     let mut hashes = HashMap::new();
 
     for file in &critical_files {

@@ -54,6 +54,7 @@ SCRIPTS_DIR = os.path.join(PROJECT_ROOT, "scripts")
 UI_DIR = os.path.join(PROJECT_ROOT, "ui")
 WEBSITE_DIR = os.path.join(PROJECT_ROOT, "website")
 TESTS_DIR = os.path.join(PROJECT_ROOT, "tests")
+DIST_DIR = os.path.join(PROJECT_ROOT, "ui", "src-tauri", "binaries")
 
 
 # ---------------------------------------------------------------------------
@@ -339,6 +340,28 @@ def stage_build_backend(
             env=env_extra,
         )
 
+    # --- Sidecar Orchestration (Industrial Portability) ---
+    # Ensure all external sidecars are downloaded and prepared
+    sidecar_scripts = [
+        "install_titan_dependencies.py",
+        "install_node_runtime.py",
+    ]
+    if "windows" in target.lower():
+        sidecar_scripts.append("install_nmap_sidecar.py")
+
+    for script in sidecar_scripts:
+        script_path = os.path.join(SCRIPTS_DIR, script)
+        if os.path.exists(script_path):
+            print(f"📦 [ORCHESTRATOR] Running sidecar installer: {script}")
+            _run(
+                ["uv", "run", "python", script_path],
+                dry_run=dry_run,
+                verbose=verbose,
+                env=env_extra,
+            )
+        else:
+            print(f"⚠️ [ORCHESTRATOR] Sidecar script missing: {script}")
+
     # Hydrate manifests
     hydrate_script = os.path.join(GOVERNANCE_DIR, "hydrate.py")
     _run(["uv", "run", hydrate_script], dry_run=dry_run, verbose=verbose, env=env_extra)
@@ -554,6 +577,60 @@ def stage_linux_packages(*, dry_run=False, verbose=False, **_):
     return True
 
 
+def stage_windows_packages(*, dry_run=False, verbose=False, **_):
+    """Generate portable Windows package."""
+    _banner("windows-packages", "Generating portable Windows package")
+
+    if sys.platform != "win32":
+        print(f"  {C.YELLOW}⚠ This stage is only supported on Windows, skipping{C.RESET}")
+        return True
+
+    portable_script = os.path.join(SCRIPTS_DIR, "package_portable_win.ps1")
+    _run(["powershell.exe", "-File", portable_script], dry_run=dry_run, verbose=verbose)
+
+    print(f"\n  {C.GREEN}[PASS] Windows portable package generated{C.RESET}")
+    return True
+
+
+def stage_verify_sidecar(*, target=None, dry_run=False, verbose=False, **_):
+    """Verify that the backend sidecar exists for the given target."""
+    _banner("verify-sidecar", f"Verifying backend sidecar for {target}")
+
+    if not target:
+        print(f"  {C.RED}[FAIL] Target triple is required for verification{C.RESET}")
+        return False
+
+    # Dynamic Identity Load
+    codename = "myth"
+    try:
+        import yaml
+
+        identity_path = os.path.join(GOVERNANCE_DIR, "identity.yaml")
+        if os.path.exists(identity_path):
+            with open(identity_path, "r", encoding="utf-8") as f:
+                identity = yaml.safe_load(f)
+            codename = identity.get("identity", {}).get("codename", "myth")
+    except Exception:
+        pass
+
+    ext = ".exe" if "windows" in target.lower() else ""
+    expected_name = f"{codename}-backend-{target}{ext}"
+    sidecar_path = os.path.join(DIST_DIR, expected_name)
+
+    if os.path.exists(sidecar_path):
+        print(
+            f"  {C.GREEN}[PASS] Found: {expected_name} ({os.path.getsize(sidecar_path)} bytes){C.RESET}"
+        )
+        return True
+    else:
+        print(f"  {C.RED}[FAIL] Missing: {sidecar_path}{C.RESET}")
+        print("  Available in binaries dir:")
+        if os.path.exists(DIST_DIR):
+            for f in os.listdir(DIST_DIR):
+                print(f"    - {f}")
+        return False
+
+
 # ---------------------------------------------------------------------------
 # Stage Registry
 # ---------------------------------------------------------------------------
@@ -571,6 +648,8 @@ STAGES = {
     "build-docker": (stage_build_docker, "Build Docker/OCI image"),
     "deploy-website": (stage_deploy_website, "Build & deploy website"),
     "linux-packages": (stage_linux_packages, "Generate Linux distro packages"),
+    "windows-packages": (stage_windows_packages, "Generate Windows portable package"),
+    "verify-sidecar": (stage_verify_sidecar, "Verify backend sidecar exists"),
 }
 
 # Composite stages (run multiple stages in sequence)
@@ -601,9 +680,9 @@ Stages:
   linux-packages  Generate Linux distro packages
 
 Composites (run multiple stages):
-  all / pre-push  validate → lint → test
-  build-all       build-backend → build-desktop → linux-packages
-  full            validate → lint → test → build-backend → build-desktop
+  all / pre-push  validate — lint — test
+  build-all       build-backend — build-desktop — linux-packages
+  full            validate — lint — test — build-backend — build-desktop
         """,
     )
     parser.add_argument("stages", nargs="+", help="Stage(s) or composite(s) to run")
@@ -671,7 +750,7 @@ Composites (run multiple stages):
         if stage_name in COMPOSITES:
             stages_to_run = COMPOSITES[stage_name]
             print(
-                f"  {C.DIM}Composite: {stage_name} → {' → '.join(stages_to_run)}{C.RESET}"
+                f"  {C.DIM}Composite: {stage_name} — {' — '.join(stages_to_run)}{C.RESET}"
             )
         elif stage_name in STAGES:
             stages_to_run = [stage_name]

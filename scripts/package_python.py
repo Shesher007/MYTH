@@ -10,6 +10,7 @@ import platform
 import subprocess
 import sys
 import warnings
+import yaml
 
 # Suppress annoying SyntaxWarnings from third-party libs (like ropper) during build
 warnings.simplefilter("ignore", category=SyntaxWarning)
@@ -62,15 +63,29 @@ def get_target_triple():
         return f"{arch}-unknown-{system}"
 
 
+def load_codename():
+    """Load project codename from identity.yaml."""
+    identity_path = os.path.join(PROJECT_ROOT, "governance", "identity.yaml")
+    try:
+        if os.path.exists(identity_path):
+            with open(identity_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+                return data.get("identity", {}).get("codename", "myth")
+    except Exception:
+        pass
+    return "myth"
+
+
 def build_backend(skip_if_exists=False):
     """Package the Python backend using PyInstaller."""
     target_triple = get_target_triple()
     system = platform.system().lower()
+    codename = load_codename()
 
     # Output name must match the sidecar config in tauri.conf.json
-    # Tauri expects: myth-backend-{target_triple}[.exe]
+    # Tauri expects: {codename}-backend-{target_triple}[.exe]
     ext = ".exe" if system == "windows" else ""
-    output_name = f"myth-backend-{target_triple}{ext}"
+    output_name = f"{codename}-backend-{target_triple}{ext}"
     output_path = os.path.join(DIST_DIR, output_name)
 
     if skip_if_exists and os.path.exists(output_path):
@@ -81,7 +96,7 @@ def build_backend(skip_if_exists=False):
 
     os.makedirs(DIST_DIR, exist_ok=True)
 
-    print(f"Packaging MYTH backend for: {target_triple}")
+    print(f"Packaging {codename.upper()} backend for: {target_triple}")
     print(f"Output: {output_path}")
 
     # PyInstaller invocation
@@ -91,7 +106,7 @@ def build_backend(skip_if_exists=False):
         "PyInstaller",
         "--onefile",
         "--name",
-        f"myth-backend-{target_triple}",
+        f"{codename}-backend-{target_triple}",
         "--distpath",
         DIST_DIR,
         "--workpath",
