@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /temp/
 
-# Sitemap: {{HOMEPAGE}}/sitemap.xml
+Sitemap: https://github.com/Shesher007/{{NAME}}/sitemap.xml

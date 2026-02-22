@@ -34,7 +34,8 @@
     "targets": [
       "deb",
       "rpm",
-      "appimage"
+      "appimage",
+      "nsis"
     ],
     "icon": [
       "icons/32x32.png",

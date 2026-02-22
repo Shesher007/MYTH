@@ -8,6 +8,7 @@ orbs:
   node: circleci/node@5
   rust: circleci/rust@1.6.0
   python: circleci/python@3.0.0
+  win: circleci/windows@5.0.0
 
 executors:
   linux-executor:
@@ -16,6 +17,13 @@ executors:
     environment:
       UV_LINK_MODE: "copy"
       TAURI_TARGET_TRIPLE: "x86_64-unknown-linux-gnu"
+  windows-executor:
+    machine:
+      image: windows-server-2022-gui:current
+    resource_class: windows.medium
+    environment:
+      UV_LINK_MODE: "copy"
+      TAURI_TARGET_TRIPLE: "x86_64-pc-windows-msvc"
 
 jobs:
   validate:
@@ -163,6 +171,8 @@ jobs:
             - ui/src-tauri/src/
             - ui/src-tauri/capabilities/
             - ui/src-tauri/icons/
+            - ui/package.json
+            - ui/package-lock.json
             - ui/dist/
             - governance/
             - resources/
@@ -201,7 +211,7 @@ jobs:
           command: npm install --prefix ui @tauri-apps/cli
       - run:
           name: Bundle RPM
-          command: cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci
+          command: cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build": {"beforeBuildCommand": ""}}'
           no_output_timeout: 30m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
@@ -235,7 +245,7 @@ jobs:
           command: npm install --prefix ui @tauri-apps/cli
       - run:
           name: Bundle AppImage
-          command: cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci
+          command: cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build": {"beforeBuildCommand": ""}}'
           no_output_timeout: 30m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
@@ -262,6 +272,25 @@ jobs:
       - store_artifacts:
           path: website/dist
           destination: website-dist
+
+  build-windows:
+    executor: windows-executor
+    steps:
+      - checkout
+      - run:
+          name: Install uv
+          command: |
+             # PowerShell-based uv install
+             powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+      - run:
+          name: Build Backend
+          command: uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
+      - run:
+          name: Build Desktop (NSIS)
+          command: uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
+      - store_artifacts:
+          path: ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/
+          destination: bundles-windows
 
 workflows:
   version: 2
@@ -295,6 +324,15 @@ workflows:
       - build-linux-appimage:
           requires:
             - build-linux-deb
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only:
+                - main
+      - build-windows:
+          requires:
+            - test
           filters:
             tags:
               only: /^v.*/

@@ -29,7 +29,10 @@ files_lf = [
     "tools/.internal_tool_cache.json",
 ]
 
-files_crlf = ["packaging/chocolatey/tools/chocolateyInstall.ps1"]
+files_crlf = [
+    "packaging/chocolatey/tools/chocolateyInstall.ps1",
+    "scripts/package_portable_win.ps1",
+]
 
 for f in files_lf:
     normalize_eol(f, "lf")

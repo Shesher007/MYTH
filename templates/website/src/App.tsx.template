@@ -34,12 +34,24 @@ function App() {
 
 
       <Helmet>
-        <title>{{NAME}} - Autonomous Sovereign Agent | Industrial Security Core</title>
-        <meta name="description" content="The professional-grade autonomous AI agent for offensive and defensive security. {{TOOL_COUNT}}+ tactical tools orchestrated locally. 100% Offline. Zero Cloud Dependencies." />
-        <meta name="keywords" content="cybersecurity, autonomous agent, offensive security, red team, soc, ai, local llm, {{NAME_LOWER}}, titan" />
+        <title>{{NAME}} - Autonomous Sovereign Agent | Industrial Intelligence Core</title>
+        <meta name="description" content="The professional-grade autonomous AI agent for offensive and defensive security. {{TOOL_COUNT}}+ tactical tools orchestrated locally. 100% Offline. Zero Cloud Dependencies. Sovereign Intelligence." />
+        <meta name="keywords" content="cybersecurity, autonomous agent, offensive security, red team, soc, ai, local llm, {{NAME_LOWER}}, titan, sovereign intelligence" />
+        
+        {/* OpenGraph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://{{NAME_LOWER}}.tools" />
         <meta property="og:title" content="{{NAME}} - Autonomous Sovereign Agent" />
         <meta property="og:description" content="Deploy the Titan Edition. {{TOOL_COUNT}}+ tactical tools orchestrated by a sovereign local AI. No cloud. No leaks." />
-        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://{{NAME_LOWER}}.tools/icon.png" />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://{{NAME_LOWER}}.tools" />
+        <meta property="twitter:title" content="{{NAME}} - Autonomous Sovereign Agent" />
+        <meta property="twitter:description" content="{{TOOL_COUNT}}+ tactical tools orchestrated by a sovereign local AI. Professional-Grade Autonomous Intelligence." />
+        <meta property="twitter:image" content="https://{{NAME_LOWER}}.tools/icon.png" />
+
         <meta name="theme-color" content="#7c3aed" />
       </Helmet>
       <Navbar onToggleTerminal={() => setIsTerminalOpen(p => !p)} />

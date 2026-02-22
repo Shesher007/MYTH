@@ -37,7 +37,7 @@ def create_certificate(priv_key_hex, activation_key, device_fp, tier="Pro", days
     # Sign
     priv_bytes = bytes.fromhex(priv_key_hex)
     private_key = ed25519.Ed25519PrivateKey.from_private_bytes(priv_bytes)
-    signature = private_key.sign(payload.as_bytes())
+    signature = private_key.sign(payload.encode())
     sig_b64 = base64.b64encode(signature).decode("utf-8")
 
     cert = {

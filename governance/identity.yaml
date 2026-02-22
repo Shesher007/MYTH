@@ -38,7 +38,6 @@ release:
   channel: "stable"
   copyright_year: "2024-2026"
   disabled_targets:
-    - "nsis"
     - "msi"
     - "dmg"
     - "app"

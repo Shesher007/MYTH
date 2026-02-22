@@ -1,7 +1,8 @@
-# {{NAME}} SECURITY POLICY
-Contact: {{SECURITY_CONTACT}}
+# {{NAME}} INDUSTRIAL SECURITY POLICY
+Contact: security@shesher.com
 Expires: 2027-12-31T23:59:59Z
-Encryption: {{HOMEPAGE}}/pgp-key.asc
+Encryption: https://github.com/Shesher007/{{NAME}}/pgp-key.asc
 Preferred-Languages: en
-Policy: {{SECURITY_POLICY}}
-Canonical: {{HOMEPAGE}}/.well-known/security.txt
+Policy: https://github.com/Shesher007/{{NAME}}/security/policy
+Canonical: https://github.com/Shesher007/{{NAME}}/.well-known/security.txt
+Acknowledgments: https://github.com/Shesher007/{{NAME}}/security/hall-of-fame

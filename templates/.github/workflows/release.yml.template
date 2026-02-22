@@ -64,10 +64,10 @@ jobs:
             release-artifacts/**/*.AppImage
             release-artifacts/**/*.deb
             release-artifacts/**/*.rpm
-            # === DISABLED: Re-enable for multi-OS releases ===
+            release-artifacts/**/*_setup.exe
+            release-artifacts/**/*.msi
+            # === DISABLED: Re-enable for macOS releases ===
             # release-artifacts/**/*.pkg.tar.zst
             # release-artifacts/**/*.dmg
-            # release-artifacts/**/*.msi
-            # release-artifacts/**/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.CUSTOM_DEPLOY_TOKEN }}

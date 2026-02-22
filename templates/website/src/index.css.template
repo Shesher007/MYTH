@@ -127,6 +127,19 @@
   @apply opacity-100 translate-y-0;
 }
 
+/* Industrial State Utilities */
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+}
+
+.transition-tactical {
+  @apply transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-pill {
+  @apply bg-white/5 backdrop-blur-sm border border-white/10 px-3 py-1 rounded-full;
+}
+
 
 /* Glitch Animations */
 @keyframes glitch-1 {

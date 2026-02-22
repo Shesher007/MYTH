@@ -432,7 +432,7 @@ def build_backend(skip_if_exists=False):
         else:
             print(f"Build completed but output not found at: {output_path}")
     else:
-        print(f"❌ Backend packaging failed (exit code: {result.code})")
+        print(f"❌ Backend packaging failed (exit code: {result.returncode})")
         sys.exit(1)
 
 

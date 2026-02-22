@@ -54,21 +54,58 @@ test:
     expire_in: 7 days
 
 # ─── Stage: Build ────────────────────────────────────────────────
-build-desktop-linux:
+build-linux-deb:
   stage: build
   needs: ["test"]
   script:
     - uv run python scripts/ci_orchestrator.py build-backend --target x86_64-unknown-linux-gnu --verbose
-    # Tauri build would require Rust + Node images or manual install
     - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
     - apt-get install -y nodejs
-    - uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --verbose
-    - uv run python scripts/ci_orchestrator.py linux-packages --verbose
+    - uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles deb --verbose
   artifacts:
     paths:
-      - "*.AppImage"
-      - "*.deb"
-      - "*.rpm"
+      - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb"
+      - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/myth-backend-x86_64-unknown-linux-gnu"
+      - "ui/src-tauri/binaries/"
+      - "ui/dist/"
+  only:
+    - tags
+
+build-linux-rpm:
+  stage: build
+  needs: ["build-linux-deb"]
+  script:
+    - apt-get update && apt-get install -y rpm
+    - cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles rpm --ci --config '{"build": {"beforeBuildCommand": ""}}'
+  artifacts:
+    paths:
+      - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/rpm/*.rpm"
+  only:
+    - tags
+
+build-linux-appimage:
+  stage: build
+  needs: ["build-linux-deb"]
+  script:
+    - apt-get update && apt-get install -y libfuse2
+    - cd ui && npx tauri build --target x86_64-unknown-linux-gnu --bundles appimage --ci --config '{"build": {"beforeBuildCommand": ""}}'
+  artifacts:
+    paths:
+      - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage"
+  only:
+    - tags
+
+build-desktop-windows:
+  stage: build
+  needs: ["test"]
+  tags:
+    - windows
+  script:
+    - uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
+    - uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
+  artifacts:
+    paths:
+      - "ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe"
   only:
     - tags
 
@@ -92,7 +129,7 @@ deploy-website:
 gitlab-release:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
-  needs: ["build-desktop-linux"]
+  needs: ["build-linux-deb", "build-linux-rpm", "build-linux-appimage", "build-desktop-windows"]
   script:
     - echo "Creating GitLab Release for $CI_COMMIT_TAG"
   release:
