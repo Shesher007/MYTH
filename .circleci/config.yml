@@ -276,27 +276,41 @@ jobs:
              $uv = "$HOME\.local\bin\uv.exe"
              & $uv python install 3.13.11
              & $uv venv
+             # Add to machine path for persistence across sessions if possible
+             [Environment]::SetEnvironmentVariable("PATH", "$env:PATH;$HOME\.local\bin", "User")
       - run:
           name: Setup Rust
           shell: powershell.exe
           command: |
             if (-not (Get-Command rustc -ErrorAction SilentlyContinue)) {
+              Write-Host "Rust not found. Installing..."
               Invoke-WebRequest -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile "rustup-init.exe"
-              .\rustup-init.exe -y --default-host x86_64-pc-windows-msvc --default-toolchain stable
+              .\rustup-init.exe -y --default-host x86_64-pc-windows-msvc --default-toolchain stable --no-modify-path
               Remove-Item "rustup-init.exe"
             }
-            $env:PATH += ";$env:USERPROFILE\.cargo\bin"
-            rustup target add x86_64-pc-windows-msvc
+            $rustup = "$env:USERPROFILE\.cargo\bin\rustup.exe"
+            if (Test-Path $rustup) {
+              & $rustup target add x86_64-pc-windows-msvc
+              # For subsequent steps in this job, update the path
+              $newPath = "$env:USERPROFILE\.cargo\bin;" + [Environment]::GetEnvironmentVariable("PATH", "Machine")
+              [Environment]::SetEnvironmentVariable("PATH", $newPath, "Process")
+              Write-Host "Rustup configured successfully."
+            } else {
+              Write-Error "Rustup installation failed or binary not found at $rustup"
+              exit 1
+            }
       - run:
           name: Sync Dependencies
           shell: powershell.exe
           command: |
+            $env:PATH += ";$env:USERPROFILE\.cargo\bin"
             $uv = "$HOME\.local\bin\uv.exe"
             & $uv sync --all-extras
       - run:
           name: Environment Setup & Hydration
           shell: powershell.exe
           command: |
+            $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
             New-Item -ItemType Directory -Force -Path "ui\src-tauri\binaries"
             New-Item -ItemType Directory -Force -Path "ui\src-tauri\resources"
             $uv = "$HOME\.local\bin\uv.exe"
@@ -305,19 +319,24 @@ jobs:
           name: Build Backend & Sidecars
           shell: powershell.exe
           command: |
+            $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
             $uv = "$HOME\.local\bin\uv.exe"
+            $env:PYTHONWARNINGS = "ignore"
             & $uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
       - run:
           name: Verify Backend Sidecar
           shell: powershell.exe
           command: |
+             $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
              $uv = "$HOME\.local\bin\uv.exe"
              & $uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-pc-windows-msvc --verbose
       - run:
           name: Build Desktop App (NSIS)
           shell: powershell.exe
           command: |
+             $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
              $uv = "$HOME\.local\bin\uv.exe"
+             $env:PYTHONWARNINGS = "ignore"
              & $uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
           no_output_timeout: 100m
           environment:
@@ -326,6 +345,7 @@ jobs:
           name: Generate Windows Portable Package
           shell: powershell.exe
           command: |
+             $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
              $uv = "$HOME\.local\bin\uv.exe"
              & $uv run python scripts/ci_orchestrator.py windows-packages --verbose
       - persist_to_workspace:
@@ -334,6 +354,19 @@ jobs:
             - ui/src-tauri/target/x86_64-pc-windows-msvc/release/
             - ui/src-tauri/binaries/
             - ui/src-tauri/resources/
+            - ui/src-tauri/tauri.conf.json
+            - ui/src-tauri/Cargo.toml
+            - ui/src-tauri/Cargo.lock
+            - ui/src-tauri/src/
+            - ui/src-tauri/capabilities/
+            - ui/src-tauri/icons/
+            - ui/package.json
+            - ui/package-lock.json
+            - ui/dist/
+            - governance/
+            - resources/
+            - pyproject.toml
+            - packaging/
             - dist/
       - store_artifacts:
           path: ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/
