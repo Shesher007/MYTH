@@ -282,11 +282,12 @@ jobs:
 
   build-windows:
     executor: windows-executor
+    shell: powershell.exe -ExecutionPolicy Bypass -Command
     steps:
       - checkout
       - run:
           name: Install uv
-          command: powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+          command: irm https://astral.sh/uv/install.ps1 | iex
       - run:
           name: Install Python via uv
           command: |
