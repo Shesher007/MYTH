@@ -71,33 +71,33 @@ build-linux-deb:
   only:
     - tags
 
-build-linux-rpm:
-  stage: build
-  needs: ["build-linux-deb"]
-  script:
-    - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
-    - apt-get install -y nodejs rpm
-    - |
-      uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles rpm --skip-before-build --verbose
-  artifacts:
-    paths:
-      - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/rpm/*.rpm"
-  only:
-    - tags
-
-build-linux-appimage:
-  stage: build
-  needs: ["build-linux-deb"]
-  script:
-    - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
-    - apt-get install -y nodejs libfuse2
-    - |
-      uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles appimage --skip-before-build --verbose
-  artifacts:
-    paths:
-      - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage"
-  only:
-    - tags
+# build-linux-rpm:
+#   stage: build
+#   needs: ["build-linux-deb"]
+#   script:
+#     - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+#     - apt-get install -y nodejs rpm
+#     - |
+#       uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles rpm --skip-before-build --verbose
+#   artifacts:
+#     paths:
+#       - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/rpm/*.rpm"
+#   only:
+#     - tags
+# 
+# build-linux-appimage:
+#   stage: build
+#   needs: ["build-linux-deb"]
+#   script:
+#     - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+#     - apt-get install -y nodejs libfuse2
+#     - |
+#       uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles appimage --skip-before-build --verbose
+#   artifacts:
+#     paths:
+#       - "ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage"
+#   only:
+#     - tags
 
 build-desktop-windows:
   stage: build
@@ -133,7 +133,7 @@ deploy-website:
 gitlab-release:
   stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
-  needs: ["build-linux-deb", "build-linux-rpm", "build-linux-appimage", "build-desktop-windows"]
+  needs: ["build-linux-deb", "build-desktop-windows"]
   script:
     - echo "Creating GitLab Release for $CI_COMMIT_TAG"
   release:

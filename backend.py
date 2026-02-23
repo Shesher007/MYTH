@@ -9,6 +9,7 @@ import re
 import sys
 import threading
 import time
+import warnings
 from datetime import datetime
 from functools import wraps
 from typing import Annotated, Any, Dict, List, Optional, TypedDict
@@ -32,6 +33,11 @@ from myth_utils.paths import (
     is_frozen,
 )
 from myth_utils.sanitizer import SovereignSanitizer
+
+# Industrial Grade: Silence external package noise (Pydantic, networking stubs, etc.)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*libpcap provider.*")
+warnings.filterwarnings("ignore", message=".*wpcap.dll.*")
 
 # Industry Grade: Suppress noisy library logs as early as possible
 for noise_maker in ["ddgs", "duckduckgo_search", "primp", "httpx", "httpcore"]:

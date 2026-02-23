@@ -135,9 +135,9 @@ jobs:
           no_output_timeout: 100m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
-      - run:
-          name: Generate Linux Packages
-          command: uv run python scripts/ci_orchestrator.py linux-packages --verbose
+      # - run:
+      #     name: Generate Linux Packages
+      #     command: uv run python scripts/ci_orchestrator.py linux-packages --verbose
       - persist_to_workspace:
           root: .
           paths:
@@ -311,6 +311,14 @@ jobs:
                  $binDir = Split-Path $rustup
                  $env:PATH = "$binDir;" + $env:PATH
                  [Environment]::SetEnvironmentVariable("PATH", "$binDir;" + [Environment]::GetEnvironmentVariable("PATH", "User"), "User")
+                 
+                 Write-Host "Verifying Rust Target visibility..."
+                 & rustc --print target-libdir --target x86_64-pc-windows-msvc
+                 if ($LASTEXITCODE -ne 0) {
+                     Write-Error "FAILURE: Rust target x86_64-pc-windows-msvc is not visible to rustc."
+                     exit 1
+                 }
+                 
                  Write-Host "Rust toolchain initialized successfully."
              } else {
                  Write-Error "CRITICAL: Rustup installation failed or binary unreachable."
@@ -320,9 +328,10 @@ jobs:
           name: Sync Dependencies
           shell: powershell.exe
           command: |
-            $env:PATH += ";$env:USERPROFILE\.cargo\bin"
-            $uv = "$HOME\.local\bin\uv.exe"
-            & $uv sync --all-extras
+             $env:PATH += ";$env:USERPROFILE\.cargo\bin"
+             $env:PYTHONWARNINGS = "ignore"
+             $uv = "$HOME\.local\bin\uv.exe"
+             & $uv sync --all-extras
       - run:
           name: Environment Setup & Hydration
           shell: powershell.exe
@@ -358,13 +367,13 @@ jobs:
           no_output_timeout: 100m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
-      - run:
-          name: Generate Windows Portable Package
-          shell: powershell.exe
-          command: |
-             $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
-             $uv = "$HOME\.local\bin\uv.exe"
-             & $uv run python scripts/ci_orchestrator.py windows-packages --verbose
+      # - run:
+      #     name: Generate Windows Portable Package
+      #     shell: powershell.exe
+      #     command: |
+      #        $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
+      #        $uv = "$HOME\.local\bin\uv.exe"
+      #        & $uv run python scripts/ci_orchestrator.py windows-packages --verbose
       - persist_to_workspace:
           root: .
           paths:
@@ -412,24 +421,24 @@ workflows:
             branches:
               only:
                 - main
-      - build-linux-rpm:
-          requires:
-            - build-linux-deb
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only:
-                - main
-      - build-linux-appimage:
-          requires:
-            - build-linux-deb
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only:
-                - main
+      # - build-linux-rpm:
+      #     requires:
+      #       - build-linux-deb
+      #     filters:
+      #       tags:
+      #         only: /^v.*/
+      #       branches:
+      #         only:
+      #           - main
+      # - build-linux-appimage:
+      #     requires:
+      #       - build-linux-deb
+      #     filters:
+      #       tags:
+      #         only: /^v.*/
+      #       branches:
+      #         only:
+      #           - main
       - build-windows:
           requires:
             - test
@@ -439,10 +448,10 @@ workflows:
             branches:
               only:
                 - main
-      - build-website:
-          requires:
-            - test
-          filters:
-            branches:
-              only:
-                - main
+      # - build-website:
+      #     requires:
+      #       - test
+      #     filters:
+      #       branches:
+      #         only:
+      #           - main
