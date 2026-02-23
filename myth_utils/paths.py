@@ -64,6 +64,65 @@ def get_sidecar_dir() -> Optional[str]:
     return None
 
 
+def get_tauri_triple() -> str:
+    """Determine the Rust-style target triple for the current platform."""
+    import platform
+
+    machine = platform.machine().lower()
+    system = platform.system().lower()
+
+    arch_map = {
+        "x86_64": "x86_64",
+        "amd64": "x86_64",
+        "aarch64": "aarch64",
+        "arm64": "aarch64",
+        "i686": "i686",
+        "x86": "i686",
+    }
+    arch = arch_map.get(machine, machine)
+
+    if system == "windows":
+        return f"{arch}-pc-windows-msvc"
+    elif system == "darwin":
+        return f"{arch}-apple-darwin"
+    elif system == "linux":
+        return f"{arch}-unknown-linux-gnu"
+    return f"{arch}-unknown-{system}"
+
+
+def resolve_sidecar_binary(binary_name: str) -> Optional[str]:
+    """
+    Resolve a sidecar binary path, accounting for Tauri's triple-suffix naming
+    in production/bundled mode, while supporting plain names in development.
+    """
+    sidecar_dir = get_sidecar_dir()
+    if not sidecar_dir:
+        return None
+
+    # 1. Try plain name (standard development/standalone behavior)
+    ext = ".exe" if os.name == "nt" else ""
+    plain_path = os.path.join(sidecar_dir, f"{binary_name}{ext}")
+    if os.path.exists(plain_path):
+        return plain_path
+
+    # 2. Try Tauri Triple Suffix (Production Bundle behavior)
+    triple = get_tauri_triple()
+    triple_path = os.path.join(sidecar_dir, f"{binary_name}-{triple}{ext}")
+    if os.path.exists(triple_path):
+        return triple_path
+
+    # 3. Deep search in subfolders (nmap, nodejs, etc.)
+    for root, _, files in os.walk(sidecar_dir):
+        # Limit depth to avoid traversing deep node_modules if present
+        if root.count(os.sep) - sidecar_dir.count(os.sep) > 2:
+            continue
+        for f in files:
+            if f == f"{binary_name}{ext}" or f == f"{binary_name}-{triple}{ext}":
+                return os.path.join(root, f)
+
+    return None
+
+
 def get_app_data_path(sub_path: str = "") -> str:
     """
     Returns a persistent path in the user's application data directory.

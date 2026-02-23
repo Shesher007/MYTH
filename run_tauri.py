@@ -8,6 +8,8 @@ import time
 import warnings
 from pathlib import Path
 
+from myth_utils.paths import resolve_sidecar_binary
+
 import psutil
 
 # Industry Grade: Suppress noisy third-party SyntaxWarnings
@@ -114,6 +116,39 @@ def wait_for_port(port, host="127.0.0.1", timeout=30):
     return False
 
 
+def is_admin():
+    """Industrial: Check for elevated privileges."""
+    try:
+        import ctypes
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+    except (AttributeError, ImportError):
+        try:
+            return os.getuid() == 0
+        except AttributeError:
+            return False
+
+
+def sidecar_preflight_check():
+    """Verify essential sidecars are present before starting."""
+    print("📋 [PRE-FLIGHT] Verifying industrial sidecars...")
+    essentials = ["nmap", "nuclei", "subfinder", "httpx"]
+    missing = []
+    
+    for tool in essentials:
+        resolved = resolve_sidecar_binary(tool)
+        if resolved:
+            print(f"   ✅ [FOUND] {tool}: {Path(resolved).name}")
+        else:
+            missing.append(tool)
+    
+    if missing:
+        print(f"   ⚠️ [WARN] Missing sidecars: {', '.join(missing)}")
+        print("   💡 Run 'python scripts/install_nmap_sidecar.py' or ensure binaries are in ui/src-tauri/binaries")
+    else:
+        print("   ✨ [PASS] All essential sidecars verified.")
+    print()
+
+
 def run_myth_tauri():
     banner = """
     ⌬ {agent_config.identity.name} | {agent_config.identity.codename} (TAURI INDUSTRIAL)
@@ -126,6 +161,9 @@ def run_myth_tauri():
     root_dir = Path(__file__).parent.absolute()
     ui_dir = root_dir / "ui"
 
+    # 1. Start Pre-flight sidecar verification
+    sidecar_preflight_check()
+
     # Check for uv venv
     venv_python = (
         root_dir / ".venv" / "Scripts" / "python.exe"
@@ -137,7 +175,14 @@ def run_myth_tauri():
         print(f"❌ Error: UV virtual environment not found at {venv_python}")
         return
 
-    # 0. Port Cleanup & Audit Reset
+    # 0. Admin Status Check
+    if not is_admin():
+        print("⚠️ [WARN] Not running with Administrative privileges.")
+        print("   💡 Some industrial networking tools (Nmap/Scapy) may fail in production.")
+        print("   💡 For 100% accuracy, consider running this script as Administrator.")
+        print()
+
+    # 2. Port Cleanup & Audit Reset
     print("🧹 [0/3] Cleaning industrial infrastructure (8888, 8890, 5173)...")
     scorch_earth_cleanup()
 
@@ -181,19 +226,37 @@ def run_myth_tauri():
     print("🚀 [1/3] Starting FastAPI Engine (Persistence Lock: ON)...")
     api_cmd = [
         str(venv_python),
-        "-m",
-        "uvicorn",
-        "api:app",
+        "api.py",
         "--host",
         "127.0.0.1",
         "--port",
         "8890",
-        "--no-access-log",
     ]
 
     api_env = os.environ.copy()
     api_env["UVICORN_RELOAD"] = "0"
     api_env["WATCHFILES_FORCE_NON_RECURSIVE"] = "true"
+    api_env["MYTH_DESKTOP"] = "1"
+    api_env["TAURI_DEBUG"] = "1"
+    
+    # 100% Accuracy: Inject standard Tauri 2 matrix
+    import platform
+    machine = platform.machine().lower()
+    arch_map = {"x86_64": "x86_64", "amd64": "x86_64", "arm64": "aarch64", "aarch64": "aarch64"}
+    
+    api_env["TAURI_PLATFORM"] = "windows" if sys.platform == "win32" else "linux"
+    api_env["TAURI_ARCH"] = arch_map.get(machine, machine)
+    api_env["TAURI_FAMILY"] = "windows" if sys.platform == "win32" else "unix"
+    
+    # Industrial: Pull Version from tauri.conf.json
+    try:
+        conf_path = ui_dir / "src-tauri" / "tauri.conf.json"
+        if conf_path.exists():
+            with open(conf_path, "r") as f:
+                conf_data = json.load(f)
+                api_env["TAURI_VERSION"] = conf_data.get("version", "1.1.0")
+    except Exception:
+        api_env["TAURI_VERSION"] = "1.1.0"
 
     api_process = subprocess.Popen(
         api_cmd,

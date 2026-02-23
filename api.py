@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import base64
 import hashlib
@@ -45,7 +46,7 @@ if sys.platform == "win32":
 import backend
 from backend import initialize_system_async
 from config_loader import agent_config
-from myth_utils.paths import get_app_data_path, get_resource_path, is_frozen
+from myth_utils.paths import get_app_data_path, get_resource_path, is_frozen, resolve_sidecar_binary
 from myth_utils.sanitizer import SovereignSanitizer
 
 # Industry Grade: Suppress noisy third-party SyntaxWarnings (e.g., from ropper)
@@ -692,6 +693,9 @@ async def lifespan(app: FastAPI):
     # 1. Sync critical assets (manifest, secrets) to AppData
     await ensure_standalone_assets()
 
+    # 1.5 Sync Browser Binaries
+    await sync_playwright_browsers()
+
     # 2. Check for missing system deps and bundled sidecars
     asyncio.create_task(check_system_dependencies())
 
@@ -796,16 +800,19 @@ async def get_dependency_health():
 
     results = []
     for dep in dependencies:
-        found = shutil.which(dep["binary"]) or (
-            os.name == "nt" and shutil.which(f"{dep['binary']}.exe")
-        )
+        binary_found = resolve_sidecar_binary(dep["binary"])
+        if not binary_found:
+            # Fallback to system path for Node.js/Docker if sidecar not present
+            binary_found = shutil.which(dep["binary"])
+            if not binary_found and os.name == "nt":
+                binary_found = shutil.which(f"{dep['binary']}.exe")
         results.append(
             {
                 "name": dep["name"],
                 "status": "READY"
-                if found
+                if binary_found
                 else ("MISSING" if dep["core"] else "OPTIONAL_MISSING"),
-                "path": found or "N/A",
+                "path": binary_found or "N/A",
             }
         )
 
@@ -814,6 +821,37 @@ async def get_dependency_health():
         "sidecar_dir": sidecar_dir,
         "dependencies": results,
     }
+
+
+async def sync_playwright_browsers():
+    """
+    Auto-Provision Browsers (In-Process)
+    Only auto-install in production-like environments where user expects "it just works"
+    """
+    # Check if we are in desktop-mode (bundled or run_tauri)
+    if not os.environ.get("MYTH_DESKTOP") and not is_frozen():
+        return
+
+    try:
+        from playwright.__main__ import main as playwright_cli
+
+        logger.info("🌐 [INIT] Verifying browser binaries (Chromium)...")
+
+        old_argv = sys.argv
+        sys.argv = ["playwright", "install", "chromium"]
+        try:
+            # Run playwright install chromium
+            # This is idempotent, but we only want to trigger it once during boot
+            playwright_cli()
+            logger.info("✅ [INIT] Browser binaries verification complete.")
+        except SystemExit:
+            pass
+        except Exception as e:
+            logger.warning(f"⚠️ [INIT] Browser install error: {e}")
+        finally:
+            sys.argv = old_argv
+    except Exception as e:
+        logger.warning(f"⚠️ [INIT] Browser auto-provisioning failed: {e}")
 
 
 async def ensure_standalone_assets():
@@ -908,9 +946,12 @@ async def check_system_dependencies():
                 os.environ["PATH"] = f"{p}{os.pathsep}{current_path}"
 
     for dep in dependencies:
-        binary_found = shutil.which(dep["binary"])
-        if not binary_found and os.name == "nt":
-            binary_found = shutil.which(f"{dep['binary']}.exe")
+        binary_found = resolve_sidecar_binary(dep["binary"])
+        if not binary_found:
+            # Fallback to system path for Node.js/Docker if sidecar not present
+            binary_found = shutil.which(dep["binary"])
+            if not binary_found and os.name == "nt":
+                binary_found = shutil.which(f"{dep['binary']}.exe")
 
         if binary_found:
             found_count += 1
@@ -3776,34 +3817,15 @@ async def test_endpoint():
 
 
 if __name__ == "__main__":
-    import sys
+    parser = argparse.ArgumentParser(description="MYTH Core API")
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=8890, help="Port to bind (default: 8890)")
+    args = parser.parse_args()
 
     import uvicorn
 
-    # Industrial Hook: Auto-Provision Browsers (In-Process)
-    try:
-        # Check if we need to install
-        # We assume if we can import sync_playwright, we are good? No, binaries are separate.
-        # We blindly try install chromium. It is idempotent.
-        if getattr(sys, "frozen", False):
-            # Only auto-install in frozen mode where user expects "it just works"
-            from playwright.__main__ import main as playwright_cli
-
-            logger.info("🌐 [INIT] Verifying browser binaries (Chromium)...")
-
-            old_argv = sys.argv
-            sys.argv = ["playwright", "install", "chromium"]
-            try:
-                playwright_cli()
-            except SystemExit:
-                pass
-            except Exception as e:
-                logger.warning(f"⚠️ [INIT] Browser install error: {e}")
-            finally:
-                sys.argv = old_argv
-            logger.info("✅ [INIT] Browser binaries verification complete.")
-    except Exception as e:
-        logger.warning(f"⚠️ [INIT] Browser auto-provisioning failed: {e}")
+    # The browser auto-provisioning has been moved to the lifespan handler
+    # to ensure it runs regardless of how the API is started (direct or sidecar).
 
     # In desktop mode, we typically launch the API on a local port like 8000 or 8890
-    uvicorn.run(app, host="127.0.0.1", port=8890)
+    uvicorn.run(app, host=args.host, port=args.port)

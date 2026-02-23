@@ -98,8 +98,8 @@ jobs:
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
             sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-jammy.list /etc/apt/sources.list.d/docker.list.distUpgrade
-            sudo DEBIAN_FRONTEND=noninteractive apt-get update
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev rpm
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev rpm
       - run:
           name: Install uv
           command: |
@@ -126,6 +126,7 @@ jobs:
       - run:
           name: Build Backend & Sidecars
           command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-backend --target x86_64-unknown-linux-gnu --verbose
+          no_output_timeout: 45m
       - run:
           name: Verify Backend Sidecar
           command: uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-unknown-linux-gnu --verbose
@@ -158,11 +159,8 @@ jobs:
             - pyproject.toml
             - packaging/
       - store_artifacts:
-          path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/
+          path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb
           destination: bundles-deb
-      - store_artifacts:
-          path: dist_distribution/
-          destination: bundles-extras
 
   build-linux-rpm:
     # Lightweight Job: RPM Bundling Only
@@ -179,8 +177,8 @@ jobs:
       - run:
           name: Install Bundling Dependencies
           command: |
-            sudo DEBIAN_FRONTEND=noninteractive apt-get update
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y rpm libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq rpm libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev
       - run:
           name: Setup Rust
           command: |
@@ -214,8 +212,8 @@ jobs:
       - run:
           name: Install Bundling Dependencies
           command: |
-            sudo DEBIAN_FRONTEND=noninteractive apt-get update
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev libfuse2
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev libfuse2
       - run:
           name: Setup Rust
           command: |
@@ -349,6 +347,7 @@ jobs:
             $uv = "$HOME\.local\bin\uv.exe"
             $env:PYTHONWARNINGS = "ignore"
             & $uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
+          no_output_timeout: 45m
       - run:
           name: Verify Backend Sidecar
           shell: powershell.exe
@@ -393,13 +392,9 @@ jobs:
             - resources/
             - pyproject.toml
             - packaging/
-            - dist/
       - store_artifacts:
           path: ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/
           destination: bundles-nsis
-      - store_artifacts:
-          path: dist/
-          destination: bundles-portable
 
 workflows:
   version: 2

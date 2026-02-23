@@ -9,6 +9,8 @@ import os
 import platform
 import subprocess
 import sys
+import threading
+import time
 import warnings
 
 import yaml
@@ -412,6 +414,7 @@ def build_backend(skip_if_exists=False):
         "msvcrt" if system != "windows" else None,
         "shlwapi" if system != "windows" else None,
         "text_unidecode",  # Silence collect_data_files warning
+        "wpcap",           # Suppress 'wpcap.dll required via ctypes not found' (Npcap is runtime sidecar)
     ]
     for ex in [e for e in exclusions if e]:
         cmd += ["--exclude-module", ex]
@@ -432,7 +435,28 @@ def build_backend(skip_if_exists=False):
         f"Running: {' '.join(cmd[:5])}... ({len(cmd)} args, {len(hidden_imports)} hidden imports)"
     )
 
-    result = subprocess.run(cmd, cwd=PROJECT_ROOT)
+    # ════════════════════════════════════════════════════════════════
+    # CI Heartbeat — Prevent no-output timeout during PyInstaller's
+    # deep analysis phase which can go silent for >10 minutes.
+    # ════════════════════════════════════════════════════════════════
+    stop_heartbeat = threading.Event()
+
+    def _heartbeat():
+        while not stop_heartbeat.is_set():
+            stop_heartbeat.wait(60)
+            if not stop_heartbeat.is_set():
+                elapsed = int(time.time() - start_time)
+                print(f"💓 [HEARTBEAT] PyInstaller still running... ({elapsed}s elapsed)")
+
+    start_time = time.time()
+    heartbeat_thread = threading.Thread(target=_heartbeat, daemon=True)
+    heartbeat_thread.start()
+
+    try:
+        result = subprocess.run(cmd, cwd=PROJECT_ROOT)
+    finally:
+        stop_heartbeat.set()
+        heartbeat_thread.join(timeout=2)
 
     if result.returncode == 0:
         if os.path.exists(output_path):
