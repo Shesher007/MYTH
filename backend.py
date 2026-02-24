@@ -28,7 +28,6 @@ from config_loader import agent_config
 from myth_config import config, load_dotenv
 from myth_utils.paths import (
     get_app_data_path,
-    get_resource_path,
     get_sidecar_dir,
     is_frozen,
 )
@@ -609,6 +608,10 @@ async def initialize_system_async():
 
     async def _provision_node(node, m_name):
         try:
+            from myth_llm import ReliableLLM
+
+            hp = agent_config.hyperparameters
+
             provider = get_provider(m_name)
             # Select Hyperparameter Profile based on Node Role
             if node in ["router", "blueprint"]:
@@ -748,10 +751,10 @@ async def initialize_system_async():
     # Wrap in extra try/except to prevent total boot hang if one subsystem is corrupted
     try:
         await asyncio.gather(
-            init_mcp(), 
-            init_rag(), 
+            init_mcp(),
+            init_rag(),
             init_vibevoice(),
-            return_exceptions=True # Industrial: Don't let one failure cancel others
+            return_exceptions=True,  # Industrial: Don't let one failure cancel others
         )
     except Exception as se:
         logger.error(f"⚠️ [INIT] Sub-system parallel launch error: {se}")

@@ -8,9 +8,9 @@ import time
 import warnings
 from pathlib import Path
 
-from myth_utils.paths import resolve_sidecar_binary
-
 import psutil
+
+from myth_utils.paths import resolve_sidecar_binary
 
 # Industry Grade: Suppress noisy third-party SyntaxWarnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
@@ -120,6 +120,7 @@ def is_admin():
     """Industrial: Check for elevated privileges."""
     try:
         import ctypes
+
         return ctypes.windll.shell32.IsUserAnAdmin() != 0
     except (AttributeError, ImportError):
         try:
@@ -133,17 +134,19 @@ def sidecar_preflight_check():
     print("📋 [PRE-FLIGHT] Verifying industrial sidecars...")
     essentials = ["nmap", "nuclei", "subfinder", "httpx"]
     missing = []
-    
+
     for tool in essentials:
         resolved = resolve_sidecar_binary(tool)
         if resolved:
             print(f"   ✅ [FOUND] {tool}: {Path(resolved).name}")
         else:
             missing.append(tool)
-    
+
     if missing:
         print(f"   ⚠️ [WARN] Missing sidecars: {', '.join(missing)}")
-        print("   💡 Run 'python scripts/install_nmap_sidecar.py' or ensure binaries are in ui/src-tauri/binaries")
+        print(
+            "   💡 Run 'python scripts/install_nmap_sidecar.py' or ensure binaries are in ui/src-tauri/binaries"
+        )
     else:
         print("   ✨ [PASS] All essential sidecars verified.")
     print()
@@ -178,7 +181,9 @@ def run_myth_tauri():
     # 0. Admin Status Check
     if not is_admin():
         print("⚠️ [WARN] Not running with Administrative privileges.")
-        print("   💡 Some industrial networking tools (Nmap/Scapy) may fail in production.")
+        print(
+            "   💡 Some industrial networking tools (Nmap/Scapy) may fail in production."
+        )
         print("   💡 For 100% accuracy, consider running this script as Administrator.")
         print()
 
@@ -238,16 +243,22 @@ def run_myth_tauri():
     api_env["WATCHFILES_FORCE_NON_RECURSIVE"] = "true"
     api_env["MYTH_DESKTOP"] = "1"
     api_env["TAURI_DEBUG"] = "1"
-    
+
     # 100% Accuracy: Inject standard Tauri 2 matrix
     import platform
+
     machine = platform.machine().lower()
-    arch_map = {"x86_64": "x86_64", "amd64": "x86_64", "arm64": "aarch64", "aarch64": "aarch64"}
-    
+    arch_map = {
+        "x86_64": "x86_64",
+        "amd64": "x86_64",
+        "arm64": "aarch64",
+        "aarch64": "aarch64",
+    }
+
     api_env["TAURI_PLATFORM"] = "windows" if sys.platform == "win32" else "linux"
     api_env["TAURI_ARCH"] = arch_map.get(machine, machine)
     api_env["TAURI_FAMILY"] = "windows" if sys.platform == "win32" else "unix"
-    
+
     # Industrial: Pull Version from tauri.conf.json
     try:
         conf_path = ui_dir / "src-tauri" / "tauri.conf.json"
