@@ -358,7 +358,7 @@ def stage_build_backend(
             _run(
                 ["uv", "run", "python", script_path],
                 dry_run=dry_run,
-                verbose=verbose,
+                verbose=True,  # Force streaming output to prevent CI silence
                 env=env_extra,
             )
         else:
@@ -370,11 +370,11 @@ def stage_build_backend(
 
     # Package
     package_script = os.path.join(SCRIPTS_DIR, "package_python.py")
-    # Build stages SHOULD be verbose to prevent "stuck" perception, but respect the flag
+    # Build stages MUST be verbose to prevent "stuck" perception and CircleCI 'no output' timeout
     _run(
         ["uv", "run", "python", package_script],
         dry_run=dry_run,
-        verbose=verbose,
+        verbose=True,
         env=env_extra,
     )
 

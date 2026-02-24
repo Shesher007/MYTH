@@ -133,7 +133,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - ui/src-tauri/target/x86_64-unknown-linux-gnu/release/
+            - ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/
             - ui/src-tauri/binaries/
             - ui/src-tauri/resources/
             - ui/src-tauri/tauri.conf.json
@@ -150,7 +150,7 @@ jobs:
             - pyproject.toml
             - packaging/
       - store_artifacts:
-          path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb
+          path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb
           destination: bundles-deb
 
 
@@ -289,7 +289,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - ui/src-tauri/target/x86_64-pc-windows-msvc/release/
+            - ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/
             - ui/src-tauri/binaries/
             - ui/src-tauri/resources/
             - ui/src-tauri/tauri.conf.json
@@ -306,7 +306,7 @@ jobs:
             - pyproject.toml
             - packaging/
       - store_artifacts:
-          path: ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/
+          path: ui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis
           destination: bundles-nsis
 
 workflows:

@@ -43,7 +43,12 @@ def install_node_runtime():
     if not archive_path.exists():
         print(f"  [INIT] Downloading: {url}...")
         try:
-            urllib.request.urlretrieve(url, archive_path)
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MYTH/1.0"},
+            )
+            with urllib.request.urlopen(req, timeout=30) as response, open(archive_path, "wb") as out_file:
+                shutil.copyfileobj(response, out_file)
             print("  [SUCCESS] Download complete.")
         except Exception as e:
             print(f"  [ERROR] Download failed: {e}")

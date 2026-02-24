@@ -150,8 +150,11 @@ def install_tool(tool_name, version, target_triple):
         if not downloaded:
             print(f"   Downloading from {url}")
             try:
+                req = urllib.request.Request(
+                    url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MYTH/1.0"}
+                )
                 with (
-                    urllib.request.urlopen(url) as response,
+                    urllib.request.urlopen(req, timeout=30) as response,
                     open(dest_file, "wb") as out_file,
                 ):
                     shutil.copyfileobj(response, out_file)
@@ -169,8 +172,11 @@ def install_tool(tool_name, version, target_triple):
                         fallback_url = f"{base_url}{fallback_asset}"
                         dest_file_fb = BIN_DIR / fallback_asset
                         try:
+                            req_fb = urllib.request.Request(
+                                fallback_url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MYTH/1.0"}
+                            )
                             with (
-                                urllib.request.urlopen(fallback_url) as response,
+                                urllib.request.urlopen(req_fb, timeout=30) as response,
                                 open(dest_file_fb, "wb") as out_file,
                             ):
                                 shutil.copyfileobj(response, out_file)
@@ -190,8 +196,11 @@ def install_tool(tool_name, version, target_triple):
                         dest_file_tar = BIN_DIR / asset_name_tar
                         print(f"   Retrying with fallback extension: {url_tar}")
                         try:
+                            req_tar = urllib.request.Request(
+                                url_tar, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MYTH/1.0"}
+                            )
                             with (
-                                urllib.request.urlopen(url_tar) as response,
+                                urllib.request.urlopen(req_tar, timeout=30) as response,
                                 open(dest_file_tar, "wb") as out_file,
                             ):
                                 shutil.copyfileobj(response, out_file)
