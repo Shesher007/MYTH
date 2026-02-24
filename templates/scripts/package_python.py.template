@@ -415,7 +415,7 @@ def build_backend(skip_if_exists=False):
         "msvcrt" if system != "windows" else None,
         "shlwapi" if system != "windows" else None,
         "text_unidecode",  # Silence collect_data_files warning
-        "wpcap",           # Suppress 'wpcap.dll required via ctypes not found' (Npcap is runtime sidecar)
+        "wpcap",  # Suppress 'wpcap.dll required via ctypes not found' (Npcap is runtime sidecar)
     ]
     for ex in [e for e in exclusions if e]:
         cmd += ["--exclude-module", ex]
@@ -447,7 +447,10 @@ def build_backend(skip_if_exists=False):
             stop_heartbeat.wait(60)
             if not stop_heartbeat.is_set():
                 elapsed = int(time.time() - start_time)
-                print(f"💓 [HEARTBEAT] PyInstaller still running... ({elapsed}s elapsed)", flush=True)
+                print(
+                    f"💓 [HEARTBEAT] PyInstaller still running... ({elapsed}s elapsed)",
+                    flush=True,
+                )
 
     start_time = time.time()
     heartbeat_thread = threading.Thread(target=_heartbeat, daemon=True)

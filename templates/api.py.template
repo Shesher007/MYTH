@@ -46,7 +46,12 @@ if sys.platform == "win32":
 import backend
 from backend import initialize_system_async
 from config_loader import agent_config
-from myth_utils.paths import get_app_data_path, get_resource_path, is_frozen, resolve_sidecar_binary
+from myth_utils.paths import (
+    get_app_data_path,
+    get_resource_path,
+    is_frozen,
+    resolve_sidecar_binary,
+)
 from myth_utils.sanitizer import SovereignSanitizer
 
 # Industry Grade: Suppress noisy third-party SyntaxWarnings (e.g., from ropper)
@@ -1896,7 +1901,9 @@ def strip_masked_recursive(data):
                 cleaned[k] = res
         return cleaned if cleaned else None
     elif isinstance(data, list):
-        cleaned = [i for i in (strip_masked_recursive(x) for x in data) if i is not None]
+        cleaned = [
+            i for i in (strip_masked_recursive(x) for x in data) if i is not None
+        ]
         return cleaned if cleaned else None
     elif isinstance(data, str):
         # Filter out MASKED and ABCD...WXYZ placeholders
@@ -1924,11 +1931,19 @@ async def update_settings_keys(payload: SettingsKeyRequest):
         legacy_updates = {"ai_providers": {}}
         # Note: legacy single-key updates aren't usually masked in the same way by the UI,
         # but we check anyway for industrial robustness.
-        if payload.nvidia_api_key and "..." not in payload.nvidia_api_key and payload.nvidia_api_key.upper() != "MASKED":
+        if (
+            payload.nvidia_api_key
+            and "..." not in payload.nvidia_api_key
+            and payload.nvidia_api_key.upper() != "MASKED"
+        ):
             legacy_updates["ai_providers"]["nvidia"] = {
                 "keys": [payload.nvidia_api_key]
             }
-        if payload.mistral_api_key and "..." not in payload.mistral_api_key and payload.mistral_api_key.upper() != "MASKED":
+        if (
+            payload.mistral_api_key
+            and "..." not in payload.mistral_api_key
+            and payload.mistral_api_key.upper() != "MASKED"
+        ):
             legacy_updates["ai_providers"]["mistral"] = {
                 "keys": [payload.mistral_api_key]
             }
@@ -3849,8 +3864,12 @@ async def test_endpoint():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="{{NAME}} Core API")
-    parser.add_argument("--host", default="127.0.0.1", help="Host to bind (default: 127.0.0.1)")
-    parser.add_argument("--port", type=int, default=8890, help="Port to bind (default: 8890)")
+    parser.add_argument(
+        "--host", default="127.0.0.1", help="Host to bind (default: 127.0.0.1)"
+    )
+    parser.add_argument(
+        "--port", type=int, default=8890, help="Port to bind (default: 8890)"
+    )
     args = parser.parse_args()
 
     import uvicorn
