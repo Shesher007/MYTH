@@ -4,5 +4,10 @@
     ],
     "css.lint.unknownAtRules": "ignore",
     "workbench.editor.limit.enabled": true,
-    "workbench.editor.limit.value": 5
+    "workbench.editor.limit.value": 5,
+    "circleci.filters.branchFilter": "allBranches",
+    "circleci.persistedProjectSelection": [
+        "gh/Shesher007/MYTH"
+    ],
+    "circleci.filters.myPipelinesOnly": true
 }

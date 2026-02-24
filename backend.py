@@ -537,6 +537,19 @@ async def _ensure_playwright_browsers():
         logger.error(f"⚠️ [INIT] Playwright health check failed: {e}")
 
 
+def get_provider(m_name: str) -> str:
+    """Industrial Grade: Maps model names to their cloud providers."""
+    m = m_name.lower()
+    # Mistral/Codestral models use native Mistral API
+    if any(p in m for p in ["mistral", "codestral", "voxtral"]):
+        return "mistral"
+    # Google/Gemini models
+    if any(p in m for p in ["google", "gemini"]):
+        return "google_ai_studio"
+    # Everything else uses NVIDIA NIM (including openai/gpt-oss models)
+    return "nvidia"
+
+
 async def initialize_system_async():
     """Background initialization with extensive error handling and logging."""
     # 0. Sync Prompts from Manifest
@@ -566,10 +579,7 @@ async def initialize_system_async():
         "Synchronizing industrial prompts and hydrating model registry...",
     )
 
-    # logger.info("🚀 [INIT] Starting Multi-LLM Industrial Infrastructure Initialization...")
-
-    # 0. Lazy Imports
-    # logger.info("📦 [INIT] Loading heavy dependencies...")
+    # 1. Lazy Imports
     try:
         from rag_system import (
             FileUploader,
@@ -587,47 +597,6 @@ async def initialize_system_async():
     except ImportError as e:
         logger.critical(f"❌ [INIT] Critical Dependency Missing: {e}")
         return
-
-    # --- MODEL INITIALIZATION (MULTI-LLM HYBRID ARCHITECTURE) ---
-    # logger.info("🧠 [INIT] Hydrating Multi-LLM Neural Matrix...")
-
-    # --- MODEL POOL (Hybrid Drivers) ---
-    hp = agent_config.hyperparameters
-
-    # Import the Robust Wrapper
-    try:
-        from myth_llm import ReliableLLM
-    except ImportError:
-        logger.critical("❌ [INIT] robust_llm module missing. Critical failure.")
-        return
-
-    # Load NVIDIA model list for dynamic discovery
-    nvidia_models = set()
-    try:
-        nim_file = get_resource_path("resources/nvidia_nim_models.txt")
-        if os.path.exists(nim_file):
-
-            def _load_models():
-                models = set()
-                with open(nim_file, "r", encoding="utf-8") as f:
-                    for line in f:
-                        m = line.strip().removeprefix("- ").strip()
-                        if m:
-                            models.add(m.lower())
-                return models
-
-            nvidia_models = await asyncio.to_thread(_load_models)
-            logger.info(f"📋 [INIT] Loaded {len(nvidia_models)} NVIDIA NIM models.")
-    except Exception as e:
-        logger.warning(f"⚠️ [INIT] Failed to load NVIDIA model list: {e}")
-
-    def get_provider(m_name: str) -> str:
-        m = m_name.lower()
-        # Mistral/Codestral models use native Mistral API
-        if any(p in m for p in ["mistral", "codestral", "voxtral"]):
-            return "mistral"
-        # Everything else uses NVIDIA NIM (including openai/gpt-oss models)
-        return "nvidia"
 
     nodes_to_provision = {
         "router": agent_config.models.router,
@@ -776,7 +745,16 @@ async def initialize_system_async():
 
     # Launch Global Sub-systems Concurrently
     logger.info("🚀 [INIT] Launching parallel initialization sequence...")
-    await asyncio.gather(init_mcp(), init_rag(), init_vibevoice())
+    # Wrap in extra try/except to prevent total boot hang if one subsystem is corrupted
+    try:
+        await asyncio.gather(
+            init_mcp(), 
+            init_rag(), 
+            init_vibevoice(),
+            return_exceptions=True # Industrial: Don't let one failure cancel others
+        )
+    except Exception as se:
+        logger.error(f"⚠️ [INIT] Sub-system parallel launch error: {se}")
 
     # 3. Tool Discovery (Omni-Hub Integration) - MUST follow MCP ready
     try:

@@ -146,9 +146,9 @@ const SettingsModal = ({ isOpen, onClose, settingsKeys, onSave }) => {
             return String(data).includes('...') ? undefined : data;
         };
 
-        cleanPayload(localSecrets);
+        const cleaned = cleanPayload(localSecrets) || {};
 
-        const success = await onSave({ updates: localSecrets }); // Send full for now, backend merges
+        const success = await onSave({ updates: cleaned }); // Send cleaned structure, backend double-merges
         setIsSaving(false);
         if (success) {
             playSuccess();

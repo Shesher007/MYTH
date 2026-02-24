@@ -107,6 +107,7 @@ def build_backend(skip_if_exists=False):
         sys.executable,
         "-m",
         "PyInstaller",
+        "--noconfirm",  # Suppress admin-context deprecation & overwrite prompts in CI
         "--onefile",
         "--name",
         f"{codename}-backend-{target_triple}",
@@ -446,14 +447,21 @@ def build_backend(skip_if_exists=False):
             stop_heartbeat.wait(60)
             if not stop_heartbeat.is_set():
                 elapsed = int(time.time() - start_time)
-                print(f"💓 [HEARTBEAT] PyInstaller still running... ({elapsed}s elapsed)")
+                print(f"💓 [HEARTBEAT] PyInstaller still running... ({elapsed}s elapsed)", flush=True)
 
     start_time = time.time()
     heartbeat_thread = threading.Thread(target=_heartbeat, daemon=True)
     heartbeat_thread.start()
 
+    # Propagate warning suppression into the PyInstaller subprocess.
+    # This silences: PydanticDeprecatedSince20, text_unidecode collect_data_files,
+    # libpcap provider, and wpcap.dll ctypes warnings from third-party libraries.
+    build_env = {**os.environ}
+    build_env["PYTHONWARNINGS"] = "ignore"
+    build_env["SCAPY_USE_LIBPCAP"] = "no"
+
     try:
-        result = subprocess.run(cmd, cwd=PROJECT_ROOT)
+        result = subprocess.run(cmd, cwd=PROJECT_ROOT, env=build_env)
     finally:
         stop_heartbeat.set()
         heartbeat_thread.join(timeout=2)

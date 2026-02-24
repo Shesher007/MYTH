@@ -5,10 +5,8 @@
 version: 2.1
 
 orbs:
-  node: circleci/node@5
-  rust: circleci/rust@1.6.0
-  python: circleci/python@3.0.0
-  win: circleci/windows@5.0.0
+  node: circleci/node@7.2.1
+  win: circleci/windows@5.1.1
 
 executors:
   linux-executor:
@@ -17,13 +15,6 @@ executors:
     environment:
       UV_LINK_MODE: "copy"
       TAURI_TARGET_TRIPLE: "x86_64-unknown-linux-gnu"
-  windows-executor:
-    machine:
-      image: windows-server-2022-gui:current
-    resource_class: windows.medium
-    environment:
-      UV_LINK_MODE: "copy"
-      TAURI_TARGET_TRIPLE: "x86_64-pc-windows-msvc"
 
 jobs:
   validate:
@@ -40,7 +31,7 @@ jobs:
           command: uv sync --all-extras
       - run:
           name: Validate Hydration
-          command: uv run python scripts/ci_orchestrator.py validate --verbose
+          command: uv run python scripts/ci_orchestrator.py validate
       - store_test_results:
           path: tests/
 
@@ -60,7 +51,7 @@ jobs:
           command: uv sync --all-extras
       - run:
           name: Run Linters
-          command: uv run python scripts/ci_orchestrator.py lint --verbose
+          command: uv run python scripts/ci_orchestrator.py lint
       - store_test_results:
           path: tests/
 
@@ -78,7 +69,7 @@ jobs:
           command: uv sync --all-extras
       - run:
           name: Run Tests
-          command: uv run python scripts/ci_orchestrator.py test --verbose
+          command: uv run python scripts/ci_orchestrator.py test
       - store_test_results:
           path: tests/
       - store_artifacts:
@@ -122,17 +113,17 @@ jobs:
           command: |
             mkdir -p ui/src-tauri/binaries
             mkdir -p ui/src-tauri/resources
-            uv run python scripts/ci_orchestrator.py validate --verbose
+            uv run python scripts/ci_orchestrator.py validate
       - run:
           name: Build Backend & Sidecars
-          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-backend --target x86_64-unknown-linux-gnu --verbose
+          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-backend --target x86_64-unknown-linux-gnu
           no_output_timeout: 45m
       - run:
           name: Verify Backend Sidecar
-          command: uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-unknown-linux-gnu --verbose
+          command: uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-unknown-linux-gnu
       - run:
           name: Build Desktop App (DEB)
-          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles deb --verbose
+          command: PYTHONWARNINGS="ignore" uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles deb
           no_output_timeout: 100m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
@@ -162,103 +153,14 @@ jobs:
           path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb
           destination: bundles-deb
 
-  build-linux-rpm:
-    # Lightweight Job: RPM Bundling Only
-    # Attaches workspace from build-linux-deb to avoid redundant compilation.
-    executor: linux-executor
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Install uv
-          command: |
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
-      - run:
-          name: Install Bundling Dependencies
-          command: |
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq rpm libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev
-      - run:
-          name: Setup Rust
-          command: |
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-            echo 'source $HOME/.cargo/env' >> $BASH_ENV
-            source $HOME/.cargo/env
-            rustup target add x86_64-unknown-linux-gnu
-      - node/install:
-          node-version: "24.12.0"
-      - run:
-          name: Install Tauri CLI
-          command: npm install --prefix ui @tauri-apps/cli
-      - run:
-          name: Bundle RPM
-          command: |
-            uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles rpm --skip-before-build --verbose
-          no_output_timeout: 30m
-          environment:
-            GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
-      - store_artifacts:
-          path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/rpm/
-          destination: bundles-rpm
-
-  build-linux-appimage:
-    # Lightweight Job: AppImage Bundling Only
-    # Attaches workspace from build-linux-deb to avoid redundant compilation.
-    executor: linux-executor
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Install Bundling Dependencies
-          command: |
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev libfuse2
-      - run:
-          name: Setup Rust
-          command: |
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-            echo 'source $HOME/.cargo/env' >> $BASH_ENV
-            source $HOME/.cargo/env
-            rustup target add x86_64-unknown-linux-gnu
-      - node/install:
-          node-version: "24.12.0"
-      - run:
-          name: Install Tauri CLI
-          command: npm install --prefix ui @tauri-apps/cli
-      - run:
-          name: Bundle AppImage
-          command: |
-            uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-unknown-linux-gnu --bundles appimage --skip-before-build --verbose
-          no_output_timeout: 30m
-          environment:
-            GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
-            NO_STRIP: "1"
-            APPIMAGE_EXTRACT_AND_RUN: "1"
-      - store_artifacts:
-          path: ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/
-          destination: bundles-appimage
-
-  build-website:
-    executor: linux-executor
-    steps:
-      - checkout
-      - run:
-          name: Install uv
-          command: |
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
-      - node/install:
-          node-version: "24.12.0"
-      - run:
-          name: Build Website
-          command: uv run python scripts/ci_orchestrator.py deploy-website --dry-run --verbose
-      - store_artifacts:
-          path: website/dist
-          destination: website-dist
 
   build-windows:
-    executor: windows-executor
+    executor:
+      name: win/default
+      size: "medium"
+    environment:
+      UV_LINK_MODE: "copy"
+      TAURI_TARGET_TRIPLE: "x86_64-pc-windows-msvc"
     steps:
       - checkout
       - run:
@@ -338,7 +240,7 @@ jobs:
             New-Item -ItemType Directory -Force -Path "ui\src-tauri\binaries"
             New-Item -ItemType Directory -Force -Path "ui\src-tauri\resources"
             $uv = "$HOME\.local\bin\uv.exe"
-            & $uv run python scripts/ci_orchestrator.py validate --verbose
+            & $uv run python scripts/ci_orchestrator.py validate
       - run:
           name: Build Backend & Sidecars
           shell: powershell.exe
@@ -346,15 +248,15 @@ jobs:
             $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
             $uv = "$HOME\.local\bin\uv.exe"
             $env:PYTHONWARNINGS = "ignore"
-            & $uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc --verbose
-          no_output_timeout: 45m
+            & $uv run python scripts/ci_orchestrator.py build-backend --target x86_64-pc-windows-msvc
+          no_output_timeout: 90m
       - run:
           name: Verify Backend Sidecar
           shell: powershell.exe
           command: |
              $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
              $uv = "$HOME\.local\bin\uv.exe"
-             & $uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-pc-windows-msvc --verbose
+             & $uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-pc-windows-msvc
       - run:
           name: Build Desktop App (NSIS)
           shell: powershell.exe
@@ -362,8 +264,8 @@ jobs:
              $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
              $uv = "$HOME\.local\bin\uv.exe"
              $env:PYTHONWARNINGS = "ignore"
-             & $uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis --verbose
-          no_output_timeout: 100m
+             & $uv run python scripts/ci_orchestrator.py build-desktop --target x86_64-pc-windows-msvc --bundles nsis
+          no_output_timeout: 120m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
       # - run:
@@ -372,7 +274,7 @@ jobs:
       #     command: |
       #        $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
       #        $uv = "$HOME\.local\bin\uv.exe"
-      #        & $uv run python scripts/ci_orchestrator.py windows-packages --verbose
+      #        & $uv run python scripts/ci_orchestrator.py windows-packages
       - persist_to_workspace:
           root: .
           paths:
@@ -397,7 +299,6 @@ jobs:
           destination: bundles-nsis
 
 workflows:
-  version: 2
   build-and-test:
     jobs:
       - validate
@@ -416,24 +317,6 @@ workflows:
             branches:
               only:
                 - main
-      # - build-linux-rpm:
-      #     requires:
-      #       - build-linux-deb
-      #     filters:
-      #       tags:
-      #         only: /^v.*/
-      #       branches:
-      #         only:
-      #           - main
-      # - build-linux-appimage:
-      #     requires:
-      #       - build-linux-deb
-      #     filters:
-      #       tags:
-      #         only: /^v.*/
-      #       branches:
-      #         only:
-      #           - main
       - build-windows:
           requires:
             - test
@@ -443,10 +326,3 @@ workflows:
             branches:
               only:
                 - main
-      # - build-website:
-      #     requires:
-      #       - test
-      #     filters:
-      #       branches:
-      #         only:
-      #           - main

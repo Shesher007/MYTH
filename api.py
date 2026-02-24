@@ -1885,6 +1885,27 @@ async def get_settings_keys():
     return mask_recursive(secrets)
 
 
+def strip_masked_recursive(data):
+    """Industrial Grade: Remove masked placeholders from updates to prevent corruption."""
+    if isinstance(data, dict):
+        # Only keep items that aren't masked placeholders
+        cleaned = {}
+        for k, v in data.items():
+            res = strip_masked_recursive(v)
+            if res is not None:
+                cleaned[k] = res
+        return cleaned if cleaned else None
+    elif isinstance(data, list):
+        cleaned = [i for i in (strip_masked_recursive(x) for x in data) if i is not None]
+        return cleaned if cleaned else None
+    elif isinstance(data, str):
+        # Filter out MASKED and ABCD...WXYZ placeholders
+        if data.upper() == "MASKED" or "..." in data:
+            return None
+        return data
+    return data
+
+
 @app.post("/settings/keys")
 async def update_settings_keys(payload: SettingsKeyRequest):
     """Update API keys in SovereignConfig and trigger model reload."""
@@ -1892,20 +1913,30 @@ async def update_settings_keys(payload: SettingsKeyRequest):
 
     # Handle the new structured updates first
     if payload.updates:
-        success = config.update_secrets(payload.updates)
+        cleaned_updates = strip_masked_recursive(payload.updates)
+        if cleaned_updates:
+            success = config.update_secrets(cleaned_updates)
+        else:
+            # Nothing to update after filtering masked values
+            success = True
     else:
         # Fallback to legacy single-key updates for backward compatibility
         legacy_updates = {"ai_providers": {}}
-        if payload.nvidia_api_key:
+        # Note: legacy single-key updates aren't usually masked in the same way by the UI,
+        # but we check anyway for industrial robustness.
+        if payload.nvidia_api_key and "..." not in payload.nvidia_api_key and payload.nvidia_api_key.upper() != "MASKED":
             legacy_updates["ai_providers"]["nvidia"] = {
                 "keys": [payload.nvidia_api_key]
             }
-        if payload.mistral_api_key:
+        if payload.mistral_api_key and "..." not in payload.mistral_api_key and payload.mistral_api_key.upper() != "MASKED":
             legacy_updates["ai_providers"]["mistral"] = {
                 "keys": [payload.mistral_api_key]
             }
 
-        success = config.update_secrets(legacy_updates)
+        if legacy_updates["ai_providers"]:
+            success = config.update_secrets(legacy_updates)
+        else:
+            success = True
 
     if success:
         # Trigger async reload of the reasoning engine

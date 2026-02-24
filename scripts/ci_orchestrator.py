@@ -324,6 +324,8 @@ def stage_build_backend(
         "TAURI_TARGET_TRIPLE": target,
         "UV_LINK_MODE": "copy",
         "MYTH_SILENT_CONFIG": "1",
+        "PYTHONWARNINGS": "ignore",          # Suppress third-party deprecation warnings in PyInstaller
+        "SCAPY_USE_LIBPCAP": "no",           # Suppress 'No libpcap provider' from scapy
     }
 
     # Inject secrets bundle if available
@@ -368,8 +370,8 @@ def stage_build_backend(
 
     # Package
     package_script = os.path.join(SCRIPTS_DIR, "package_python.py")
-    # Build stages SHOULD be verbose to prevent "stuck" perception
-    _run(["uv", "run", package_script], dry_run=dry_run, verbose=True, env=env_extra)
+    # Build stages SHOULD be verbose to prevent "stuck" perception, but respect the flag
+    _run(["uv", "run", "python", package_script], dry_run=dry_run, verbose=verbose, env=env_extra)
 
     print(f"\n  {C.GREEN}[PASS] Backend packaged for {target}{C.RESET}")
     return True
@@ -407,7 +409,7 @@ def stage_build_desktop(
     _run(
         cmd,
         dry_run=dry_run,
-        verbose=True,
+        verbose=verbose,
         cwd=UI_DIR,
         env={"TAURI_TARGET_TRIPLE": target},
     )
@@ -433,7 +435,7 @@ def stage_build_docker(*, dry_run=False, verbose=False, **_):
     except Exception:
         pass
 
-    _run(["docker", "build", "-t", image_name, "."], dry_run=dry_run, verbose=True)
+    _run(["docker", "build", "-t", image_name, "."], dry_run=dry_run, verbose=verbose)
 
     print(f"\n  {C.GREEN}[PASS] Docker image built: {image_name}{C.RESET}")
     return True
