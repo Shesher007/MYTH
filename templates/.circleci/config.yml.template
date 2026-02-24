@@ -167,8 +167,19 @@ jobs:
           name: Install uv
           shell: powershell.exe
           command: irm https://astral.sh/uv/install.ps1 | iex
-      - node/install:
-          node-version: "{{NODE_VERSION}}"
+      - run:
+          name: Install Node.js
+          shell: powershell.exe
+          command: |
+             $NodeVersion = "{{NODE_VERSION}}"
+             Write-Host "Downloading Node.js v$NodeVersion..."
+             Invoke-WebRequest "https://nodejs.org/dist/v$NodeVersion/node-v$NodeVersion-win-x64.zip" -OutFile "node.zip"
+             Expand-Archive node.zip -DestinationPath "$HOME\node_app" -Force
+             $NodePath = "$HOME\node_app\node-v$NodeVersion-win-x64"
+             [Environment]::SetEnvironmentVariable("PATH", "$NodePath;" + [Environment]::GetEnvironmentVariable("PATH", "User"), "User")
+             $env:PATH = "$NodePath;" + $env:PATH
+             node --version
+             npm --version
       - run:
           name: Install Python via uv
           shell: powershell.exe
