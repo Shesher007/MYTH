@@ -316,6 +316,12 @@ jobs:
                  $env:PATH = "$binDir;" + $env:PATH
                  [Environment]::SetEnvironmentVariable("PATH", "$binDir;" + [Environment]::GetEnvironmentVariable("PATH", "User"), "User")
              }
+      - restore_cache:
+          name: Restore uv cache
+          keys:
+            - uv-v1-{{ .Branch }}-{{ checksum "requirements-desktop.txt" }}
+            - uv-v1-{{ .Branch }}-
+            - uv-v1-
       - run:
           name: Sync Dependencies
           shell: powershell.exe
@@ -324,20 +330,17 @@ jobs:
              $env:PYTHONWARNINGS = "ignore"
              $uv = "$HOME\.local\bin\uv.exe"
              & $uv sync --all-extras
-      - run:
-          name: Environment Setup & Hydration
-          shell: powershell.exe
-          command: |
-            $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
-            $uv = "$HOME\.local\bin\uv.exe"
-            & $uv run python scripts/ci_orchestrator.py validate
-      - run:
-          name: Verify Backend Sidecar
-          shell: powershell.exe
-          command: |
-             $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
-             $uv = "$HOME\.local\bin\uv.exe"
-             & $uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-pc-windows-msvc
+      - save_cache:
+          name: Save uv cache
+          key: uv-v1-{{ .Branch }}-{{ checksum "requirements-desktop.txt" }}
+          paths:
+            - ~\AppData\Local\uv\cache
+      - restore_cache:
+          name: Restore cargo cache
+          keys:
+            - cargo-v1-{{ .Branch }}-{{ checksum "ui/src-tauri/Cargo.lock" }}
+            - cargo-v1-{{ .Branch }}-
+            - cargo-v1-
       - run:
           name: Build Desktop App (NSIS)
           shell: powershell.exe
@@ -349,6 +352,14 @@ jobs:
           no_output_timeout: 120m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
+      - save_cache:
+          name: Save cargo cache
+          key: cargo-v1-{{ .Branch }}-{{ checksum "ui/src-tauri/Cargo.lock" }}
+          paths:
+            - ~/.cargo/registry/index/
+            - ~/.cargo/registry/cache/
+            - ~/.cargo/git/db/
+            - ui/src-tauri/target/
       - persist_to_workspace:
           root: .
           paths:

@@ -980,7 +980,7 @@ toml==0.10.2
     # via streamlit
 tomli==2.4.0
     # via myth (pyproject.toml)
-torch==2.10.0
+torch==2.10.0+cpu
     # via
     #   myth (pyproject.toml)
     #   accelerate
@@ -988,9 +988,9 @@ torch==2.10.0
     #   sentence-transformers
     #   torchaudio
     #   torchvision
-torchaudio==2.10.0
+torchaudio==2.10.0+cpu
     # via myth (pyproject.toml)
-torchvision==0.25.0
+torchvision==0.25.0+cpu
     # via myth (pyproject.toml)
 tornado==6.5.4
     # via streamlit
