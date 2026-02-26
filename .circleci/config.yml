@@ -154,10 +154,10 @@ jobs:
           destination: bundles-deb
 
 
-  build-windows:
+  build-windows-backend:
     executor:
       name: win/default
-      size: "medium"
+      size: "large"
     environment:
       UV_LINK_MODE: "copy"
       TAURI_TARGET_TRIPLE: "x86_64-pc-windows-msvc"
@@ -187,13 +187,11 @@ jobs:
              $uv = "$HOME\.local\bin\uv.exe"
              & $uv python install 3.13.11
              & $uv venv
-             # Add to machine path for persistence across sessions if possible
              [Environment]::SetEnvironmentVariable("PATH", "$env:PATH;$HOME\.local\bin", "User")
       - run:
           name: Setup Rust
           shell: powershell.exe
           command: |
-             # Logic for hyper-resilient toolchain discovery
              function Get-RustupPath {
                  $paths = @(
                      (Join-Path $env:USERPROFILE ".cargo\bin\rustup.exe"),
@@ -203,37 +201,18 @@ jobs:
                  foreach ($p in $paths) { if (Test-Path $p) { return $p } }
                  return $null
              }
-
              $rustup = Get-RustupPath
              if ($null -eq $rustup) {
-                 Write-Host "Rustup not detected. Initiating clean installation..."
                  Invoke-WebRequest -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile "rustup-init.exe"
-                 # Use Start-Process with -Wait for synchronous high-integrity installation
                  Start-Process -FilePath ".\rustup-init.exe" -ArgumentList "-y", "--default-host", "x86_64-pc-windows-msvc", "--default-toolchain", "stable", "--no-modify-path" -Wait
                  Remove-Item "rustup-init.exe"
                  $rustup = Get-RustupPath
              }
-
              if ($null -ne $rustup) {
-                 Write-Host "Found rustup at: $rustup"
                  & $rustup target add x86_64-pc-windows-msvc
-                 
-                 # Force PATH injection for the current process and user profile
                  $binDir = Split-Path $rustup
                  $env:PATH = "$binDir;" + $env:PATH
                  [Environment]::SetEnvironmentVariable("PATH", "$binDir;" + [Environment]::GetEnvironmentVariable("PATH", "User"), "User")
-                 
-                 Write-Host "Verifying Rust Target visibility..."
-                 & rustc --print target-libdir --target x86_64-pc-windows-msvc
-                 if ($LASTEXITCODE -ne 0) {
-                     Write-Error "FAILURE: Rust target x86_64-pc-windows-msvc is not visible to rustc."
-                     exit 1
-                 }
-                 
-                 Write-Host "Rust toolchain initialized successfully."
-             } else {
-                 Write-Error "CRITICAL: Rustup installation failed or binary unreachable."
-                 exit 1
              }
       - run:
           name: Sync Dependencies
@@ -268,6 +247,97 @@ jobs:
              $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
              $uv = "$HOME\.local\bin\uv.exe"
              & $uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-pc-windows-msvc
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ui/src-tauri/binaries/
+            - ui/src-tauri/resources/
+            - governance/
+
+  build-windows-desktop:
+    executor:
+      name: win/default
+      size: "large"
+    environment:
+      UV_LINK_MODE: "copy"
+      TAURI_TARGET_TRIPLE: "x86_64-pc-windows-msvc"
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install uv
+          shell: powershell.exe
+          command: irm https://astral.sh/uv/install.ps1 | iex
+      - run:
+          name: Install Node.js
+          shell: powershell.exe
+          command: |
+             $NodeVersion = "24.12.0"
+             Write-Host "Downloading Node.js v$NodeVersion..."
+             Invoke-WebRequest "https://nodejs.org/dist/v$NodeVersion/node-v$NodeVersion-win-x64.zip" -OutFile "node.zip"
+             Expand-Archive node.zip -DestinationPath "$HOME\node_app" -Force
+             $NodePath = "$HOME\node_app\node-v$NodeVersion-win-x64"
+             [Environment]::SetEnvironmentVariable("PATH", "$NodePath;" + [Environment]::GetEnvironmentVariable("PATH", "User"), "User")
+             $env:PATH = "$NodePath;" + $env:PATH
+             node --version
+             npm --version
+      - run:
+          name: Install Python via uv
+          shell: powershell.exe
+          command: |
+             $uv = "$HOME\.local\bin\uv.exe"
+             & $uv python install 3.13.11
+             & $uv venv
+             [Environment]::SetEnvironmentVariable("PATH", "$env:PATH;$HOME\.local\bin", "User")
+      - run:
+          name: Setup Rust
+          shell: powershell.exe
+          command: |
+             function Get-RustupPath {
+                 $paths = @(
+                     (Join-Path $env:USERPROFILE ".cargo\bin\rustup.exe"),
+                     (Join-Path $HOME ".cargo\bin\rustup.exe"),
+                     "C:\Users\circleci\.cargo\bin\rustup.exe"
+                 )
+                 foreach ($p in $paths) { if (Test-Path $p) { return $p } }
+                 return $null
+             }
+             $rustup = Get-RustupPath
+             if ($null -eq $rustup) {
+                 Invoke-WebRequest -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile "rustup-init.exe"
+                 Start-Process -FilePath ".\rustup-init.exe" -ArgumentList "-y", "--default-host", "x86_64-pc-windows-msvc", "--default-toolchain", "stable", "--no-modify-path" -Wait
+                 Remove-Item "rustup-init.exe"
+                 $rustup = Get-RustupPath
+             }
+             if ($null -ne $rustup) {
+                 & $rustup target add x86_64-pc-windows-msvc
+                 $binDir = Split-Path $rustup
+                 $env:PATH = "$binDir;" + $env:PATH
+                 [Environment]::SetEnvironmentVariable("PATH", "$binDir;" + [Environment]::GetEnvironmentVariable("PATH", "User"), "User")
+             }
+      - run:
+          name: Sync Dependencies
+          shell: powershell.exe
+          command: |
+             $env:PATH += ";$env:USERPROFILE\.cargo\bin"
+             $env:PYTHONWARNINGS = "ignore"
+             $uv = "$HOME\.local\bin\uv.exe"
+             & $uv sync --all-extras
+      - run:
+          name: Environment Setup & Hydration
+          shell: powershell.exe
+          command: |
+            $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
+            $uv = "$HOME\.local\bin\uv.exe"
+            & $uv run python scripts/ci_orchestrator.py validate
+      - run:
+          name: Verify Backend Sidecar
+          shell: powershell.exe
+          command: |
+             $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
+             $uv = "$HOME\.local\bin\uv.exe"
+             & $uv run python scripts/ci_orchestrator.py verify-sidecar --target x86_64-pc-windows-msvc
       - run:
           name: Build Desktop App (NSIS)
           shell: powershell.exe
@@ -279,13 +349,6 @@ jobs:
           no_output_timeout: 120m
           environment:
             GITHUB_TOKEN: ${CUSTOM_DEPLOY_TOKEN}
-      # - run:
-      #     name: Generate Windows Portable Package
-      #     shell: powershell.exe
-      #     command: |
-      #        $env:PATH += ";$env:USERPROFILE\.cargo\bin;$HOME\.local\bin"
-      #        $uv = "$HOME\.local\bin\uv.exe"
-      #        & $uv run python scripts/ci_orchestrator.py windows-packages
       - persist_to_workspace:
           root: .
           paths:
@@ -328,9 +391,18 @@ workflows:
             branches:
               only:
                 - main
-      - build-windows:
+      - build-windows-backend:
           requires:
             - test
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only:
+                - main
+      - build-windows-desktop:
+          requires:
+            - build-windows-backend
           filters:
             tags:
               only: /^v.*/

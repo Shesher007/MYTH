@@ -60,7 +60,7 @@ dependencies = [
     "faker",
     "xmltodict",
     "audioop-lts; python_version >= '3.13'",
-    "oauth2client<4.0.0",
+    "oauth2client==3.0.0",
     "jsonschema",
 ]
 
